@@ -1,12 +1,14 @@
-import unittest
+
 import pytest
 from CAETask import APDLTask
-import os
 from threading import Lock
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import as_completed
 
 lock = Lock()
-completed = 0
-total_tasks = 0
+# completed = 0
+# total_tasks = 0
 
 
 class TestAPDLTask:
@@ -18,6 +20,7 @@ class TestAPDLTask:
     @pytest.mark.positive
     @pytest.mark.solve
     def test_apdl_solve(self, capsys):
+        expected_result = "test text from ansys\n"
         with open("test.inp", "w") as file:
             file.write("/batch\n")
             file.write("*dim,text,string,32,1\n")
@@ -34,7 +37,7 @@ class TestAPDLTask:
 
         with open("text_file_from_ansys.dat", "r") as file:
             line_from_test_file = file.readline()
-        assert line_from_test_file, "test text from ansys\n"
+        assert line_from_test_file == expected_result
 
     @pytest.mark.positive
     @pytest.mark.solve
@@ -48,8 +51,48 @@ class TestAPDLTask:
     @pytest.mark.positive
     @pytest.mark.solve
     @pytest.mark.input_parameters
-    def test_apdl_multitask(self, capsys):
-        pass
+    def test_apdl_multitask_prod(self, capsys):
+        tasks = []  # список параллельных решаемых задач
+        input_data = (('1', 1), ('2', 2))
+        expected_results = (3, 6)
+
+        def create_task(index):
+            with open("test.inp", "w") as file:
+                file.write("/batch\n")
+                file.write("*cfopen,task" + input_data[index][0] + "_text_file,dat\n")
+                file.write("*vwrite," + str(input_data[index][1]) + "*3\n")
+                file.write("%I\n")
+                file.write("*cfclos\n")
+            task = APDLTask('test')
+            task.input_file = 'test.inp'
+            task.results_files_names = ["task" + input_data[index][0] + "_text_file.dat"]
+            with lock:
+                tasks.append(task)
+
+        futures = []
+        # with ThreadPoolExecutor(max_workers=10) as executor:
+        with ProcessPoolExecutor(max_workers=10) as executor:
+            for index in range(len(input_data)):
+                futures.append(executor.submit(create_task(index)))
+
+        total_tasks = len(tasks)
+        completed = 0
+        total_tasks = 0
+        def completed_callback(future):
+            global completed, total_tasks, lock
+            with lock:
+                completed += 1
+                print("завершена задача в " + future.result().results_dir_path +
+                      " осталось " + str(total_tasks - completed) + " задач")        #
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(task.solve) for task in tasks]
+            for future in as_completed(futures):
+                future.add_done_callback(completed_callback)
+
+        for input, expected_result in zip(input_data, expected_results):
+            with open("task" + input[0] + "_text_file.dat", "r") as file:
+                actual_result = int(file.readline())
+            assert actual_result == expected_result
 
     @pytest.mark.negative
     @pytest.mark.solve
