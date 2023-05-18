@@ -141,11 +141,12 @@ class APDLTask(CAETask):
         tempdir = tempfile.TemporaryDirectory()
         # os.chdir(tempdir.name)
 
-        # %TODO если сработает, то добавить тут такую же систему как в additional files
-        with open(tempdir.name + "\\" + os.path.basename(self.__parameters_file), 'w') as f:
-            f.writelines(self.__parameters_file_code)
-        with open(tempdir.name + "\\" + os.path.basename(self.__input_file), 'w') as f:
-            f.writelines(self.__input_file_code)
+        if self.__parameters_file:
+            with open(tempdir.name + "\\" + os.path.basename(self.__parameters_file), 'w') as f:
+                f.writelines(self.__parameters_file_code)
+        if self.__input_file:
+            with open(tempdir.name + "\\" + os.path.basename(self.__input_file), 'w') as f:
+                f.writelines(self.__input_file_code)
 
         for file in self.__additional_files:
             with open(tempdir.name + "\\" + os.path.basename(file[0]), 'w') as f:
@@ -200,7 +201,7 @@ class APDLTask(CAETask):
                   os.path.basename(self.__input_file) + "\"" +
                   " во временной директории " +
                   os.path.basename(tempdir.name))
-        elif self.__process_type == 'parallel':  # %TODO убрать
+        elif self.__process_type == 'parallel':
             # при создании процесса список application превращается в строку
             self.__process = Popen(' '.join(application), shell=True)
 
@@ -387,8 +388,6 @@ class FluentTask(CAETask):
         return self.__task_name
 
     def __str__(self):
-        # TODO сделать функция считывания параметров fluent не из scm, или из xml, или json, или что-то ещё
-        # TODO допилить импорт геометрии через параметр geometry_file_name
         output = ''
         output += 'имя задачи: ' + self.__task_name + '\n'
         output += 'исполняемый файл: ' + self.__input_file + '\n'
@@ -639,7 +638,6 @@ class CFDPostTask(CAETask):
 
         print("запущен расчёт fluent задачи \"" + self.__input_file + "\"")
         # составляем список команд и аттрибутов для запуска
-        # %TODO дописать параллельный запуск приложений FluentTask
         application = ['\"%AWP_ROOT' + self.__application_version
                        + '%\\fluent\\ntbin\\win64\\fluent.exe\"',
                        self.__dimension,
@@ -751,7 +749,6 @@ class CFDPostTask(CAETask):
 
         print("запущен расчёт fluent задачи \"" + self.__input_file + "\"")
         # составляем список команд и аттрибутов для запуска
-        # %TODO дописать параллельный запуск приложений CFDPost
         application = ['\"%AWP_ROOT' + self.__application_version
                        + '%\\CFD-Post\\bin\\cfdpost.exe\"',
                        '-batch', self.__input_file,
