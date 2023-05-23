@@ -8,7 +8,12 @@ from concurrent.futures import as_completed
 
 lock = Lock()
 
-input_data = (('1', 1), ('2', 2))
+
+def setup_method():
+    pass
+
+
+input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5))
 
 
 def create_task(index):  # задаётся пользователем
@@ -24,7 +29,7 @@ def create_task(index):  # задаётся пользователем
         file.write("num=" + str(num_par))
 
     task = APDLTask('test')
-    task.input_file = 'test.inp'  # tmp_inp_file  #
+    task.input_file = 'test.inp'
     task.parameters_file = os.path.join(tempdir, "test.parm")
     task.results_files_names = ["task" + str(num_par) + "_text_file.dat"]
     return task
@@ -32,10 +37,6 @@ def create_task(index):  # задаётся пользователем
 
 def solve_task(task):
     task.solve()
-
-
-# class TestAPDLTask:
-# global lock, completed, total_tasks
 
 
 @pytest.mark.positive
@@ -56,6 +57,36 @@ def test_apdl_multitask_prod(tmpdir, capsys):
 
     tasks = run_processes(create_task, [0, 1])  # список параллельных решаемых задач
     run_threads(solve_task, tasks)
+
+    for input_sample, expected_result in zip(input_data, expected_results):
+        with open("task" + input_sample[0] + "_text_file.dat", "r") as file:
+            actual_result = int(file.readline())
+        assert actual_result == expected_result
+
+
+# class TestAPDLTask:
+# global lock, completed, total_tasks
+
+@pytest.mark.positive
+@pytest.mark.solve
+@pytest.mark.input_parameters
+def test_apdl_multitask_callback(tmpdir, capsys):
+    global input_data
+
+    expected_results = (3, 6, 9, 12, 15)
+
+    os.chdir(tmpdir)
+
+    with open("test.inp", "w") as file:
+        file.write("/batch\n")
+        file.write("parres,change,test,parm\n")
+        file.write("*cfopen,task%num%_text_file,dat\n")
+        file.write("*vwrite,num*3\n")
+        file.write("%I\n")
+        file.write("*cfclos\n")
+
+    tasks = run_processes(create_task, [0, 1, 2, 3, 4], max_workers=2)  # список параллельных решаемых задач
+    run_threads(solve_task, tasks, max_workers=2)
 
     # future = executor.submit(create_task(index))
     # result = future.result #()
@@ -88,10 +119,6 @@ def test_apdl_multitask_prod(tmpdir, capsys):
         with open("task" + input_sample[0] + "_text_file.dat", "r") as file:
             actual_result = int(file.readline())
         assert actual_result == expected_result
-
-
-def setup_method():
-    pass
 
 
 @pytest.fixture(scope="session")
