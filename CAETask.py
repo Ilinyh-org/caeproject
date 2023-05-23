@@ -1,7 +1,51 @@
+import os
 import shutil
 from abc import ABCMeta, abstractmethod
-import os
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import as_completed
+from threading import Lock
+
+lock = Lock()
+total_tasks = 0
+completed = 0
+
+
+def run_processes(task, data, max_workers=10):
+    global completed, total_tasks
+    executor = ProcessPoolExecutor(max_workers=max_workers)
+    results = []
+    futures = [executor.submit(task, sample) for sample in data]
+    total_tasks = len(futures)
+    for future in as_completed(futures):
+        future.add_done_callback(completed_callback)
+        with lock:
+            results.append(future.result())
+    return results
+
+
+def run_threads(task, data, max_workers=5):
+    global completed, total_tasks
+    executor = ThreadPoolExecutor(max_workers=max_workers)
+    results = []
+    futures = [executor.submit(task, sample) for sample in data]
+    total_tasks = len(futures)
+    for future in as_completed(futures):
+        future.add_done_callback(completed_callback)
+        with lock:
+            results.append(future.result())
+    return results
+
+
+def completed_callback(future):
+    global completed, total_tasks, lock
+    with lock:
+        completed += 1
+    print("завершена задача в " +
+          future.result().results_dir_path +
+          " осталось задач: " +
+          str(total_tasks - completed))
 
 
 class CAETask:
@@ -141,11 +185,12 @@ class APDLTask(CAETask):
         tempdir = tempfile.TemporaryDirectory()
         # os.chdir(tempdir.name)
 
-        # %TODO если сработает, то добавить тут такую же систему как в additional files
-        with open(tempdir.name + "\\" + os.path.basename(self.__parameters_file), 'w') as f:
-            f.writelines(self.__parameters_file_code)
-        with open(tempdir.name + "\\" + os.path.basename(self.__input_file), 'w') as f:
-            f.writelines(self.__input_file_code)
+        if self.__parameters_file:
+            with open(tempdir.name + "\\" + os.path.basename(self.__parameters_file), 'w') as f:
+                f.writelines(self.__parameters_file_code)
+        if self.__input_file:
+            with open(tempdir.name + "\\" + os.path.basename(self.__input_file), 'w') as f:
+                f.writelines(self.__input_file_code)
 
         for file in self.__additional_files:
             with open(tempdir.name + "\\" + os.path.basename(file[0]), 'w') as f:
@@ -200,7 +245,7 @@ class APDLTask(CAETask):
                   os.path.basename(self.__input_file) + "\"" +
                   " во временной директории " +
                   os.path.basename(tempdir.name))
-        elif self.__process_type == 'parallel':  # %TODO убрать
+        elif self.__process_type == 'parallel':
             # при создании процесса список application превращается в строку
             self.__process = Popen(' '.join(application), shell=True)
 
@@ -387,8 +432,6 @@ class FluentTask(CAETask):
         return self.__task_name
 
     def __str__(self):
-        # TODO сделать функция считывания параметров fluent не из scm, или из xml, или json, или что-то ещё
-        # TODO допилить импорт геометрии через параметр geometry_file_name
         output = ''
         output += 'имя задачи: ' + self.__task_name + '\n'
         output += 'исполняемый файл: ' + self.__input_file + '\n'
@@ -639,7 +682,6 @@ class CFDPostTask(CAETask):
 
         print("запущен расчёт fluent задачи \"" + self.__input_file + "\"")
         # составляем список команд и аттрибутов для запуска
-        # %TODO дописать параллельный запуск приложений FluentTask
         application = ['\"%AWP_ROOT' + self.__application_version
                        + '%\\fluent\\ntbin\\win64\\fluent.exe\"',
                        self.__dimension,
@@ -751,7 +793,6 @@ class CFDPostTask(CAETask):
 
         print("запущен расчёт fluent задачи \"" + self.__input_file + "\"")
         # составляем список команд и аттрибутов для запуска
-        # %TODO дописать параллельный запуск приложений CFDPost
         application = ['\"%AWP_ROOT' + self.__application_version
                        + '%\\CFD-Post\\bin\\cfdpost.exe\"',
                        '-batch', self.__input_file,

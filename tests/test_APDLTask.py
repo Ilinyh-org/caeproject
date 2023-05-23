@@ -1,110 +1,177 @@
-import unittest
-import pytest
-from CAETask import APDLTask
 import os
+import pytest
+from CAETask import APDLTask, run_threads, run_processes
 from threading import Lock
 
 lock = Lock()
-completed = 0
-total_tasks = 0
 
-class TestAPDLTask:
-    global lock, completed, total_tasks
 
-    def setup_method(self):
-        pass
+def setup_method():
+    pass
 
-    @pytest.mark.datatypes
-    def test_integer(self, capsys):
-        input_data = '1456'
-        expected_result = '(INTEGER,\'1456\',2,0)\n'
 
-        klex.run(input_data)
-        actual_result = capsys.readouterr().out
+input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5))
+
+
+def create_task(index):  # задаётся пользователем
+    global input_data
+
+    task_num = input_data[index][0]
+    num_par = input_data[index][1]
+
+    tempdir = "temp" + task_num
+    os.mkdir(tempdir)
+
+    with open(os.path.join(tempdir, "test.parm"), "w") as file:
+        file.write("num=" + str(num_par))
+
+    task = APDLTask('test')
+    task.input_file = 'test.inp'
+    task.parameters_file = os.path.join(tempdir, "test.parm")
+    task.results_files_names = ["task" + str(num_par) + "_text_file.dat"]
+    return task
+
+
+def solve_task(task):
+    task.solve()
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+@pytest.mark.input_parameters
+def test_apdl_multitask_prod(tmpdir, capsys):
+    expected_results = (3, 6)
+
+    os.chdir(tmpdir)
+
+    with open("test.inp", "w") as file:
+        file.write("/batch\n")
+        file.write("parres,change,test,parm\n")
+        file.write("*cfopen,task%num%_text_file,dat\n")
+        file.write("*vwrite,num*3\n")
+        file.write("%I\n")
+        file.write("*cfclos\n")
+
+    tasks = run_processes(create_task, [0, 1])  # список параллельных решаемых задач
+    run_threads(solve_task, tasks)
+
+    for input_sample, expected_result in zip(input_data, expected_results):
+        with open("task" + input_sample[0] + "_text_file.dat", "r") as file:
+            actual_result = int(file.readline())
         assert actual_result == expected_result
 
 
-        XMLConv.toapdl('trubki.xml', ['materials', 'geometry', 'mesh', 'bc', 'solver'], 'trubki.parm', 'w')
-        task = APDLTask('trubki')
-        task.input_file = wd_path + "\\" + '__mem_glad_test.DAT'
-        task.parameters_file = wd_path + "\\" + resdir + "\\" + 'trubki.parm'
-        task.log_file = wd_path + "\\" + resdir + "\\" + 'log_trubki.log'
-        task.results_dir_path = wd_path + "\\" + resdir
-        task.application_version = '212'
-        task.cores = 4
-        # task.additional_files = [wd_path + "\\" + "prop_visc_gyp.dat",
-        #                          wd_path + "\\" + "atg.out",
-        #                          wd_path + "\\" + "bet.out",
-        #                          wd_path + "\\" + "c.out",
-        #                          wd_path + "\\" + "e80.out",
-        #                          wd_path + "\\" + "moon120.out",
-        #                          wd_path + "\\" + "moon140.out",
-        #                          wd_path + "\\" + "moon160.out"]
-        # task.results_files_names = ["RESULT_PRES.CSV",
-        #                             "MEM_G.db",
-        #                             "MEM_G.rst",
-        #                             "trubki0.err",
-        #                             "trubki1.err"]
-        with lock:
-            tasks.append(task)
-        return 0
+# class TestAPDLTask:
+# global lock, completed, total_tasks
 
-        def completed_callback(future):
-            global completed, total_tasks, lock
-            with lock:
-                completed += 1
-                print("завершена задача в " + future.result().results_dir_path +
-                      " осталось " + str(total_tasks - completed) + " задач")
-        #
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [executor.submit(task.solve) for task in tasks]
-            for future in as_completed(futures):
-                future.add_done_callback(completed_callback)
+@pytest.mark.positive
+@pytest.mark.solve
+@pytest.mark.input_parameters
+def test_apdl_multitask_callback(tmpdir, capsys):
+    global input_data
 
-        print("--- расчёты шли %s секунд ---" % (time.time() - start_time))
+    expected_results = (3, 6, 9, 12, 15)
 
-        return 0
+    os.chdir(tmpdir)
+
+    with open("test.inp", "w") as file:
+        file.write("/batch\n")
+        file.write("parres,change,test,parm\n")
+        file.write("*cfopen,task%num%_text_file,dat\n")
+        file.write("*vwrite,num*3\n")
+        file.write("%I\n")
+        file.write("*cfclos\n")
+
+    tasks = run_threads(create_task, [0, 1, 2, 3, 4], max_workers=2)  # список параллельных решаемых задач
+    run_threads(solve_task, tasks, max_workers=2)
+
+    for input_sample, expected_result in zip(input_data, expected_results):
+        with open("task" + input_sample[0] + "_text_file.dat", "r") as file:
+            actual_result = int(file.readline())
+        assert actual_result == expected_result
 
 
-# class TestAPDLTask(unittest.TestCase):
-#     def setUp(self):
-#         os.chdir(os.environ.get('USERPROFILE'))
-#         if os.path.isfile("text_file_from_ansys.dat"):
-#             os.remove("text_file_from_ansys.dat")
-#         if os.path.isfile("test.inp"):
-#             os.remove("test.inp")
-#
-#     def test_apdl_task_start(self):
-#         with open("test.inp", "w") as file:
-#             file.write("/batch\n")
-#             file.write("*dim,text,string,32,1\n")
-#             file.write("text(1)=\'test text from ansys\'\n")
-#             file.write("*cfopen,text_file_from_ansys,dat\n")
-#             file.write("*vwrite,text(1)\n")
-#             file.write("%C\n")
-#             file.write("*cfclos\n")
-#
-#         task1 = APDLTask('test')
-#         task1.input_file = 'test.inp'
-#         task1.solve()
-#
-#         with open("text_file_from_ansys.dat", "r") as file:
-#             line_from_test_file = file.readline()
-#         self.assertEqual(line_from_test_file, "test text from ansys\n")
-#
-#     def tearDown(self) -> None:
-#         os.chdir(os.environ.get('USERPROFILE'))
-#         if os.path.isfile("text_file_from_ansys.dat"):
-#             os.remove("text_file_from_ansys.dat")
-#         if os.path.isfile("test.inp"):
-#             os.remove("test.inp")
-#         if os.path.isfile("test.err"):
-#             os.remove("test.err")
-#         if os.path.isfile("test.log"):
-#             os.remove("test.log")
-#         if os.path.isfile("test.db"):
-#             os.remove("test.db")
-#
-#
-# if __name__ == '__main__':
-#     unittest.main()
+@pytest.fixture(scope="session")
+def apdl_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test.inp"
+    with open(fn, "w") as file:
+        file.write("/batch\n")
+        file.write("*dim,text,string,32,1\n")
+        file.write("text(1)=\'test text from ansys\'\n")
+        file.write("*cfopen,text_file_from_ansys,dat\n")
+        file.write("*vwrite,text(1)\n")
+        file.write("%C\n")
+        file.write("*cfclos\n")
+    return fn
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_apdl_solve(tmpdir, apdl_file, capsys):
+    os.chdir(tmpdir)
+
+    expected_result = "test text from ansys\n"
+
+    task = APDLTask('test')
+    task.input_file = apdl_file
+    task.results_files_names = ["text_file_from_ansys.dat"]
+    task.solve()
+
+    with open("text_file_from_ansys.dat", "r") as file:
+        line_from_test_file = file.readline()
+    assert line_from_test_file == expected_result
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+@pytest.mark.input_parameters
+@pytest.mark.parametrize("input_data,expected_result",
+                         [(1, 3.14),
+                          (10, 31.4)])
+def test_apdl_calc_geom_vol(input_data, expected_result, capsys):
+    pass
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+@pytest.mark.input_parameters
+def test_apdl_two_tasks_sum(tmpdir, capsys):
+    os.chdir(tmpdir)
+
+    expected_results = (3, 6)
+    with open("test1.inp", "w") as file:
+        file.write("/batch\n")
+        file.write("*cfopen,task1_text_file,dat\n")
+        file.write("*vwrite,1+2\n")
+        file.write("%I\n")
+        file.write("*cfclos\n")
+    with open("test2.inp", "w") as file:
+        file.write("/batch\n")
+        file.write("*cfopen,task2_text_file,dat\n")
+        file.write("*vwrite,3+3\n")
+        file.write("%I\n")
+        file.write("*cfclos\n")
+
+    task1 = APDLTask('test1')
+    task1.input_file = 'test1.inp'
+    task1.results_files_names = ["task1_text_file.dat"]
+    task2 = APDLTask('test2')
+    task2.input_file = 'test2.inp'
+    task2.results_files_names = ["task2_text_file.dat"]
+
+    task1.solve()
+    task2.solve()
+
+    with open("task1_text_file.dat", "r") as f:
+        actual_result = int(f.readline())
+        assert actual_result == expected_results[0]
+    with open("task2_text_file.dat", "r") as f:
+        actual_result = int(f.readline())
+        assert actual_result == expected_results[1]
+
+
+@pytest.mark.negative
+@pytest.mark.solve
+@pytest.mark.error_file
+def test_apdl_error(capsys):
+    pass
