@@ -2,6 +2,31 @@ import shutil
 from abc import ABCMeta, abstractmethod
 import os
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
+from threading import Lock
+
+lock = Lock()
+
+
+def run_processes(task, data, max_workers=10):  # часть модуля CAETask
+    executor = ProcessPoolExecutor(max_workers=max_workers)
+    # for index in range(3):
+    #     executor.submit(create_task(index))
+    results = []
+    for result in executor.map(task, data):
+        with lock:
+            results.append(result)
+    return results
+
+
+def run_threads(task, data, max_workers=5):  # часть модуля CAETask
+    executor = ThreadPoolExecutor(max_workers=max_workers)
+    results = []
+    for result in executor.map(task, data):
+        with lock:
+            results.append(result)
+    return results
 
 
 class CAETask:
