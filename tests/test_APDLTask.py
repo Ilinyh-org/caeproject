@@ -1,10 +1,7 @@
 import os
-from time import sleep
-
 import pytest
 from CAETask import APDLTask, run_threads, run_processes
 from threading import Lock
-from concurrent.futures import as_completed
 
 lock = Lock()
 
@@ -85,36 +82,9 @@ def test_apdl_multitask_callback(tmpdir, capsys):
         file.write("%I\n")
         file.write("*cfclos\n")
 
-    tasks = run_processes(create_task, [0, 1, 2, 3, 4], max_workers=2)  # список параллельных решаемых задач
+    tasks = run_threads(create_task, [0, 1, 2, 3, 4], max_workers=2)  # список параллельных решаемых задач
     run_threads(solve_task, tasks, max_workers=2)
 
-    # future = executor.submit(create_task(index))
-    # result = future.result #()
-    # print(result)
-    # try:
-    #     # get the result from the task
-    #     result = future.result(timeout=4)
-    #     # report the result
-    #     print(result)
-    # except TimeoutError:
-    #     print('Waited too long for a result')
-
-    # total_tasks = len(tasks)
-    # completed = 0
-    # total_tasks = 0
-    # 3
-    # def completed_callback(future):
-    #     global completed, total_tasks, lock
-    #     with lock:
-    #         completed += 1
-    #         print("завершена задача в " + future.result().results_dir_path +
-    #               " осталось " + str(total_tasks - completed) + " задач")
-    # 2
-    # with ThreadPoolExecutor(max_workers=5) as executor:
-    #     futures = [executor.submit(task.solve) for task in tasks]
-    #     for future in as_completed(futures):
-    #         future.add_done_callback(completed_callback)
-    # 4
     for input_sample, expected_result in zip(input_data, expected_results):
         with open("task" + input_sample[0] + "_text_file.dat", "r") as file:
             actual_result = int(file.readline())
@@ -168,7 +138,6 @@ def test_apdl_calc_geom_vol(input_data, expected_result, capsys):
 def test_apdl_two_tasks_sum(tmpdir, capsys):
     os.chdir(tmpdir)
 
-    tasks = []  # список параллельных решаемых задач
     expected_results = (3, 6)
     with open("test1.inp", "w") as file:
         file.write("/batch\n")
