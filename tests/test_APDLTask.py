@@ -1,6 +1,6 @@
 import os
 import pytest
-from caetask.caetask import run_threads, run_processes
+from caetask import run_processes, run_threads
 from caetask import APDLTask
 from threading import Lock
 

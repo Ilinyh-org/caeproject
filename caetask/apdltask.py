@@ -17,9 +17,9 @@ class APDLTask(CAETask):
         self.__results_files_names = []
         self.__additional_files = []
         self.__additional_files_codes = []
-        self.__results_dir_path = '../'
+        self.__results_dir_path = './'
         self.__geometry_file_name = ''
-        self.__working_directory_path = '../'
+        self.__working_directory_path = './'
         self.__application_version = "212"
         self.__cores = '2'
         self.__new_parameter_name = None

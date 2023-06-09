@@ -28,7 +28,7 @@ Python script, that run the code:
 
 ```python
 
-from caetask.apdltask import APDLTask
+from caetask import APDLTask
 
 task = APDLTask('test')
 task.input_file = 'test.inp'
@@ -64,8 +64,8 @@ parres,change,test,parm
 Python script, that run the code:
 
 ```python
-from caetask.caetask import run_threads
-from caetask.apdltask import APDLTask
+
+from caetask import run_threads, APDLTask
 
 input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5))
 
