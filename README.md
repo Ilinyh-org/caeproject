@@ -1,4 +1,4 @@
-# CAETask
+# caetask
 
 Run CAE applications from python script
 
@@ -25,8 +25,10 @@ text(1)=\'test text from ansys\'
 *cfclos
 ```
 Python script, that run the code:
+
 ```python
-from CAETask import APDLTask
+
+from caetask.apdltask import APDLTask
 
 task = APDLTask('test')
 task.input_file = 'test.inp'
@@ -60,10 +62,13 @@ parres,change,test,parm
 *cfclos
 ```
 Python script, that run the code:
+
 ```python
-from CAETask import APDLTask, run_threads
+from caetask.caetask import run_threads
+from caetask.apdltask import APDLTask
 
 input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5))
+
 
 def create_task(index):
     global input_data
@@ -71,7 +76,7 @@ def create_task(index):
     task_num = input_data[index][0]
     num_par = input_data[index][1]
     parm_file = "test" + task_num + ".parm"
-    
+
     with open(parm_file, "w") as file:
         file.write("num=" + str(num_par))
 
@@ -81,8 +86,10 @@ def create_task(index):
     task.results_files_names = ["task" + str(num_par) + "_text_file.dat"]
     return task
 
+
 def solve_task(task):
     task.solve()
+
 
 tasks = run_threads(create_task, [0, 1, 2, 3, 4], max_workers=2)
 run_threads(solve_task, tasks, max_workers=2)
