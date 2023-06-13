@@ -22,16 +22,16 @@ maintainers = [
   {name = "Gleb Ilinyh", email = "gleb@ilinyh.ru" } # Optional
 ]
 
-dependencies = [ # Optional
-  "concurrent",
-  "threading",
-  "abc",
-  "tempfile"
-]
+#dependencies = [ # Optional
+#  "concurrent",
+#  "threading",
+#  "abc",
+#  "tempfile"
+#]
 
-[project.optional-dependencies] # Optional
-dev = []
-test = ["pytest"]
+#[project.optional-dependencies] # Optional
+#dev = []
+#test = ["pytest"]
 
 [project.urls]  # Optional
 "Homepage" = "http://gitea.ad.vmm.pstu.ru/IlinykhGV/caetask"
