@@ -1,5 +1,5 @@
 import unittest
-from CAETask import FluentTask
+from caetask.caetask import FluentTask
 import os
 
 

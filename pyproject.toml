@@ -1,0 +1,48 @@
+[project]
+
+name = "caetask"  # Required
+
+version = "0.1.0"  # Required
+
+description = "A module for run CAE applications from python script"  # Optional
+
+eadme = "README.md" # Optional
+
+requires-python = ">=3.7"
+
+license = {file = "LICENSE.txt"}
+
+keywords = ["cae", "script", "mechanical"]  # Optional
+
+authors = [
+  {name = "Gleb Ilinyh", email = "gleb@ilinyh.ru" } # Optional
+]
+
+maintainers = [
+  {name = "Gleb Ilinyh", email = "gleb@ilinyh.ru" } # Optional
+]
+
+dependencies = [ # Optional
+  "concurrent",
+  "threading",
+  "abc",
+  "tempfile"
+]
+
+[project.optional-dependencies] # Optional
+dev = []
+test = ["pytest"]
+
+[project.urls]  # Optional
+"Homepage" = "http://gitea.ad.vmm.pstu.ru/IlinykhGV/caetask"
+"Bug Reports" = "http://gitea.ad.vmm.pstu.ru/IlinykhGV/caetask/issues"
+"Funding" = "https://donate.gitea.ad.vmm.pstu.ru/IlinykhGV/caetask"
+"Say Thanks!" = "http://saythanks.io/to/caetask"
+"Source" = "http://gitea.ad.vmm.pstu.ru/IlinykhGV/caetask"
+
+[tool.setuptools]
+#package-data = {"sample" = ["*.dat"]}
+
+[build-system]
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
