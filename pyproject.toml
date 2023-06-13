@@ -6,7 +6,7 @@ version = "0.1.0"  # Required
 
 description = "A module for run CAE applications from python script"  # Optional
 
-eadme = "README.md" # Optional
+readme = "README.md" # Optional
 
 requires-python = ">=3.7"
 
