@@ -36,7 +36,5 @@ def completed_callback(future):
     global completed, total_tasks, lock
     with lock:
         completed += 1
-    print("завершена задача в " +
-          future.result().results_dir_path +
-          " осталось задач: " +
+    print("завершена задача, осталось задач: " +
           str(total_tasks - completed))
