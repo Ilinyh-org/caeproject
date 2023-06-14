@@ -22,13 +22,6 @@ maintainers = [
   {name = "Gleb Ilinyh", email = "gleb@ilinyh.ru" } # Optional
 ]
 
-#dependencies = [ # Optional
-#  "concurrent",
-#  "threading",
-#  "abc",
-#  "tempfile"
-#]
-
 [project.optional-dependencies] # Optional
 dev = []
 test = ["pytest"]
