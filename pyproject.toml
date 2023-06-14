@@ -29,9 +29,9 @@ maintainers = [
 #  "tempfile"
 #]
 
-#[project.optional-dependencies] # Optional
-#dev = []
-#test = ["pytest"]
+[project.optional-dependencies] # Optional
+dev = []
+test = ["pytest"]
 
 [project.urls]  # Optional
 "Homepage" = "http://gitea.ad.vmm.pstu.ru/IlinykhGV/caetask"
