@@ -151,9 +151,8 @@ class APDLTask(CAETask):
             with open(file) as f:
                 self.__input_file_code = f.readlines()
             self.__input_file = file
-        except FileNotFoundError as err:
-            print(f"Unexpected {err=}, {type(err)=}")
-            raise
+        except FileNotFoundError:
+            raise FileNotFoundError(os.path.abspath(file) + " не найден")
 
     @property
     def log_file(self):
@@ -194,9 +193,8 @@ class APDLTask(CAETask):
             try:
                 with open(file) as f:
                     self.__additional_files.append((file, f.readlines()))
-            except FileNotFoundError as err:
-                print(f"Unexpected {err=}, {type(err)=}")
-                raise
+            except FileNotFoundError:
+                raise FileNotFoundError(os.path.abspath(file) + " не найден")
 
     @property
     def results_dir_path(self):
@@ -216,9 +214,8 @@ class APDLTask(CAETask):
             with open(file) as f:
                 self.__parameters_file_code = f.readlines()
             self.__parameters_file = file
-        except FileNotFoundError as err:
-            print(f"Unexpected {err=}, {type(err)=}")
-            raise
+        except FileNotFoundError:
+            raise FileNotFoundError(os.path.abspath(file) + " не найден")
 
     @property
     def geometry_file_name(self):
