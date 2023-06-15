@@ -173,6 +173,18 @@ def test_apdl_two_tasks_sum(tmpdir, capsys):
 
 @pytest.mark.negative
 @pytest.mark.solve
-@pytest.mark.error_file
-def test_apdl_error(capsys):
-    pass
+@pytest.mark.error
+@pytest.mark.FileNotFoundError
+def test_apdl_FileNotFoundError(tmpdir, capsys):
+    os.chdir(tmpdir)
+
+    expected_error = FileNotFoundError
+    expected_error_message = "some_file.inp не найден"
+
+    with pytest.raises(expected_error) as exc:
+        task = APDLTask('test')
+        task.input_file = "some_file.inp"
+        task.results_files_names = ["text_file_from_ansys.dat"]
+
+        task.solve()
+    assert expected_error_message in str(exc.value)
