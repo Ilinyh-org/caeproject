@@ -33,7 +33,7 @@ def create_task(index):  # задаётся пользователем
     return task
 
 
-def solve_task(task):
+def solve_task(task: APDLTask):
     task.solve()
 
 
