@@ -1,13 +1,25 @@
+import os
 from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
 from threading import Lock
 
 lock = Lock()
 total_tasks = 0
 completed = 0
+cur_dir = '.'
+
+
+def init_dir():
+    global cur_dir
+    # print(os.path.abspath(os.curdir))
+    # print(os.path.abspath(cur_dir))
+    print('INIT_DIR')
+    os.chdir(cur_dir)
 
 
 def run_processes(task, data, max_workers=10):
-    global completed, total_tasks
+    global completed, total_tasks, cur_dir
+    cur_dir = os.path.abspath(os.curdir)
+
     executor = ProcessPoolExecutor(max_workers=max_workers)
     results = []
     futures = [executor.submit(task, sample) for sample in data]
