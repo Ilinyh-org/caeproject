@@ -1,3 +1,4 @@
+import os
 from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
 from threading import Lock
 
@@ -8,7 +9,8 @@ completed = 0
 
 def run_processes(task, data, max_workers=10):
     global completed, total_tasks
-    executor = ProcessPoolExecutor(max_workers=max_workers)
+
+    executor = ProcessPoolExecutor(max_workers=max_workers, max_tasks_per_child=1)
     results = []
     futures = [executor.submit(task, sample) for sample in data]
     total_tasks = len(futures)
