@@ -23,7 +23,7 @@ maintainers = [
 ]
 
 [project.optional-dependencies] # Optional
-dev = []
+dev = ["pytest"]
 test = ["pytest"]
 
 [project.urls]  # Optional
