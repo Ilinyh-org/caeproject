@@ -188,3 +188,22 @@ def test_apdl_FileNotFoundError(tmpdir, capsys):
 
         task.solve()
     assert expected_error_message in str(exc.value)
+
+
+@pytest.mark.negative
+@pytest.mark.solve
+@pytest.mark.error
+@pytest.mark.FileNotFoundError
+def test_apdl_results_file_FileNotFoundError(tmpdir, apdl_file, capsys):
+    os.chdir(tmpdir)
+
+    expected_error = FileNotFoundError
+    expected_error_message = "wrong_file_from_ansys.dat не найден"
+
+    with pytest.raises(expected_error) as exc:
+        task = APDLTask('test')
+        task.input_file = apdl_file
+        task.results_files_names = ["wrong_file_from_ansys.dat"]
+
+        task.solve()
+    assert expected_error_message in str(exc.value)
