@@ -17,9 +17,9 @@ class APDLTask(CAETask):
         self.__results_files_names = []
         self.__additional_files = []
         self.__additional_files_codes = []
-        self.__results_dir_path = './'
+        self.__results_dir_path = os.path.abspath(os.curdir)
         self.__geometry_file_name = ''
-        self.__working_directory_path = './'
+        self.__working_directory_path = os.path.abspath(os.curdir)
         self.__application_version = "212"
         self.__cores = '2'
         self.__new_parameter_name = None
@@ -92,7 +92,7 @@ class APDLTask(CAETask):
                            '-np', self.__cores,
                            '-j', self.__task_name,
                            '-i', os.path.basename(self.__input_file),
-                           '-o', self.__log_file,
+                           '-o', tempdir.name + "\\" + self.__log_file,
                            '-gtmfile', self.__geometry_file_name,
                            '-resfile', self.__results_file_name,
                            '-parfile', os.path.basename(self.__parameters_file)]
@@ -105,7 +105,7 @@ class APDLTask(CAETask):
                            '-np', self.__cores,
                            '-j', self.__task_name,
                            '-i', os.path.basename(self.__input_file),
-                           '-o', self.__log_file,
+                           '-o', tempdir.name + "\\" + self.__log_file,
                            '-gtmfile', self.__geometry_file_name,
                            '-resfile', self.__results_file_name,
                            '-parfile', os.path.basename(self.__parameters_file)]
