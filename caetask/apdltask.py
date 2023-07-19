@@ -147,7 +147,7 @@ class APDLTask(CAETask):
     @input_file.setter
     def input_file(self, file):
         try:
-            with open(file) as f:
+            with open(file, encoding="utf8") as f:
                 self.__input_file_code = f.readlines()
             self.__input_file = file
         except FileNotFoundError:
