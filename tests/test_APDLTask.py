@@ -198,7 +198,7 @@ def test_apdl_results_file_FileNotFoundError(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)
 
     expected_error = FileNotFoundError
-    expected_error_message = "wrong_file_from_ansys.dat не найден"
+    expected_error_message = "wrong_file_from_ansys.dat не найден для копирования в "
 
     with pytest.raises(expected_error) as exc:
         task = APDLTask('test')
