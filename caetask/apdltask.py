@@ -133,7 +133,7 @@ class APDLTask(CAETask):
             try:
                 shutil.copy2(tempdir.name + "\\" + file, self.__results_dir_path)
             except OSError:
-                raise FileNotFoundError(f"Файл {file} не найден для копирования в {self.__results_dir_path}")
+                print(f"Файл {file} не найден для копирования в {self.__results_dir_path}")
 
         tempdir.cleanup()
         return self
