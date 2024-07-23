@@ -2,13 +2,13 @@
 
 Run CAE applications from python script
 
-What does this module do?
+### What does this module do?
 - create task object (e.g. APDL task), which is a combination of command script, parameters, options, etc.
 - send task object to solve
 
 Application is created to solve tasks in temporary folder of your os. But if you choose manual folder, this folder will be used
 
-How to use this module in your script?
+### How to use this module in your script?
 - prepare task
 - solve task
 - get results
@@ -113,3 +113,11 @@ Rules:
 - check all absolute and especially relative paths in input files
 - relative paths will work only if you define them in additional_files instance variable
 - create function has to be global
+
+### How to install?
+
+add this code into your requirements.txt:
+
+```python
+git+http://gitea.ad.vmm.pstu.ru/IlinykhGV/caetask
+```
