@@ -2,13 +2,15 @@
 
 Run CAE applications from python script
 
-### What does this module do?
+## What does this module do?
 - create task object (e.g. APDL task), which is a combination of command script, parameters, options, etc.
 - send task object to solve
 
 Application is created to solve tasks in temporary folder of your os. But if you choose manual folder, this folder will be used
+Folder with temporary folders in windows is C:\Users\%USERNAME%\AppData\Local\Temp
 
-### How to use this module in your script?
+## How to use this module in your script?
+### Simple task
 - prepare task
 - solve task
 - get results
@@ -46,7 +48,7 @@ Output will be:
 What should I do to run two tasks, one after another?
 - Just create task, then solve in, and repeat for second task
 
-How to run multitask process?
+### How to run multitask process from one folder?
 - first you need to pack your task creation code to local method with index or sample of input data as argument
 - index used to identify sample of input data by it. Input data can be list, array, tuply, pandas frame etc.
 - you can use global variable of input data
@@ -67,15 +69,14 @@ Python script, that run the code:
 
 from caetask import run_threads, APDLTask
 
-input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5))
+input_data = ((1,), (2,), (3,), (4,), (5,))
 
 
 def create_task(index):
     global input_data
 
-    task_num = input_data[index][0]
-    num_par = input_data[index][1]
-    parm_file = "test" + task_num + ".parm"
+    num_par = input_data[index][0]
+    parm_file = "test.parm"
 
     with open(parm_file, "w") as file:
         file.write("num=" + str(num_par))
@@ -89,17 +90,19 @@ def create_task(index):
 
 def solve_task(task):
     task.solve()
+    
 
-
-tasks = run_threads(create_task, [0, 1, 2, 3, 4], max_workers=2)
+# is is recommended to use one worker if you use one folder, 
+# to ensure that every process uses its own parameters_file
+tasks = run_threads(create_task, [0, 1, 2, 3, 4], max_workers=1)  
 run_threads(solve_task, tasks, max_workers=2)
 
 for index in [0, 1, 2, 3, 4]:
-    num_par = input_data[index][1]
+    num_par = input_data[index][0]
     with open("task" + str(num_par) + "_text_file.dat") as file:
-        print(file.readline())
+        print(file.readline(), end='')
 ```
-That code create 5 tasks and then solve them for two in a moment
+That code creates 5 tasks and then solves two tasks at a time
 
 Output will be:
 
@@ -109,7 +112,11 @@ Output will be:
     12
     15
 
-Rules:
+### How to run multitask process from separate folders?
+TODO
+
+
+### Rules:
 - check all absolute and especially relative paths in input files
 - relative paths will work only if you define them in additional_files instance variable
 - create function has to be global
