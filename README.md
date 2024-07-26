@@ -125,6 +125,6 @@ TODO
 
 add this code into your requirements.txt:
 
-```python
+```
 git+http://gitea.ad.vmm.pstu.ru/IlinykhGV/caetask
 ```
