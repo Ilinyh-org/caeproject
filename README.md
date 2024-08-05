@@ -29,7 +29,6 @@ text(1)=\'test text from ansys\'
 Python script, that run the code:
 
 ```python
-
 from caetask import APDLTask
 
 task = APDLTask('test')
@@ -66,7 +65,6 @@ parres,change,test,parm
 Python script, that run the code:
 
 ```python
-
 from caetask import run_threads, APDLTask
 
 input_data = ((1,), (2,), (3,), (4,), (5,))
@@ -92,15 +90,16 @@ def solve_task(task):
     task.solve()
     
 
-# is is recommended to use one worker if you use one folder, 
-# to ensure that every process uses its own parameters_file
-tasks = run_threads(create_task, [0, 1, 2, 3, 4], max_workers=1)  
-run_threads(solve_task, tasks, max_workers=2)
-
-for index in [0, 1, 2, 3, 4]:
-    num_par = input_data[index][0]
-    with open("task" + str(num_par) + "_text_file.dat") as file:
-        print(file.readline(), end='')
+if __name__ == "__main__":
+    # is is recommended to use one worker if you use one folder, 
+    # to ensure that every process uses its own parameters_file
+    tasks = run_threads(create_task, [0, 1, 2, 3, 4], max_workers=1)  
+    run_threads(solve_task, tasks, max_workers=2)
+    
+    for index in [0, 1, 2, 3, 4]:
+        num_par = input_data[index][0]
+        with open("task" + str(num_par) + "_text_file.dat") as file:
+            print(file.readline(), end='')
 ```
 That code creates 5 tasks and then solves two tasks at a time
 
