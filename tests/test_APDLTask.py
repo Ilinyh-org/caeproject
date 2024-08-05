@@ -1,5 +1,6 @@
 import os
 import pytest
+from pytest_check import check
 from caetask import run_processes, run_threads
 from caetask import APDLTask
 from threading import Lock
@@ -11,7 +12,7 @@ def setup_method():
     pass
 
 
-input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5))
+input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5), ('6', 6), ('7', 7))
 
 
 def create_task(index):  # задаётся пользователем
@@ -26,10 +27,15 @@ def create_task(index):  # задаётся пользователем
     with open(os.path.join(tempdir, "test.parm"), "w") as file:
         file.write("num=" + str(num_par))
 
-    task = APDLTask('test')
+    task = APDLTask('test' + str(num_par))
     task.input_file = 'test.inp'
     task.parameters_file = os.path.join(tempdir, "test.parm")
-    task.results_files_names = ["task" + str(num_par) + "_text_file.dat"]
+    task.memory_size = 64
+    task.database_size = 32
+    task.results_files_names = [
+        "task" + str(num_par) + "_text_file.dat",
+        "test" + str(num_par) + "_1.out",
+    ]
     return task
 
 
@@ -40,38 +46,10 @@ def solve_task(task: APDLTask):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.input_parameters
-def test_apdl_multitask_prod(tmpdir, capsys):
-    expected_results = (3, 6)
-
-    os.chdir(tmpdir)
-
-    with open("test.inp", "w") as file:
-        file.write("/batch\n")
-        file.write("parres,change,test,parm\n")
-        file.write("*cfopen,task%num%_text_file,dat\n")
-        file.write("*vwrite,num*3\n")
-        file.write("%I\n")
-        file.write("*cfclos\n")
-
-    tasks = run_processes(create_task, [0, 1])  # список параллельных решаемых задач
-    run_threads(solve_task, tasks)
-
-    for input_sample, expected_result in zip(input_data, expected_results):
-        with open("task" + input_sample[0] + "_text_file.dat", "r") as file:
-            actual_result = int(file.readline())
-        assert actual_result == expected_result
-
-
-# class TestAPDLTask:
-# global lock, completed, total_tasks
-
-@pytest.mark.positive
-@pytest.mark.solve
-@pytest.mark.input_parameters
 def test_apdl_multitask_callback(tmpdir, capsys):
     global input_data
 
-    expected_results = (3, 6, 9, 12, 15)
+    expected_results = (3, 6, 9, 12, 15, 18, 21)
 
     os.chdir(tmpdir)
 
@@ -83,13 +61,18 @@ def test_apdl_multitask_callback(tmpdir, capsys):
         file.write("%I\n")
         file.write("*cfclos\n")
 
-    tasks = run_threads(create_task, [0, 1, 2, 3, 4], max_workers=2)  # список параллельных решаемых задач
-    run_threads(solve_task, tasks, max_workers=2)
+    tasks = run_threads(create_task, [0, 1, 2, 3, 4, 5, 6])  # список параллельных решаемых задач
+    run_threads(solve_task, tasks, max_workers=4)
 
     for input_sample, expected_result in zip(input_data, expected_results):
-        with open("task" + input_sample[0] + "_text_file.dat", "r") as file:
-            actual_result = int(file.readline())
-        assert actual_result == expected_result
+        file_name = "task" + input_sample[0] + "_text_file.dat"
+        with check:
+            try:
+                with open(file_name, "r") as file:
+                    actual_result = int(file.readline())
+                    assert actual_result == expected_result, f"Error in file {file_name} "
+            except FileNotFoundError:
+                assert False, f"File {file_name} not found"
 
 
 @pytest.fixture(scope="session")
