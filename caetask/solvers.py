@@ -13,7 +13,7 @@ def run_processes(task, data, max_workers=10):
     executor = ProcessPoolExecutor(max_workers=max_workers, max_tasks_per_child=1)
     results = []
     futures = [executor.submit(task, sample) for sample in data]
-    total_tasks = len(futures)
+    total_tasks += len(futures)
     for future in as_completed(futures):
         future.add_done_callback(completed_callback)
         with lock:
@@ -26,7 +26,7 @@ def run_threads(task, data, max_workers=5):
     executor = ThreadPoolExecutor(max_workers=max_workers)
     results = []
     futures = [executor.submit(task, sample) for sample in data]
-    total_tasks = len(futures)
+    total_tasks += len(futures)
     for future in as_completed(futures):
         future.add_done_callback(completed_callback)
         with lock:
@@ -38,5 +38,6 @@ def completed_callback(future):
     global completed, total_tasks, lock
     with lock:
         completed += 1
+        total_tasks -= 1
     print("завершена задача, осталось задач: " +
-          str(total_tasks - completed))
+          str(total_tasks))
