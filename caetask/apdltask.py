@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+from subprocess import Popen
 
 from caetask.caetask import CAETask
 
@@ -25,6 +26,8 @@ class APDLTask(CAETask):
         self.__new_parameter_name = None
         self.__new_parameter_value = None
         self.__process_type = 'serial'
+        self.__memory_size = '2048'
+        self.__database_size = '1024'
         self.__process = None
         self.__status = None
 
@@ -58,8 +61,7 @@ class APDLTask(CAETask):
                 output += '\n'
         return output
 
-    def solve(self):
-        from subprocess import Popen
+    def solve(self, cleanup=True):
 
         tempdir = tempfile.TemporaryDirectory()
         # os.chdir(tempdir.name)
@@ -88,6 +90,8 @@ class APDLTask(CAETask):
                            + '_dir%\\bin\\winx64\\'
                            + 'ansys' + self.__application_version + '"',
                            '-b',
+                           '-m', self.__memory_size,
+                           '-db', self.__database_size,
                            '-dir', tempdir.name,
                            '-np', self.__cores,
                            '-j', self.__task_name,
@@ -101,6 +105,8 @@ class APDLTask(CAETask):
                            + '_dir%\\bin\\winx64\\'
                            + self.__application_version + '"',
                            '-b',
+                           '-m', self.__memory_size,
+                           '-db', self.__database_size,
                            '-dir', tempdir.name,
                            '-np', self.__cores,
                            '-j', self.__task_name,
@@ -135,7 +141,8 @@ class APDLTask(CAETask):
             except OSError:
                 print(f"Файл {file} не найден для копирования в {self.__results_dir_path}")
 
-        tempdir.cleanup()
+        if cleanup:
+            tempdir.cleanup()
         return self
 
     # @caetask.input_file_name
@@ -274,6 +281,22 @@ class APDLTask(CAETask):
             self.__process_type = value
         else:
             raise ValueError
+
+    @property
+    def memory_size(self):
+        return self.__memory_size
+
+    @memory_size.setter
+    def memory_size(self, memory_size):
+        self.__memory_size = str(memory_size)
+
+    @property
+    def database_size(self):
+        return self.__database_size
+
+    @database_size.setter
+    def database_size(self, database_size):
+        self.__database_size = str(database_size)
 
     @property
     def status(self):
