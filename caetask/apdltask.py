@@ -62,7 +62,6 @@ class APDLTask(CAETask):
         return output
 
     def solve(self, cleanup=True):
-
         tempdir = tempfile.TemporaryDirectory()
         # os.chdir(tempdir.name)
 
@@ -82,39 +81,23 @@ class APDLTask(CAETask):
               " во временной директории " +
               os.path.basename(tempdir.name))
 
-        # run mesh apdl script
         # составляем список команд и аттрибутов для запуска
-        if self.__new_parameter_name is None:  # no new parameters
-            # для запуска используется переменная среды типа ansys180_dir
-            application = ['"%ansys' + self.__application_version
-                           + '_dir%\\bin\\winx64\\'
-                           + 'ansys' + self.__application_version + '"',
-                           '-b',
-                           '-m', self.__memory_size,
-                           '-db', self.__database_size,
-                           '-dir', tempdir.name,
-                           '-np', self.__cores,
-                           '-j', self.__task_name,
-                           '-i', os.path.basename(self.__input_file),
-                           '-o', tempdir.name + "\\" + self.__log_file,
-                           '-gtmfile', self.__geometry_file_name,
-                           '-resfile', self.__results_file_name,
-                           '-parfile', os.path.basename(self.__parameters_file)]
-        else:  # new parameters exist
-            application = ['"%ansys' + self.__application_version
-                           + '_dir%\\bin\\winx64\\'
-                           + self.__application_version + '"',
-                           '-b',
-                           '-m', self.__memory_size,
-                           '-db', self.__database_size,
-                           '-dir', tempdir.name,
-                           '-np', self.__cores,
-                           '-j', self.__task_name,
-                           '-i', os.path.basename(self.__input_file),
-                           '-o', tempdir.name + "\\" + self.__log_file,
-                           '-gtmfile', self.__geometry_file_name,
-                           '-resfile', self.__results_file_name,
-                           '-parfile', os.path.basename(self.__parameters_file)]
+        # для запуска используется переменная среды типа ansys180_dir
+        application = ['"%ansys' + self.__application_version
+                       + '_dir%\\bin\\winx64\\'
+                       + 'ansys' + self.__application_version + '"',
+                       '-b',
+                       '-m', self.__memory_size,
+                       '-db', self.__database_size,
+                       '-dir', tempdir.name,
+                       '-np', self.__cores,
+                       '-j', self.__task_name,
+                       '-i', os.path.basename(self.__input_file),
+                       '-o', tempdir.name + "\\" + self.__log_file,
+                       '-gtmfile', self.__geometry_file_name,
+                       '-resfile', self.__results_file_name,
+                       '-parfile', os.path.basename(self.__parameters_file)]
+        if self.__new_parameter_name:  # no new parameters
             if type(self.__new_parameter_name) == list:  # list of  new parameter
                 for a, b in zip(self.__new_parameter_name, self.__new_parameter_value):
                     application.append('-' + a)
@@ -122,6 +105,7 @@ class APDLTask(CAETask):
             else:  # one new parameter
                 application.append('-' + self.__new_parameter_name)
                 application.append(self.__new_parameter_value)
+
         # создание процесса по сконфигурированному application
         if self.__process_type == 'serial':
             # при создании процесса список application превращается в строку
@@ -201,6 +185,8 @@ class APDLTask(CAETask):
                     self.__additional_files.append((file, f.readlines()))
             except FileNotFoundError:
                 raise FileNotFoundError(os.path.abspath(file) + " не найден")
+            except UnicodeDecodeError:
+                raise UnicodeDecodeError(f"Ошибка в кодировке файла {os.path.abspath(file)}")
 
     @property
     def results_dir_path(self):
