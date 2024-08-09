@@ -21,6 +21,7 @@ class APDLTask(CAETask):
         self.__results_dir_path = os.path.abspath(os.curdir)
         self.__geometry_file_name = ''
         self.__working_directory_path = os.path.abspath(os.curdir)
+        self.__temporary_directory_path = None
         self.__application_version = "212"
         self.__cores = '2'
         self.__new_parameter_name = None
@@ -40,8 +41,10 @@ class APDLTask(CAETask):
         output += 'исполняемый файл: ' + self.__input_file + '\n'
         output += 'файл логов: ' + self.__log_file + '\n'
         output += 'файл параметров: ' + self.__parameters_file + '\n'
-        # output += 'путь временной директории: ' + self.__working_directory_path + '\n'
-        # output += 'путь рабочей директории: ' + self.__working_directory_path + '\n'
+        if self.__temporary_directory_path:
+            output += 'путь временной директории: ' + self.__temporary_directory_path + '\n'
+        if self.__working_directory_path:
+            output += 'путь рабочей директории: ' + self.__working_directory_path + '\n'
         output += 'файл геометрии: ' + self.__geometry_file_name + '\n'
         # output += 'файл результатов: ' + self.__results_file_name + '\n'
         output += 'файл результатов: ' + self.__results_file_name + '\n'
@@ -62,7 +65,7 @@ class APDLTask(CAETask):
         return output
 
     def solve(self, cleanup=True):
-        tempdir = tempfile.TemporaryDirectory()
+        tempdir = tempfile.TemporaryDirectory(dir=self.__temporary_directory_path)
         # os.chdir(tempdir.name)
 
         if self.__parameters_file:
@@ -232,6 +235,14 @@ class APDLTask(CAETask):
     @working_directory_path.setter
     def working_directory_path(self, path):
         self.__working_directory_path = os.path.abspath(path)
+
+    @property
+    def temporary_directory_path(self):
+        return self.__temporary_directory_path
+
+    @temporary_directory_path.setter
+    def temporary_directory_path(self, path):
+        self.__temporary_directory_path = os.path.abspath(path)
 
     @property
     def cores(self):

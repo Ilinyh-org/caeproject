@@ -15,21 +15,23 @@ def setup_method():
 input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5), ('6', 6), ('7', 7))
 
 
-def create_task(index):  # задаётся пользователем
+def create_task(index, tempdir=None):  # задаётся пользователем
     global input_data
 
     task_num = input_data[index][0]
     num_par = input_data[index][1]
 
-    tempdir = "temp" + task_num
-    os.mkdir(tempdir)
+    workdir = "temp" + task_num
+    os.mkdir(workdir)
 
-    with open(os.path.join(tempdir, "test.parm"), "w") as file:
+    with open(os.path.join(workdir, "test.parm"), "w") as file:
         file.write("num=" + str(num_par))
 
     task = APDLTask('test' + str(num_par))
     task.input_file = 'test.inp'
-    task.parameters_file = os.path.join(tempdir, "test.parm")
+    task.parameters_file = os.path.join(workdir, "test.parm")
+    if tempdir:
+        task.temporary_directory_path = tempdir
     task.memory_size = 64
     task.database_size = 32
     task.results_files_names = [
@@ -98,6 +100,41 @@ def test_apdl_solve(tmpdir, apdl_file, capsys):
 
     task = APDLTask('test')
     task.input_file = apdl_file
+    task.results_files_names = ["text_file_from_ansys.dat"]
+    task.solve()
+
+    with open("text_file_from_ansys.dat", "r") as file:
+        line_from_test_file = file.readline()
+    assert line_from_test_file == expected_result
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_apdl_solve(tmpdir, apdl_file, capsys):
+    os.chdir(tmpdir)
+
+    expected_result = "test text from ansys\n"
+
+    task = APDLTask('test')
+    task.input_file = apdl_file
+    task.results_files_names = ["text_file_from_ansys.dat"]
+    task.solve()
+
+    with open("text_file_from_ansys.dat", "r") as file:
+        line_from_test_file = file.readline()
+    assert line_from_test_file == expected_result
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
+    os.chdir(tmpdir)
+    os.mkdir('solve_dir')
+    expected_result = "test text from ansys\n"
+
+    task = APDLTask('test')
+    task.input_file = apdl_file
+    task.temporary_directory_path = os.path.abspath('solve_dir')
     task.results_files_names = ["text_file_from_ansys.dat"]
     task.solve()
 
