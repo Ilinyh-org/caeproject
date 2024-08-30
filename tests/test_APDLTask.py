@@ -108,16 +108,42 @@ def test_apdl_solve(tmpdir, apdl_file, capsys):
     assert line_from_test_file == expected_result
 
 
+@pytest.fixture(scope="session")
+def apdl_file_using_additinal_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test.inp"
+    with open(fn, "w") as file:
+        file.write("/batch\n")
+        file.write("*DIM,A,,3\n")
+        file.write("*VREAD,A(1),additional_text_file,txt\n")
+        file.write("(F1.0)\n")
+        file.write("*cfopen,text_file_from_ansys,dat\n")
+        file.write("*vwrite,A(1)+A(2)+A(3)\n")
+        file.write("%G\n")
+        file.write("*cfclos\n")
+    return fn
+
+
+@pytest.fixture(scope="session")
+def additional_text_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "additional_text_file.txt"
+    with open(fn, "w") as file:
+        file.write("3\n7\n4\n")
+    return fn
+
+
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve(tmpdir, apdl_file, capsys):
+def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additinal_file, additional_text_file, capsys):
     os.chdir(tmpdir)
 
-    expected_result = "test text from ansys\n"
+    expected_result = "14\n"
 
     task = APDLTask('test')
-    task.input_file = apdl_file
-    task.results_files_names = ["text_file_from_ansys.dat"]
+    task.input_file = apdl_file_using_additinal_file
+    task.additional_text_files = additional_text_file
+    task.results_files_names = [
+        "text_file_from_ansys.dat",
+    ]
     task.solve()
 
     with open("text_file_from_ansys.dat", "r") as file:

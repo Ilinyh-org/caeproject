@@ -16,8 +16,8 @@ class APDLTask(CAETask):
         self.__parameters_file_code = ''
         self.__results_file_name = ''
         self.__results_files_names = []
-        self.__additional_files = []
-        self.__additional_files_codes = []
+        self.__additional_text_files = []
+        self.__additional_text_files_codes = []
         self.__results_dir_path = os.path.abspath(os.curdir)
         self.__geometry_file_name = ''
         self.__working_directory_path = os.path.abspath(os.curdir)
@@ -75,7 +75,7 @@ class APDLTask(CAETask):
             with open(tempdir.name + "\\" + os.path.basename(self.__input_file), 'w') as f:
                 f.writelines(self.__input_file_code)
 
-        for file in self.__additional_files:
+        for file in self.__additional_text_files:
             with open(tempdir.name + "\\" + os.path.basename(file[0]), 'w') as f:
                 f.writelines(file[1])
 
@@ -175,17 +175,17 @@ class APDLTask(CAETask):
             self.__results_files_names = [flist]
 
     @property
-    def additional_files(self):
-        return self.__additional_files
+    def additional_text_files(self):
+        return self.__additional_text_files
 
-    @additional_files.setter
-    def additional_files(self, flist):
+    @additional_text_files.setter
+    def additional_text_files(self, flist):
         if type(flist) is not list:
             flist = [flist]
         for file in flist:
             try:
                 with open(file, encoding="utf-8") as f:
-                    self.__additional_files.append((file, f.readlines()))
+                    self.__additional_text_files.append((file, f.readlines()))
             except FileNotFoundError:
                 raise FileNotFoundError(os.path.abspath(file) + " не найден")
             except UnicodeDecodeError:
