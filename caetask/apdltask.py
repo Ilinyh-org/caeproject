@@ -18,6 +18,8 @@ class APDLTask(CAETask):
         self.__results_files_names = []
         self.__additional_text_files = []
         self.__additional_text_files_codes = []
+        self.__additional_link_files = []
+        self.__copy_link_files = False
         self.__results_dir_path = os.path.abspath(os.curdir)
         self.__geometry_file_name = ''
         self.__working_directory_path = os.path.abspath(os.curdir)
@@ -64,6 +66,33 @@ class APDLTask(CAETask):
                 output += '\n'
         return output
 
+    def __organize_additional_link_files(self, tempdir):
+        # добавление ссылок на дополнительные файлы
+        for file in self.__additional_link_files:
+            src = file
+            dst = os.path.join(tempdir.name, os.path.basename(file))
+            if self.__copy_link_files:
+                shutil.copy2(src, tempdir.name)
+                continue
+            try:  # создание символьной ссылки
+                os.symlink(src, dst, target_is_directory=False, dir_fd=None)
+            except OSError as e:
+                if e.winerror == 1314:
+                    print("Ошибка 1314: Недостаточно прав для создания символьной ссылки. \n"
+                          "Рекомендуем включить Режим Разрботчика. Сейчас будет создана жёсткая ссылка")
+                    try:  # создание жёсткой ссылки
+                        os.link(src, dst)
+                    except OSError as e:
+                        if e.winerror == 17:
+                            raise OSError(
+                                "Ошибка 1314: Не удалось создать жёсткую ссылку, т.к. файл на другом разделе.\n"
+                                "Для прямого копирования файлов вместо создания ссылок, "
+                                "укажите параметр copy_link_files=True в конструкторе\n")
+                        else:
+                            raise OSError(f"Произошла ошибка OSError: {e}")
+                else:
+                    raise OSError(f"Произошла ошибка OSError: {e}")
+
     def solve(self, cleanup=True):
         tempdir = tempfile.TemporaryDirectory(dir=self.__temporary_directory_path)
         # os.chdir(tempdir.name)
@@ -108,6 +137,9 @@ class APDLTask(CAETask):
             else:  # one new parameter
                 application.append('-' + self.__new_parameter_name)
                 application.append(self.__new_parameter_value)
+
+        # создание ссылок или копирование дополнительных нетекстовых файлов
+        self.__organize_additional_link_files(tempdir)
 
         # создание процесса по сконфигурированному application
         if self.__process_type == 'serial':
@@ -190,6 +222,30 @@ class APDLTask(CAETask):
                 raise FileNotFoundError(os.path.abspath(file) + " не найден")
             except UnicodeDecodeError:
                 raise UnicodeDecodeError(f"Ошибка в кодировке файла {os.path.abspath(file)}")
+
+    @property
+    def additional_link_files(self):
+        return self.__additional_link_files
+
+    @additional_link_files.setter
+    def additional_link_files(self, flist):
+        if type(flist) is not list:
+            flist = [flist]
+        for file in flist:
+            try:
+                with open(file, encoding="utf-8") as f:
+                    self.__additional_link_files.append(os.path.abspath(file))
+            except FileNotFoundError:
+                raise FileNotFoundError(os.path.abspath(file) + " не найден")
+
+    @property
+    def copy_link_files(self):
+        return self.__copy_link_files
+
+    @copy_link_files.setter
+    def copy_link_files(self, copy_link_files):
+        if isinstance(copy_link_files, bool):
+            self.__copy_link_files = copy_link_files
 
     @property
     def results_dir_path(self):

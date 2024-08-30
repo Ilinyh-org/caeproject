@@ -151,6 +151,61 @@ def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additinal_file
     assert line_from_test_file == expected_result
 
 
+@pytest.fixture(scope="session")
+def apdl_file_saving_database(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test1.inp"
+    with open(fn, "w") as file:
+        file.write("/batch\n")
+        file.write("/prep7\n")
+        file.write("a=5\n")
+        file.write("save,database,db\n")
+    return fn
+
+
+@pytest.fixture(scope="session")
+def apdl_file_resuming_database(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test2.inp"
+    with open(fn, "w") as file:
+        file.write("/batch\n")
+        file.write("/prep7\n")
+        file.write("resume,database,db\n")
+        file.write("*cfopen,text_file_from_ansys,dat\n")
+        file.write("*vwrite,a\n")
+        file.write("%I\n")
+        file.write("*cfclos\n")
+    return fn
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apdl_file_resuming_database, capsys):
+    os.chdir(tmpdir)
+
+    expected_result = "5\n"
+
+    task = APDLTask('test1')
+    task.input_file = apdl_file_saving_database
+    task.results_files_names = [
+        "database.db",
+    ]
+    task.solve()
+
+    task = APDLTask('test2')
+    task.copy_link_files = True
+    task.input_file = apdl_file_resuming_database
+    task.additional_link_files = [
+        "database.db"
+    ]
+    task.results_files_names = [
+        "text_file_from_ansys.dat",
+    ]
+    task.solve()
+
+    with open("text_file_from_ansys.dat", "r") as file:
+        line_from_test_file = file.readline()
+    assert line_from_test_file == expected_result
+
+
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
