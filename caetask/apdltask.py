@@ -145,8 +145,8 @@ class APDLTask(CAETask):
         if self.__process_type == 'serial':
             # при создании процесса список application превращается в строку
             self.__process = Popen(' '.join(application), shell=True).wait()
-            print("закончен расчёт ансис задачи \"" +
-                  os.path.basename(self.__input_file) + "\"" +
+            print("закончен расчёт ансис задачи " +
+                  self.__task_name +
                   " во временной директории " +
                   os.path.basename(tempdir.name))
         elif self.__process_type == 'parallel':
@@ -157,6 +157,7 @@ class APDLTask(CAETask):
         for file in self.__results_files_names:
             try:
                 shutil.copy2(tempdir.name + "\\" + file, self.__results_dir_path)
+                print(f"Файл {file} ансис задачи {self.__task_name} скопирован из {os.path.basename(tempdir.name)} в {os.path.basename(self.__results_dir_path)}")
             except OSError:
                 print(f"Файл {file} не найден для копирования в {self.__results_dir_path}")
 
