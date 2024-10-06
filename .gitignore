@@ -5,3 +5,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Файлы, производные от работы тестов
+tests/text_file_from_ansys.dat
+
