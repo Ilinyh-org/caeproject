@@ -104,13 +104,13 @@ if __name__ == "__main__":
 That code creates 5 tasks and then solves two tasks at a time
 
 Output will be:
-
+```
     3
     6
     9
     12
     15
-
+```
 ### How to run multitask process from separate folders?
 TODO
 
