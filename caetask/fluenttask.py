@@ -66,7 +66,34 @@ class FluentTask(CAETask):
                 output += '\n'
         return output
 
-    def solve(self):
+    def __organize_additional_link_files(self, tempdir):
+        # добавление ссылок на дополнительные файлы
+        for file in self.__additional_link_files:
+            src = file
+            dst = os.path.join(tempdir.name, os.path.basename(file))
+            if self.__copy_link_files:
+                shutil.copy2(src, tempdir.name)
+                continue
+            try:  # создание символьной ссылки
+                os.symlink(src, dst, target_is_directory=False, dir_fd=None)
+            except OSError as e:
+                if e.winerror == 1314:
+                    print("Ошибка 1314: Недостаточно прав для создания символьной ссылки. \n"
+                          "Рекомендуем включить Режим Разрботчика. Сейчас будет создана жёсткая ссылка")
+                    try:  # создание жёсткой ссылки
+                        os.link(src, dst)
+                    except OSError as e:
+                        if e.winerror == 17:
+                            raise OSError(
+                                "Ошибка 1314: Не удалось создать жёсткую ссылку, т.к. файл на другом разделе.\n"
+                                "Для прямого копирования файлов вместо создания ссылок, "
+                                "укажите параметр copy_link_files=True в конструкторе\n")
+                        else:
+                            raise OSError(f"Произошла ошибка OSError: {e}")
+                else:
+                    raise OSError(f"Произошла ошибка OSError: {e}")
+
+    def solve(self, cleanup=True):
         tempdir = tempfile.TemporaryDirectory(dir=self.__temporary_directory_path)
 
         if self.__parameters_file:
@@ -89,8 +116,11 @@ class FluentTask(CAETask):
                        + '%\\fluent\\ntbin\\win64\\fluent.exe\"',
                        self.__dimension,
                         # '-r', self.__application_version[0:2] + '.' + self.__application_version[2:3] + '.0',
-                       '-g',
-                       '-i', self.__input_file]
+                       '-g',  # run without graphics
+                       '-i', os.path.basename(self.__input_file)]
+
+        # создание ссылок или копирование дополнительных нетекстовых файлов
+        self.__organize_additional_link_files(tempdir)
 
         # создание процесса по сконфигурированному application
         if self.__process_type == 'serial':
