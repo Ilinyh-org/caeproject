@@ -126,11 +126,11 @@ class FluentTask(CAETask):
         # создание процесса по сконфигурированному application
         if self.__process_type == 'serial':
             # при создании процесса список application превращается в строку
-            with open(self.__log_file_name + '.log', 'w') as f:
+            with open(os.path.join(tempdir.name, self.__log_file), 'w') as f:
                 self.__process = Popen(' '.join(application),
                                        shell=True,
                                        stdout=f,
-                                       cwd=self.__working_directory_path).wait()
+                                       cwd=tempdir.name).wait()
             print("закончен расчёт ансис задачи " +
                   self.__task_name +
                   " во временной директории " +
