@@ -96,6 +96,7 @@ class APDLTask(CAETask):
     def solve(self, cleanup=True):
         tempdir = tempfile.TemporaryDirectory(dir=self.__temporary_directory_path)
 
+        # чтение исходных файлов и запись их в рабочей директории
         if self.__parameters_file:
             with open(tempdir.name + "\\" + os.path.basename(self.__parameters_file), 'w') as f:
                 f.writelines(self.__parameters_file_code)
