@@ -20,12 +20,12 @@ class CAETask:
 
     @property
     @abstractmethod
-    def log_file_name(self):
+    def log_file(self):
         ...
 
-    @log_file_name.setter
+    @log_file.setter
     @abstractmethod
-    def log_file_name(self, name):
+    def log_file(self, name):
         ...
 
     @property
@@ -85,7 +85,7 @@ class CFDPostTask(CAETask):
     def __init__(self, task_name='task' + str(__counter)):
         self.__task_name = task_name
         self.__input_file = ''
-        self.__log_file_name = task_name + '.log'
+        self.__log_file = task_name + '.log'
         self.__parameters_file_name = ''
         self.__results_file_name = ''
         self.__geometry_file_name = ''
@@ -109,7 +109,7 @@ class CFDPostTask(CAETask):
         output = ''
         output += 'имя задачи: ' + self.__task_name + '\n'
         output += 'исполняемый файл: ' + self.__input_file + '\n'
-        output += 'файл логов: ' + self.__log_file_name + '\n'
+        output += 'файл логов: ' + self.__log_file + '\n'
         output += 'файл параметров: ' + self.__parameters_file_name + '\n'
         output += 'путь рабочей директории: ' + self.__working_directory_path + '\n'
         output += 'файл геометрии: ' + self.__geometry_file_name + '\n'
@@ -148,7 +148,7 @@ class CFDPostTask(CAETask):
         # создание процесса по сконфигурированному application
         if self.__process_type == 'serial':
             # при создании процесса список application превращается в строку
-            with open(self.__log_file_name + '.log', 'w') as f:
+            with open(self.__log_file, 'w') as f:
                 self.__process = Popen(' '.join(application),
                                        shell=True,
                                        stdout=f,
@@ -165,7 +165,7 @@ class CFDPostTask(CAETask):
     def __init__(self, task_name='task' + str(__counter)):
         self.__task_name = task_name
         self.__input_file = ''
-        self.__log_file_name = task_name + '.log'
+        self.__log_file = task_name + '.log'
         self.__parameters_file_name = ''
         self.__results_file_name = ''
         self.__report_file_name = task_name
@@ -186,7 +186,7 @@ class CFDPostTask(CAETask):
         output = ''
         output += 'имя задачи: ' + self.__task_name + '\n'
         output += 'исполняемый файл: ' + self.__input_file + '\n'
-        output += 'файл логов: ' + self.__log_file_name + '\n'
+        output += 'файл логов: ' + self.__log_file + '\n'
         output += 'файл параметров: ' + self.__parameters_file_name + '\n'
         output += 'путь рабочей директории: ' + self.__working_directory_path + '\n'
         output += 'файл результатов (входных): ' + self.__results_file_name + '\n'
@@ -238,12 +238,12 @@ class CFDPostTask(CAETask):
         return CFDPostTask.__counter
 
     @property
-    def log_file_name(self):
-        return self.__log_file_name
+    def log_file(self):
+        return self.__log_file
 
-    @log_file_name.setter
-    def log_file_name(self, name):
-        self.__log_file_name = name
+    @log_file.setter
+    def log_file(self, file):
+        self.__log_file = file
 
     @property
     def report_file_name(self):
