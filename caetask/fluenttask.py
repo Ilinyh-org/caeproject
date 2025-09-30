@@ -13,7 +13,7 @@ class FluentTask(CAETask):
         self.__task_name = task_name
         self.__input_file = ''
         self.__input_file_code = ''
-        self.__log_file_name = task_name + '.log'
+        self.__log_file = task_name + '.log'
         self.__parameters_file = ''
         self.__parameters_file_code = ''
         self.__results_file_name = ''
@@ -44,7 +44,7 @@ class FluentTask(CAETask):
         output = ''
         output += 'имя задачи: ' + self.__task_name + '\n'
         output += 'исполняемый файл: ' + self.__input_file + '\n'
-        output += 'файл логов: ' + self.__log_file_name + '\n'
+        output += 'файл логов: ' + self.__log_file + '\n'
         output += 'файл параметров: ' + self.__parameters_file + '\n'
         output += 'путь рабочей директории: ' + self.__working_directory_path + '\n'
         output += 'файл геометрии: ' + self.__geometry_file_name + '\n'
@@ -125,12 +125,12 @@ class FluentTask(CAETask):
         return FluentTask.__counter
 
     @property
-    def log_file_name(self):
-        return self.__log_file_name
+    def log_file(self):
+        return self.__log_file
 
-    @log_file_name.setter
-    def log_file_name(self, name):
-        self.__log_file_name = name
+    @log_file.setter
+    def log_file(self, file):
+        self.__log_file = file
 
     @property
     def results_file_name(self):
