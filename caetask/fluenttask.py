@@ -22,6 +22,7 @@ class FluentTask(CAETask):
         self.__additional_text_files_codes = []
         self.__additional_link_files = []
         self.__copy_link_files = False
+        self.__results_dir_path = os.path.abspath(os.curdir)
         self.__geometry_file_name = ''
         self.__working_directory_path = os.path.abspath(os.curdir)
         self.__temporary_directory_path = None
@@ -106,6 +107,20 @@ class FluentTask(CAETask):
         elif self.__process_type == 'parallel':
             # при создании процесса список application превращается в строку
             self.__process = Popen(' '.join(application), shell=True)
+
+        # переносим результаты в папку результатов
+        for file in self.__results_files_names:
+            try:
+                shutil.copy2(tempdir.name + "\\" + file, self.__results_dir_path)
+                print(
+                    f"Файл {file} fluent задачи {self.__task_name} скопирован из {os.path.basename(tempdir.name)} в {os.path.basename(self.__results_dir_path)}")
+            except OSError:
+                print(f"Файл {file} не найден для копирования в {self.__results_dir_path}")
+
+        if cleanup:
+            tempdir.cleanup()
+        return self
+
 
     @property
     def input_file(self):
