@@ -144,48 +144,7 @@ class CFDPostTask(CAETask):
                         # '-r', self.__application_version[0:2] + '.' + self.__application_version[2:3] + '.0',
                        '-g',
                        '-i', self.__input_file]
-                       # '-b', '-dir', self.__working_directory_path,
-                       # '-np', self.__threads,
-                       # '-j', self.__task_name,
-                       # '-i', self.__input_file,
-                       # '-o', self.__log_file_name + '.log',
-                       # '-gtmfile', self.__geometry_file_name,
-                       # '-resfile', self.__results_file_name,
-                       # '-parfile', self.__parameters_file_name]
 
-        # if self.__new_parameter_name is None:  # no new parameters
-        #     # для запуска используется переменная среды типа AWP_ROOT202
-        #     version_full = self.__application_version[:1] + '.' + self.__application_version[len(self.__application_version)]
-        #     application = ['"%AWP_ROOT' + self.__application_version + '%\\fluent'
-        #                    + '\\fluent' + self.__application_version + '\\'
-        #                    + self.__application_version + '"',
-        #                    '-b', '-dir', self.__working_directory_path,
-        #                    '-np', self.__threads,
-        #                    '-j', self.__task_name,
-        #                    '-i', self.__input_file,
-        #                    '-o', self.__log_file_name + '.log',
-        #                    '-gtmfile', self.__geometry_file_name,
-        #                    '-resfile', self.__results_file_name,
-        #                    '-parfile', self.__parameters_file_name]
-        # else:  # new parameters exist
-        #     application = ['"%' + self.__application_version
-        #                    + '_dir%\\bin\\winx64\\'
-        #                    + self.__application_version + '"',
-        #                    '-b', '-dir', self.__working_directory_path,
-        #                    '-np', self.__threads,
-        #                    '-j', self.__task_name,
-        #                    '-i', self.__input_file,
-        #                    '-o', self.__log_file_name + '.log',
-        #                    '-gtmfile', self.__geometry_file_name,
-        #                    '-resfile', self.__results_file_name,
-        #                    '-parfile', self.__parameters_file_name]
-        #     if type(self.__new_parameter_name) == list:  # list of  new parameter
-        #         for a, b in zip(self.__new_parameter_name, self.__new_parameter_value):
-        #             application.append('-' + a)
-        #             application.append(b)
-        #     else:  # one new parameter
-        #         application.append('-' + self.__new_parameter_name)
-        #         application.append(self.__new_parameter_value)
         # создание процесса по сконфигурированному application
         if self.__process_type == 'serial':
             # при создании процесса список application превращается в строку
