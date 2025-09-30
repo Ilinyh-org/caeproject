@@ -95,7 +95,6 @@ class APDLTask(CAETask):
 
     def solve(self, cleanup=True):
         tempdir = tempfile.TemporaryDirectory(dir=self.__temporary_directory_path)
-        # os.chdir(tempdir.name)
 
         if self.__parameters_file:
             with open(tempdir.name + "\\" + os.path.basename(self.__parameters_file), 'w') as f:
