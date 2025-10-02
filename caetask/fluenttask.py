@@ -238,6 +238,14 @@ class FluentTask(CAETask):
             self.__copy_link_files = copy_link_files
 
     @property
+    def results_dir_path(self):
+        return self.__results_dir_path
+
+    @results_dir_path.setter
+    def results_dir_path(self, path):
+        self.__results_dir_path = os.path.abspath(path)
+
+    @property
     def parameters_file(self):
         return self.__parameters_file
 
