@@ -226,11 +226,7 @@ class FluentTask(CAETask):
         if type(flist) is not list:
             flist = [flist]
         for file in flist:
-            try:
-                with open(file, encoding="utf-8") as f:
-                    self.__additional_link_files.append(os.path.abspath(file))
-            except FileNotFoundError:
-                raise FileNotFoundError(os.path.abspath(file) + " не найден")
+            self.__additional_link_files.append(os.path.abspath(file))
 
     @property
     def copy_link_files(self):
