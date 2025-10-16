@@ -125,6 +125,23 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
         assert any(expected_result in line for line in file.readlines())
 
 
+@pytest.mark.positive
+@pytest.mark.solve
+def test_fluent_task_return_files_regular_expression(tmpdir, scm_simple_file):
+    os.chdir(tmpdir)
+
+    expected_result = "test text from fluent\n"
+
+    task1 = FluentTask('test')
+    task1.input_file = scm_simple_file
+    task1.results_files_names = ["text_file_*.dat"]
+    task1.solve()
+
+    with open("text_file_from_fluent.dat", "r") as file:
+        actual_result = file.readline()
+    assert actual_result == expected_result
+
+
 def tearDown() -> None:
     pass
 

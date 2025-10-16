@@ -1,5 +1,6 @@
 import os
 import shutil
+import fnmatch
 import tempfile
 from subprocess import Popen
 
@@ -28,6 +29,7 @@ class FluentTask(CAETask):
         self.__temporary_directory_path = None
         self.__application_version = "212"
         self.__dimension = "2d"
+        self.__graphics_regime = 'g'
         self.__threads = '2'
         self.__new_parameter_name = None
         self.__new_parameter_value = None
@@ -120,7 +122,7 @@ class FluentTask(CAETask):
                        + '%\\fluent\\ntbin\\win64\\fluent.exe\"',
                        self.__dimension,
                         # '-r', self.__application_version[0:2] + '.' + self.__application_version[2:3] + '.0',
-                       '-g',  # run without graphics
+                       *(['-' + self.__graphics_regime] if self.__graphics_regime is not None else []), # run without graphics
                        '-i', os.path.basename(self.__input_file)]
 
         # создание ссылок или копирование дополнительных нетекстовых файлов
@@ -142,12 +144,28 @@ class FluentTask(CAETask):
             # при создании процесса список application превращается в строку
             self.__process = Popen(' '.join(application), shell=True)
 
+        # делаем проверку на регулярные выражения и расширяем список файлов с их учётом
+        results_files_names_to_add = []
+        results_files_names_to_remove = []
+        for file in self.__results_files_names:
+            if any(ch in file for ch in ['*', '?', '+']):
+                try:
+                    for f in os.listdir(tempdir.name):
+                        if fnmatch.fnmatch(f, file):
+                            results_files_names_to_add.append(f)
+                    results_files_names_to_remove.append(file)
+                except Exception:
+                    pass
+        self.__results_files_names.extend(results_files_names_to_add)
+        for file in results_files_names_to_remove:
+            self.__results_files_names.remove(file)
+
         # переносим результаты в папку результатов
         for file in self.__results_files_names:
             try:
-                shutil.copy2(tempdir.name + "\\" + file, self.__results_dir_path)
-                print(
-                    f"Файл {file} fluent задачи {self.__task_name} скопирован из {os.path.basename(tempdir.name)} в {os.path.basename(self.__results_dir_path)}")
+                shutil.copy2(os.path.join(tempdir.name, file), self.__results_dir_path)
+                print(f"Файл {file} fluent задачи {self.__task_name} скопирован из "
+                      f"{os.path.basename(tempdir.name)} в {os.path.basename(self.__results_dir_path)}")
             except OSError:
                 print(f"Файл {file} не найден для копирования в {self.__results_dir_path}")
 
