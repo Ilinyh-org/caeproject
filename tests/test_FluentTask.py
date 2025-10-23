@@ -2,6 +2,7 @@
 import pytest
 from caetask import FluentTask, APDLTask
 import os
+import glob
 
 
 def setup_method():
@@ -111,6 +112,53 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
 
     with open("log_fluent.log", "r") as file:
         assert any(expected_result in line for line in file.readlines())
+
+
+
+
+@pytest.fixture(scope="session")
+def scm_transient_solve_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test.scm"
+    with open(fn, "w") as file:
+        file.write("(ti-menu-load-string \"/file/import/mechanical-apdl/input mesh.cdb\")\n")
+        file.write("(ti-menu-load-string \"/define/models/unsteady-1st-order? yes\")\n")
+        file.write("(ti-menu-load-string \"/file/auto-save/data-frequency 1\")\n")
+        file.write("(ti-menu-load-string \"/file/auto-save/case-frequency each-time\")\n")
+        file.write("(ti-menu-load-string \"/file/auto-save/append-file-name-with flow-time 6\")\n")
+        file.write("(ti-menu-load-string \"/file/auto-save/root-name results\")\n")
+        file.write("(ti-menu-load-string \"/solve/initialize/initialize-flow\")\n")
+        file.write("(ti-menu-load-string \"/solve/dual-time-iterate 5 10\")\n")
+        file.write("(ti-menu-load-string \"exit y\")\n")
+    return fn
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transient_solve_file, capsys):
+    os.chdir(tmpdir)
+    expected_results = {"dat_files_number": 5,
+                        "cas_files_number": 5,
+                        "flprj_files_number": 1}
+
+    task1 = APDLTask('apdl')
+    task1.input_file = inp_mesh_file
+    task1.results_files_names = ["mesh.cdb"]
+    task1.solve()
+
+    task2 = FluentTask('fluent')
+    task2.input_file = scm_transient_solve_file
+    task2.log_file = 'log_fluent.log'
+    task2.additional_link_files = ['mesh.cdb']
+    task2.results_files_names = ["log_fluent.log", "results*"]
+    task2.solve()
+
+    dat_files_number = len(glob.glob("results*.dat.h5"))
+    cas_files_number = len(glob.glob("results*.cas.h5"))
+    flprj_files_number = len(glob.glob("results.flprj"))
+
+    assert dat_files_number == expected_results["dat_files_number"]
+    assert cas_files_number == expected_results["cas_files_number"]
+    assert flprj_files_number == expected_results["flprj_files_number"]
 
 
 @pytest.mark.positive
