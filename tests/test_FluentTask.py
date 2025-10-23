@@ -20,18 +20,6 @@ def scm_simple_file(tmp_path_factory):
     return fn
 
 
-@pytest.fixture(scope="session")
-def scm_solve_file(tmp_path_factory):
-    fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
-        file.write("(define out (open-output-file \"text_file_from_fluent.dat\"))\n")
-        file.write("(display \"test text from fluent\" out)\n")
-        file.write("(newline out)\n")
-        file.write("(close-output-port out)\n")
-        file.write("(ti-menu-load-string \"exit y\")\n")
-    return fn
-
-
 @pytest.mark.positive
 @pytest.mark.solve
 def test_fluent_task_start(tmpdir, scm_simple_file):
