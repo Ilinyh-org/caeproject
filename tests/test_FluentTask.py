@@ -114,8 +114,6 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
         assert any(expected_result in line for line in file.readlines())
 
 
-
-
 @pytest.fixture(scope="session")
 def scm_transient_solve_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "test.scm"

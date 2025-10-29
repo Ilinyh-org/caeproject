@@ -126,7 +126,7 @@ class CFDPostTask(CAETask):
         return self.__parameters_file_name
 
     @parameters_file_name.setter
-    def parameters_file(self, name):
+    def parameters_file_name(self, name):
         self.__parameters_file_name = name
 
     @property
