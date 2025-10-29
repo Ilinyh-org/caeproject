@@ -16,7 +16,7 @@ class CFDPostTask(CAETask):
         self.__results_file_name = ''
         self.__report_file_name = task_name
         self.__results_files_names = []
-        self.__working_directory_path = '../'
+        self.__working_directory_path = os.path.abspath(os.curdir)
         self.__application_version = "212"
         self.__threads = '2'
         self.__process_type = 'serial'
@@ -68,7 +68,9 @@ class CFDPostTask(CAETask):
         # создание процесса по сконфигурированному application
         if self.__process_type == 'serial':
             # при создании процесса список application превращается в строку
-            self.__process = Popen(' '.join(application), shell=True).wait()
+            self.__process = Popen(' '.join(application),
+                                   shell=True,
+                                   cwd=self.__working_directory_path).wait()
             print(f"закончена обработка результатов {os.path.basename(self.__input_file)}")
         elif self.__process_type == 'parallel':
             # при создании процесса список application превращается в строку
