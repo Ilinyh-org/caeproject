@@ -108,6 +108,30 @@ def test_apdl_solve(tmpdir, apdl_file, capsys):
     assert line_from_test_file == expected_result
 
 
+@pytest.mark.positive
+@pytest.mark.log
+def test_apdl_log(tmpdir, apdl_file, capsys):
+    os.chdir(tmpdir)
+
+    expected_log_text_parts = [
+        "Ansys Mechanical",
+        "W E L C O M E   T O   T H E   A N S Y S (R)  P R O G R A M",
+        "ANSYS COMMAND LINE ARGUMENTS",
+        "A N S Y S   S T A T I S T I C S",
+        "ANSYS RUN COMPLETED"]
+
+    task = APDLTask('test')
+    task.input_file = apdl_file
+    task.log_file = 'test_log_file.log'
+    task.results_files_names = ['test_log_file.log']
+    task.solve()
+
+    with open("test_log_file.log", "r") as file:
+        log_text = file.read()
+        for expected_log_text_part in expected_log_text_parts:
+            assert expected_log_text_part in log_text
+
+
 @pytest.fixture(scope="session")
 def apdl_file_using_additinal_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "test.inp"
