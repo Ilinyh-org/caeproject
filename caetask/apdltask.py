@@ -98,14 +98,14 @@ class APDLTask(CAETask):
 
         # чтение исходных файлов и запись их в рабочей директории
         if self.__parameters_file:
-            with open(tempdir.name + "\\" + os.path.basename(self.__parameters_file), 'w') as f:
+            with open(os.path.join(tempdir.name, os.path.basename(self.__parameters_file)), 'w') as f:
                 f.writelines(self.__parameters_file_code)
         if self.__input_file:
-            with open(tempdir.name + "\\" + os.path.basename(self.__input_file), 'w') as f:
+            with open(os.path.join(tempdir.name, os.path.basename(self.__input_file)), 'w') as f:
                 f.writelines(self.__input_file_code)
 
         for file in self.__additional_text_files:
-            with open(tempdir.name + "\\" + os.path.basename(file[0]), 'w') as f:
+            with open(os.path.join(tempdir.name, os.path.basename(file[0])), 'w') as f:
                 f.writelines(file[1])
 
         print("запущен расчёт ансис задачи \"" +
@@ -115,9 +115,10 @@ class APDLTask(CAETask):
 
         # составляем список команд и аттрибутов для запуска
         # для запуска используется переменная среды типа ansys180_dir
-        application = ['"%ansys' + self.__application_version
-                       + '_dir%\\bin\\winx64\\'
-                       + 'ansys' + self.__application_version + '"',
+        application = [f'"{os.path.join('%ansys' + self.__application_version + '_dir%',
+                                        'bin',
+                                        'winx64',
+                                        'ansys' + self.__application_version)}"',
                        '-b',
                        '-m', self.__memory_size,
                        '-db', self.__database_size,
@@ -125,7 +126,7 @@ class APDLTask(CAETask):
                        '-np', self.__cores,
                        '-j', self.__task_name,
                        '-i', os.path.basename(self.__input_file),
-                       '-o', tempdir.name + "\\" + self.__log_file,
+                       '-o', os.path.join(tempdir.name, self.__log_file),
                        '-gtmfile', self.__geometry_file_name,
                        '-resfile', self.__results_file_name,
                        '-parfile', os.path.basename(self.__parameters_file)]
@@ -156,8 +157,9 @@ class APDLTask(CAETask):
         # переносим результаты в папку результатов
         for file in self.__results_files_names:
             try:
-                shutil.copy2(tempdir.name + "\\" + file, self.__results_dir_path)
-                print(f"Файл {file} ансис задачи {self.__task_name} скопирован из {os.path.basename(tempdir.name)} в {os.path.basename(self.__results_dir_path)}")
+                shutil.copy2(os.path.join(tempdir.name, file), self.__results_dir_path)
+                print(
+                    f"Файл {file} ансис задачи {self.__task_name} скопирован из {os.path.basename(tempdir.name)} в {os.path.basename(self.__results_dir_path)}")
             except OSError:
                 print(f"Файл {file} не найден для копирования в {self.__results_dir_path}")
 

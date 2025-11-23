@@ -103,14 +103,14 @@ class FluentTask(CAETask):
 
         # чтение исходных файлов и запись их в рабочей директории
         if self.__parameters_file:
-            with open(tempdir.name + "\\" + os.path.basename(self.__parameters_file), 'w') as f:
+            with open(os.path.join(tempdir.name, os.path.basename(self.__parameters_file)), 'w') as f:
                 f.writelines(self.__parameters_file_code)
         if self.__input_file:
-            with open(tempdir.name + "\\" + os.path.basename(self.__input_file), 'w') as f:
+            with open(os.path.join(tempdir.name, os.path.basename(self.__input_file)), 'w') as f:
                 f.writelines(self.__input_file_code)
 
         for file in self.__additional_text_files:
-            with open(tempdir.name + "\\" + os.path.basename(file[0]), 'w') as f:
+            with open(os.path.join(tempdir.name, os.path.basename(file[0])), 'w') as f:
                 f.writelines(file[1])
 
         print("запущен расчёт Fluent задачи \"" +
@@ -118,8 +118,11 @@ class FluentTask(CAETask):
               " во временной директории " +
               os.path.basename(tempdir.name))
 
-        application = ['\"%AWP_ROOT' + self.__application_version
-                       + '%\\fluent\\ntbin\\win64\\fluent.exe\"',
+        application = [f'"{os.path.join('%AWP_ROOT' + self.__application_version + '%',
+                                        'fluent',
+                                        'ntbin',
+                                        'win64',
+                                        'fluent.exe')}"',
                        self.__dimension,
                         # '-r', self.__application_version[0:2] + '.' + self.__application_version[2:3] + '.0',
                        *(['-' + self.__graphics_regime] if self.__graphics_regime is not None else []), # run without graphics
