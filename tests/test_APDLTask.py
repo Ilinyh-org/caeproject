@@ -68,7 +68,7 @@ def test_apdl_multitask_callback(tmpdir, capsys):
 
     for input_sample, expected_result in zip(input_data, expected_results):
         file_name = "task" + input_sample[0] + "_text_file.dat"
-        with check:
+        with check:  # позволяет не прерывать общий процесс при провале assert
             try:
                 with open(file_name, "r") as file:
                     actual_result = int(file.readline())
