@@ -3,11 +3,12 @@ import shutil
 import tempfile
 from subprocess import Popen
 
-from caetask.caetask import CAETask
+from caetask.caetask import CAETask, log_execution_time
 
 
 class APDLTask(CAETask):
     def __init__(self, task_name='task'):
+        super().__init__(task_name)
         self.__task_name = task_name
         self.__input_file = ''
         self.__input_file_code = ''
@@ -93,6 +94,7 @@ class APDLTask(CAETask):
                 else:
                     raise OSError(f"Произошла ошибка OSError: {e}")
 
+    @log_execution_time()
     def solve(self, cleanup=True):
         tempdir = tempfile.TemporaryDirectory(dir=self.__temporary_directory_path)
 

@@ -4,13 +4,14 @@ import fnmatch
 import tempfile
 from subprocess import Popen
 
-from caetask.caetask import CAETask
+from caetask.caetask import CAETask, log_execution_time
 
 
 class FluentTask(CAETask):
     __counter = 0
 
     def __init__(self, task_name='task' + str(__counter)):
+        super().__init__(task_name)
         self.__task_name = task_name
         self.__input_file = ''
         self.__input_file_code = ''
@@ -98,6 +99,7 @@ class FluentTask(CAETask):
                 else:
                     raise OSError(f"Произошла ошибка OSError: {e}")
 
+    @log_execution_time()
     def solve(self, cleanup=True):
         tempdir = tempfile.TemporaryDirectory(dir=self.__temporary_directory_path)
 

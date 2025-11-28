@@ -7,6 +7,7 @@ class CFDPostTask(CAETask):
     __counter = 0
 
     def __init__(self, task_name='task' + str(__counter)):
+        super().__init__(task_name)
         self.__task_name = task_name
         self.__input_file = ''
         self.__input_file_code = ''
