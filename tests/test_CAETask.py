@@ -4,7 +4,6 @@ from caetask import APDLTask, FluentTask
 from threading import Lock
 import json
 from datetime import datetime
-from unittest.mock import patch, Mock
 
 lock = Lock()
 
