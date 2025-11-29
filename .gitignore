@@ -9,3 +9,6 @@ __pycache__/
 # Файлы, производные от работы тестов
 tests/text_file_from_ansys.dat
 
+#pytest coverage
+.coverage
+htmlcov/
