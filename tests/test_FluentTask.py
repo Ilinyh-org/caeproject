@@ -26,7 +26,7 @@ def scm_simple_file(tmp_path_factory):
 def test_fluent_task_start(tmpdir, scm_simple_file):
     os.chdir(tmpdir)
 
-    expected_result = "test text from fluent\n"
+    EXPECTED_RESULT = "test text from fluent\n"
 
     task1 = FluentTask('test')
     task1.input_file = scm_simple_file
@@ -90,7 +90,7 @@ def test_fluent_task_parameters_file(tmpdir, scm_use_parm_file, scm_parm_file):
 def test_fluent_task_logs(tmpdir, scm_simple_file):
     os.chdir(tmpdir)
 
-    expected_result = "Welcome to ANSYS Fluent"
+    EXPECTED_RESULT = "Welcome to ANSYS Fluent"
 
     task1 = FluentTask('test')
     task1.input_file = scm_simple_file
@@ -102,7 +102,7 @@ def test_fluent_task_logs(tmpdir, scm_simple_file):
     task1.solve()
 
     with open("log_test.log", "r") as file:
-        assert any(expected_result in line for line in file.readlines())
+        assert any(EXPECTED_RESULT in line for line in file.readlines())
 
 
 @pytest.fixture(scope="session")
@@ -143,7 +143,7 @@ def scm_solve_file(tmp_path_factory):
 def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
     os.chdir(tmpdir)
 
-    expected_result = "iter  continuity  x-velocity  y-velocity"
+    EXPECTED_RESULT = "iter  continuity  x-velocity  y-velocity"
 
     task1 = APDLTask('apdl')
     task1.input_file = inp_mesh_file
@@ -158,7 +158,7 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
     task2.solve()
 
     with open("log_fluent.log", "r") as file:
-        assert any(expected_result in line for line in file.readlines())
+        assert any(EXPECTED_RESULT in line for line in file.readlines())
 
 
 @pytest.mark.negative
@@ -204,7 +204,7 @@ def scm_transient_solve_file(tmp_path_factory):
 @pytest.mark.solve
 def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transient_solve_file, capsys):
     os.chdir(tmpdir)
-    expected_results = {"dat_files_number": 5,
+    EXPECTED_RESULTS = {"dat_files_number": 5,
                         "cas_files_number": 5,
                         "flprj_files_number": 1}
 
@@ -224,9 +224,9 @@ def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transi
     cas_files_number = len(glob.glob("results*.cas.h5"))
     flprj_files_number = len(glob.glob("results.flprj"))
 
-    assert dat_files_number == expected_results["dat_files_number"]
-    assert cas_files_number == expected_results["cas_files_number"]
-    assert flprj_files_number == expected_results["flprj_files_number"]
+    assert dat_files_number == EXPECTED_RESULTS["dat_files_number"]
+    assert cas_files_number == EXPECTED_RESULTS["cas_files_number"]
+    assert flprj_files_number == EXPECTED_RESULTS["flprj_files_number"]
 
 
 @pytest.mark.positive
@@ -234,7 +234,7 @@ def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transi
 def test_fluent_task_return_files_regular_expression(tmpdir, scm_simple_file):
     os.chdir(tmpdir)
 
-    expected_result = "test text from fluent\n"
+    EXPECTED_RESULT = "test text from fluent\n"
 
     task1 = FluentTask('test')
     task1.input_file = scm_simple_file
