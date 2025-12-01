@@ -234,16 +234,24 @@ def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apd
 @pytest.mark.solve
 def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)
-    os.mkdir('solve_dir')
+    MANUAL_TEMP_DIR_NAME = 'solve_dir'
+    os.mkdir(MANUAL_TEMP_DIR_NAME)
     expected_result = "test text from ansys\n"
 
     task = APDLTask('test')
     task.input_file = apdl_file
     task.temporary_directory_path = os.path.abspath('solve_dir')
     task.results_files_names = ["text_file_from_ansys.dat"]
-    task.solve()
+    task.solve(cleanup=False, delete=False)
 
-    with open("text_file_from_ansys.dat", "r") as file:
+    manual_temp_dir_abspath = os.path.abspath(MANUAL_TEMP_DIR_NAME)
+    tempdir = next(
+        os.path.join(manual_temp_dir_abspath, d)
+        for d in os.listdir(manual_temp_dir_abspath)
+        if os.path.isdir(os.path.join(manual_temp_dir_abspath, d))
+    )
+
+    with open(os.path.join(tempdir, "text_file_from_ansys.dat"), "r") as file:
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result
 
@@ -333,3 +341,27 @@ def test_apdl_results_file_FileNotFoundError(tmpdir, apdl_file, capsys):
     actual_error_message = capsys.readouterr().out
 
     assert expected_error_message in actual_error_message
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_apdl__str__(tmpdir, apdl_file, capsys):
+    os.chdir(tmpdir)
+
+    EXPECTED_RESULT = 'имя задачи: test\n'\
+                      'исполняемый файл: test.inp\n'\
+                      'файл логов: test.log\n'\
+                      'версия приложения: 212\n'\
+                      'количество потоков в задаче: 2\n'\
+                      '\n'
+
+    task1 = APDLTask('test')
+    task1.input_file = apdl_file
+    task1.results_files_names = ["text_file_from_apdl_file.dat"]
+    print(task1)
+    captured = capsys.readouterr()
+    actual_result = captured.out
+
+    assert actual_result == EXPECTED_RESULT
+
+

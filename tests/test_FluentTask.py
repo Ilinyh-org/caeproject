@@ -38,6 +38,53 @@ def test_fluent_task_start(tmpdir, scm_simple_file):
     assert actual_result == expected_result
 
 
+@pytest.fixture(scope="session")
+def scm_parm_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test_parm.scm"
+    with open(fn, "w") as file:
+        file.write("(define A1 0.01)\n")
+        file.write("(define B1 2)\n")
+        file.write("(define C1 \"text\")\n")
+    return fn
+
+
+@pytest.fixture(scope="session")
+def scm_use_parm_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test.scm"
+    with open(fn, "w") as file:
+        file.write("(define out (open-output-file \"text_file_from_fluent.dat\"))\n")
+        file.write("(if (file-exists? \"test_parm.scm\")\n")
+        file.write("    (load \"test_parm.scm\")\n")
+        file.write("    #f)\n")
+        file.write("(write A1 out)\n")
+        file.write("(newline out)\n")
+        file.write("(write B1 out)\n")
+        file.write("(newline out)\n")
+        file.write("(write C1 out)\n")
+        file.write("(newline out)\n")
+        file.write("(close-output-port out)\n")
+        file.write("(ti-menu-load-string \"exit y\")\n")
+    return fn
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_fluent_task_parameters_file(tmpdir, scm_use_parm_file, scm_parm_file):
+    os.chdir(tmpdir)
+
+    EXPECTED_RESULT = ["0.01\n", "2\n", "\"text\"\n"]
+
+    task1 = FluentTask('test')
+    task1.input_file = scm_use_parm_file
+    task1.parameters_file = scm_parm_file
+    task1.results_files_names = ["text_file_from_fluent.dat"]
+    task1.solve()
+
+    with open("text_file_from_fluent.dat", "r") as file:
+        actual_result = file.readlines()
+    assert actual_result == EXPECTED_RESULT
+
+
 @pytest.mark.positive
 @pytest.mark.solve
 def test_fluent_task_logs(tmpdir, scm_simple_file):
@@ -174,6 +221,28 @@ def test_fluent_task_return_files_regular_expression(tmpdir, scm_simple_file):
     with open("text_file_from_fluent.dat", "r") as file:
         actual_result = file.readline()
     assert actual_result == expected_result
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_fluent__str__(tmpdir, scm_simple_file, capsys):
+    os.chdir(tmpdir)
+
+    EXPECTED_RESULT = 'имя задачи: test\n'\
+                      'исполняемый файл: test.scm\n'\
+                      'файл логов: test.log\n'\
+                      'версия приложения: 212\n'\
+                      'количество потоков в задаче: 2\n'\
+                      '\n'
+
+    task1 = FluentTask('test')
+    task1.input_file = scm_simple_file
+    task1.results_files_names = ["text_file_from_fluent.dat"]
+    print(task1)
+    captured = capsys.readouterr()
+    actual_result = captured.out
+
+    assert actual_result == EXPECTED_RESULT
 
 
 def tearDown() -> None:

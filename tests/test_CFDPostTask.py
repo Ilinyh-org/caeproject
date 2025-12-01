@@ -121,3 +121,24 @@ def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_
     with open("export.csv", "r") as file:
         actual_result = len(file.readlines())
     assert actual_result == expected_result
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_cfdpost__str__(tmpdir, cse_fluentpost_file, capsys):
+    os.chdir(tmpdir)
+
+    expected_result_base = (
+            'имя задачи: test\n' +
+            'исполняемый файл: test.cse\n' +
+            'файл логов: test.log\n' +
+            'версия приложения: 212\n' +
+            'путь рабочей директории: ' + str(tmpdir) + '\n\n')
+
+    task1 = CFDPostTask('test')
+    task1.input_file = cse_fluentpost_file
+    print(task1)
+    captured = capsys.readouterr()
+    actual_result = captured.out
+
+    assert actual_result == expected_result_base
