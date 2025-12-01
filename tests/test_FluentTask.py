@@ -35,7 +35,7 @@ def test_fluent_task_start(tmpdir, scm_simple_file):
 
     with open("text_file_from_fluent.dat", "r") as file:
         actual_result = file.readline()
-    assert actual_result == expected_result
+    assert actual_result == EXPECTED_RESULT
 
 
 @pytest.fixture(scope="session")
@@ -161,6 +161,29 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
         assert any(expected_result in line for line in file.readlines())
 
 
+@pytest.mark.negative
+@pytest.mark.solve
+def test_fluent_task_solve_wrong_dimension(tmpdir, inp_mesh_file, scm_solve_file):
+    os.chdir(tmpdir)
+
+    expected_error = PermissionError
+
+    task1 = APDLTask('apdl')
+    task1.input_file = inp_mesh_file
+    task1.results_files_names = ["mesh.cdb"]
+    task1.solve()
+
+    task2 = FluentTask('fluent')
+    task2.input_file = scm_solve_file
+    task2.log_file = 'log_fluent.log'
+    task2.additional_link_files = ['mesh.cdb']
+    task2.results_files_names = ["log_fluent.log"]
+    task2.dimension = "3d"
+
+    with pytest.raises(expected_error):
+        task2.solve()
+
+
 @pytest.fixture(scope="session")
 def scm_transient_solve_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "test.scm"
@@ -220,7 +243,7 @@ def test_fluent_task_return_files_regular_expression(tmpdir, scm_simple_file):
 
     with open("text_file_from_fluent.dat", "r") as file:
         actual_result = file.readline()
-    assert actual_result == expected_result
+    assert actual_result == EXPECTED_RESULT
 
 
 @pytest.mark.positive
