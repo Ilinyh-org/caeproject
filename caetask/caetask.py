@@ -201,14 +201,14 @@ class CAETask(ABC):
         self._temporary_directory_path = os.path.abspath(path)
 
     @property
-    def results_dir_path(self):
+    def results_directory_path(self):
         check_attribute(self)
-        return self.__results_dir_path
+        return self._results_directory_path
 
-    @results_dir_path.setter
-    def results_dir_path(self, path):
+    @results_directory_path.setter
+    def results_directory_path(self, path):
         check_attribute(self)
-        self.__results_dir_path = os.path.abspath(path)
+        self._results_directory_path = os.path.abspath(path)
 
 
 def log_execution_time():

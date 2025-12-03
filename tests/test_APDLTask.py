@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 import pytest
 from pytest_check import check
 from caetask import run_processes, run_threads
@@ -104,6 +106,28 @@ def test_apdl_solve(tmpdir, apdl_file, capsys):
     task.solve()
 
     with open("text_file_from_ansys.dat", "r") as file:
+        line_from_test_file = file.readline()
+    assert line_from_test_file == expected_result
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
+    tmpdir1 = tmp_path / "tmpdir1"
+    tmpdir1.mkdir()
+    tmpdir2 = tmp_path / "tmpdir2"
+    tmpdir2.mkdir()
+    os.chdir(tmpdir1)
+
+    expected_result = "test text from ansys\n"
+
+    task = APDLTask('test')
+    task.input_file = apdl_file
+    task.results_directory_path = tmpdir2
+    task.results_files_names = ["text_file_from_ansys.dat"]
+    task.solve()
+
+    with open(tmpdir2 / "text_file_from_ansys.dat", "r") as file:
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result
 

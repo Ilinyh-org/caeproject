@@ -22,7 +22,7 @@ class FluentTask(CAETask):
         self._additional_text_files_codes = []
         self._additional_link_files = []
         self._copy_link_files = False
-        self.__results_dir_path = os.path.abspath(os.curdir)
+        self._results_directory_path = os.path.abspath(os.curdir)
         # self.__working_directory_path = os.path.abspath(os.curdir)
         self._temporary_directory_path = None
         self._application_version = "212"
@@ -140,11 +140,11 @@ class FluentTask(CAETask):
         # переносим результаты в папку результатов
         for file in self._results_files_names:
             try:
-                shutil.copy2(os.path.join(tempdir.name, file), self.__results_dir_path)
+                shutil.copy2(os.path.join(tempdir.name, file), self._results_directory_path)
                 print(f"Файл {file} fluent задачи {self._task_name} скопирован из "
-                      f"{os.path.basename(tempdir.name)} в {os.path.basename(self.__results_dir_path)}")
+                      f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory_path)}")
             except OSError:
-                print(f"Файл {file} не найден для копирования в {self.__results_dir_path}")
+                print(f"Файл {file} не найден для копирования в {self._results_directory_path}")
 
         if cleanup:
             tempdir.cleanup()
