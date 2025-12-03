@@ -53,7 +53,7 @@ def solve_task(task: APDLTask):
 def test_apdl_multitask_callback(tmpdir, capsys):
     global input_data
 
-    expected_results = (3, 6, 9, 12, 15, 18, 21)
+    EXPECTED_RESULTS = (3, 6, 9, 12, 15, 18, 21)
 
     os.chdir(tmpdir)
 
@@ -68,7 +68,7 @@ def test_apdl_multitask_callback(tmpdir, capsys):
     tasks = run_threads(create_task, [0, 1, 2, 3, 4, 5, 6])  # список параллельных решаемых задач
     run_threads(solve_task, tasks, max_workers=4)
 
-    for input_sample, expected_result in zip(input_data, expected_results):
+    for input_sample, expected_result in zip(input_data, EXPECTED_RESULTS):
         file_name = "task" + input_sample[0] + "_text_file.dat"
         with check:  # позволяет не прерывать общий процесс при провале assert
             try:
@@ -98,7 +98,7 @@ def apdl_file(tmp_path_factory):
 def test_apdl_solve(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)
 
-    expected_result = "test text from ansys\n"
+    EXPECTED_RESULT = "test text from ansys\n"
 
     task = APDLTask('test')
     task.input_file = apdl_file
@@ -107,7 +107,7 @@ def test_apdl_solve(tmpdir, apdl_file, capsys):
 
     with open("text_file_from_ansys.dat", "r") as file:
         line_from_test_file = file.readline()
-    assert line_from_test_file == expected_result
+    assert line_from_test_file == EXPECTED_RESULT
 
 
 @pytest.mark.positive
@@ -119,7 +119,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
     tmpdir2.mkdir()
     os.chdir(tmpdir1)
 
-    expected_result = "test text from ansys\n"
+    EXPECTED_RESULT = "test text from ansys\n"
 
     task = APDLTask('test')
     task.input_file = apdl_file
@@ -129,7 +129,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
 
     with open(tmpdir2 / "text_file_from_ansys.dat", "r") as file:
         line_from_test_file = file.readline()
-    assert line_from_test_file == expected_result
+    assert line_from_test_file == EXPECTED_RESULT
 
 
 @pytest.mark.positive
@@ -184,7 +184,7 @@ def additional_text_file(tmp_path_factory):
 def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additinal_file, additional_text_file, capsys):
     os.chdir(tmpdir)
 
-    expected_result = "14\n"
+    EXPECTED_RESULT = "14\n"
 
     task = APDLTask('test')
     task.input_file = apdl_file_using_additinal_file
@@ -196,7 +196,7 @@ def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additinal_file
 
     with open("text_file_from_ansys.dat", "r") as file:
         line_from_test_file = file.readline()
-    assert line_from_test_file == expected_result
+    assert line_from_test_file == EXPECTED_RESULT
 
 
 @pytest.fixture(scope="session")
@@ -229,7 +229,7 @@ def apdl_file_resuming_database(tmp_path_factory):
 def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apdl_file_resuming_database, capsys):
     os.chdir(tmpdir)
 
-    expected_result = "5\n"
+    EXPECTED_RESULT = "5\n"
 
     task = APDLTask('test1')
     task.input_file = apdl_file_saving_database
@@ -251,7 +251,7 @@ def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apd
 
     with open("text_file_from_ansys.dat", "r") as file:
         line_from_test_file = file.readline()
-    assert line_from_test_file == expected_result
+    assert line_from_test_file == EXPECTED_RESULT
 
 
 @pytest.mark.positive
@@ -260,7 +260,7 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)
     MANUAL_TEMP_DIR_NAME = 'solve_dir'
     os.mkdir(MANUAL_TEMP_DIR_NAME)
-    expected_result = "test text from ansys\n"
+    EXPECTED_RESULT = "test text from ansys\n"
 
     task = APDLTask('test')
     task.input_file = apdl_file
@@ -277,7 +277,7 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
 
     with open(os.path.join(tempdir, "text_file_from_ansys.dat"), "r") as file:
         line_from_test_file = file.readline()
-    assert line_from_test_file == expected_result
+    assert line_from_test_file == EXPECTED_RESULT
 
 
 @pytest.mark.positive
@@ -296,7 +296,7 @@ def test_apdl_calc_geom_vol(input_data, expected_result, capsys):
 def test_apdl_two_tasks_sum(tmpdir, capsys):
     os.chdir(tmpdir)
 
-    expected_results = (3, 6)
+    EXPECTED_RESULTS = (3, 6)
     with open("test1.inp", "w") as file:
         file.write("/batch\n")
         file.write("*cfopen,task1_text_file,dat\n")
@@ -322,10 +322,10 @@ def test_apdl_two_tasks_sum(tmpdir, capsys):
 
     with open("task1_text_file.dat", "r") as f:
         actual_result = int(f.readline())
-        assert actual_result == expected_results[0]
+        assert actual_result == EXPECTED_RESULTS[0]
     with open("task2_text_file.dat", "r") as f:
         actual_result = int(f.readline())
-        assert actual_result == expected_results[1]
+        assert actual_result == EXPECTED_RESULTS[1]
 
 
 @pytest.mark.negative
