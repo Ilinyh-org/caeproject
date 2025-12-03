@@ -2,7 +2,7 @@
 
 name = "caetask"  # Required
 
-version = "0.2.4"  # Required
+version = "0.3.0"  # Required
 
 description = "A module for run CAE applications from python script"  # Optional
 
