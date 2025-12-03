@@ -33,8 +33,9 @@ test = ["pytest"]
 "Say Thanks!" = "http://saythanks.io/to/caetask"
 "Source" = "http://gitea.ad.vmm.pstu.ru/IlinykhGV/caetask"
 
-[tool.setuptools]
-#package-data = {"sample" = ["*.dat"]}
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["caetask"]
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
