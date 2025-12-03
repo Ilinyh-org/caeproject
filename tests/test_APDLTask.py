@@ -157,7 +157,7 @@ def test_apdl_log(tmpdir, apdl_file, capsys):
 
 
 @pytest.fixture(scope="session")
-def apdl_file_using_additinal_file(tmp_path_factory):
+def apdl_file_using_additional_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "test.inp"
     with open(fn, "w") as file:
         file.write("/batch\n")
@@ -181,13 +181,13 @@ def additional_text_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additinal_file, additional_text_file, capsys):
+def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_file, additional_text_file, capsys):
     os.chdir(tmpdir)
 
     EXPECTED_RESULT = "14\n"
 
     task = APDLTask('test')
-    task.input_file = apdl_file_using_additinal_file
+    task.input_file = apdl_file_using_additional_file
     task.additional_text_files = additional_text_file
     task.results_files_names = [
         "text_file_from_ansys.dat",
