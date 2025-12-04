@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 import pytest
 from caetask import APDLTask, FluentTask, CFDPostTask
 from threading import Lock
@@ -29,7 +31,8 @@ def apdl_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve(tmpdir, apdl_file, capsys):
+@pytest.mark.log
+def test_apdl_solve_log(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)
 
     LOG_FILE_NAME = "test_APDLTask_solve.log"
@@ -42,6 +45,41 @@ def test_apdl_solve(tmpdir, apdl_file, capsys):
     task.solve()
 
     with open(LOG_FILE_NAME, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+        assert set(data.keys()) == EXPECTED_LOG_FIELDS
+        assert data['function_name'] == EXPECTED_FUNCTION_NAME
+        assert data['status'] == EXPECTED_STATUS
+
+        start_dt = parse_iso8601(data['start_time'])
+        end_dt = parse_iso8601(data['end_time'])
+        expected_duration = (end_dt - start_dt).total_seconds()
+        actual_duration = data['duration_seconds']
+
+        assert abs(actual_duration - expected_duration) < 0.001
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+@pytest.mark.log
+def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
+    tmpdir1 = tmp_path / "tmpdir1"
+    tmpdir1.mkdir()
+    tmpdir2 = tmp_path / "tmpdir2"
+    tmpdir2.mkdir()
+    os.chdir(tmpdir1)
+
+    LOG_FILE_NAME = "test_APDLTask_solve.log"
+    EXPECTED_LOG_FIELDS = {'function_name', 'start_time', 'end_time', 'duration_seconds', 'status'}
+    EXPECTED_FUNCTION_NAME = 'solve'
+    EXPECTED_STATUS = 'success'
+
+    task = APDLTask('test')
+    task.input_file = apdl_file
+    task.results_directory_path = tmpdir2
+    task.solve()
+
+    with open(tmpdir2 / LOG_FILE_NAME, "r", encoding="utf-8") as file:
         data = json.load(file)
 
         assert set(data.keys()) == EXPECTED_LOG_FIELDS
@@ -104,7 +142,8 @@ def scm_simple_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_fluent_solve(tmpdir, scm_simple_file, capsys):
+@pytest.mark.log
+def test_fluent_solve_log(tmpdir, scm_simple_file, capsys):
     os.chdir(tmpdir)
 
     LOG_FILE_NAME = "test_FluentTask_solve.log"
@@ -134,10 +173,11 @@ def test_fluent_solve(tmpdir, scm_simple_file, capsys):
 @pytest.mark.negative
 @pytest.mark.solve
 @pytest.mark.input_parameters
+@pytest.mark.log
 @pytest.mark.parametrize("raising_exception, expected_status, expected_end_time",
                          [(KeyboardInterrupt, 'running', None),
                           (RuntimeError, 'error', not None)])
-def test_apdl_solve_with_interrupt(raising_exception, expected_status, expected_end_time,
+def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expected_end_time,
                                    monkeypatch, tmpdir, apdl_file):
     os.chdir(tmpdir)
 

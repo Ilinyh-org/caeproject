@@ -225,8 +225,11 @@ def log_execution_time():
             # Формируем имя лог‑файла
             # Предполагаем, что первый аргумент (args[0]) — это экземпляр класса с атрибутом task_name
             task_name = args[0].task_name
+            results_directory_path = args[0].results_directory_path
+
             func_qualname = func.__qualname__.replace(".", "_")
             log_file = f"{task_name}_{func_qualname}.log"
+            log_file_full_path = os.path.join(results_directory_path, log_file)
 
             # Время начала
             start_time = time.time()
@@ -263,7 +266,7 @@ def log_execution_time():
                 }
 
                 # Перезаписываем JSON‑файл итоговой записью
-                with open(log_file, "w", encoding="utf-8") as f:
+                with open(log_file_full_path, "w", encoding="utf-8") as f:
                     json.dump(final_log, f, indent=4, ensure_ascii=False)
 
                 return result
@@ -282,7 +285,7 @@ def log_execution_time():
                 }
 
                 # Перезаписываем JSON‑файл записью об ошибке
-                with open(log_file, "w", encoding="utf-8") as f:
+                with open(log_file_full_path, "w", encoding="utf-8") as f:
                     json.dump(error_log, f, indent=4, ensure_ascii=False)
 
                 raise  # Пробрасываем исключение дальше
