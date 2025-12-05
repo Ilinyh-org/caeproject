@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 from caetask import APDLTask, FluentTask, CFDPostTask
+from caetask.caetask import CAETask
 from threading import Lock
 import json
 from datetime import datetime
@@ -12,6 +13,11 @@ lock = Lock()
 
 def setup_method():
     pass
+
+
+@pytest.fixture(autouse=True)
+def reset_counter():
+    CAETask.reset()
 
 
 def parse_iso8601(ts):
@@ -95,6 +101,7 @@ def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file, caps
 
 
 @pytest.mark.positive
+@pytest.mark.counter
 def test_counter_increment(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)
 
@@ -107,14 +114,15 @@ def test_counter_increment(tmpdir, apdl_file, capsys):
     task4 = FluentTask('test2fluent')
     task5 = FluentTask('test3fluent')
 
-    actual_apdl_tasks_count = task1.counter
-    actual_fluent_tasks_count = task5.counter
+    actual_apdl_tasks_count = APDLTask.count()
+    actual_fluent_tasks_count = FluentTask.count()
 
     assert actual_apdl_tasks_count == EXPECTED_APDL_TASKS_COUNT
     assert actual_fluent_tasks_count == EXPECTED_FLUENT_TASKS_COUNT
 
 
 @pytest.mark.positive
+@pytest.mark.counter
 def test_counter_decrement(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)
 
@@ -124,12 +132,32 @@ def test_counter_decrement(tmpdir, apdl_file, capsys):
     task1 = CFDPostTask('test1')
     task2 = CFDPostTask('test2')
     task3 = CFDPostTask('test3')
-    actual_tasks_count_before_del = task1.counter
+    actual_tasks_count_before_del = CFDPostTask.count()
     del task2
-    actual_tasks_count_after_del = task1.counter
+    actual_tasks_count_after_del = CFDPostTask.count()
 
     assert actual_tasks_count_before_del == EXPECTED_TASKS_COUNT_BEFORE_DEL
     assert actual_tasks_count_after_del == EXPECTED_TASKS_COUNT_AFTER_DEL
+
+
+@pytest.mark.positive
+@pytest.mark.counter
+def test_counter_reset_certain_classes(tmpdir, apdl_file, capsys):
+    os.chdir(tmpdir)
+
+    EXPECTED_TARGET_TASKS_COUNT_AFTER_RESET = 0
+    EXPECTED_OTHER_TASKS_COUNT_AFTER_RESET = 2
+
+    task1 = FluentTask('test1')
+    task2 = FluentTask('test2')
+    task3 = CFDPostTask('test3')
+    task4 = CFDPostTask('test4')
+    FluentTask.reset()
+    actual_target_tasks_count_after_reset = task1.count()
+    actual_other_tasks_count_after_reset = task3.count()
+
+    assert actual_target_tasks_count_after_reset == EXPECTED_TARGET_TASKS_COUNT_AFTER_RESET
+    assert actual_other_tasks_count_after_reset == EXPECTED_OTHER_TASKS_COUNT_AFTER_RESET
 
 
 @pytest.fixture(scope="session")

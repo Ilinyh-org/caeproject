@@ -46,17 +46,23 @@ class CAETask(ABC):
     @classmethod
     def _increment_counter(cls):
         """Увеличивает счётчик для конкретного класса"""
-        cls_name = cls.__name__
-        if cls_name not in CAETask._class_counts:
-            CAETask._class_counts[cls_name] = 0
-        CAETask._class_counts[cls_name] += 1
+        if cls not in CAETask._class_counts:
+            CAETask._class_counts[cls] = 0
+        CAETask._class_counts[cls] += 1
 
     @classmethod
     def _decrement_counter(cls):
         """Уменьшает счётчик для конкретного класса"""
-        cls_name = cls.__name__
-        if cls_name in CAETask._class_counts and CAETask._class_counts[cls_name] > 0:
-            CAETask._class_counts[cls_name] -= 1
+        if cls in CAETask._class_counts and CAETask._class_counts[cls] > 0:
+            CAETask._class_counts[cls] -= 1
+
+    @classmethod
+    def reset(cls):
+        if cls is CAETask:
+            for key in cls._class_counts:
+                cls._class_counts[key] = 0
+        else:
+            CAETask._class_counts[cls] = 0
 
     @abstractmethod
     def solve(self):
@@ -66,9 +72,9 @@ class CAETask(ABC):
     def task_name(self):
         return self._task_name
 
-    @property
-    def counter(self):
-        return CAETask._class_counts.get(self.__class__.__name__, 0)
+    @classmethod
+    def count(cls):
+        return CAETask._class_counts.get(cls, 0)
 
     @property
     def input_file(self):
