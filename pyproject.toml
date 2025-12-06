@@ -23,7 +23,7 @@ maintainers = [
 ]
 
 [project.optional-dependencies] # Optional
-dev = ["pytest", "pytest_check"]
+dev = ["pytest", "pytest_check", "pytest-cov"]
 test = ["pytest"]
 
 [project.urls]  # Optional
