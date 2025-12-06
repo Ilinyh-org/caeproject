@@ -29,10 +29,8 @@ class APDLTask(CAETask):
         self._cores = '2'
         self._new_parameter_name = None
         self._new_parameter_value = None
-        self._process_type = 'serial'
         self._memory_size = '2048'
         self._database_size = '1024'
-        self._process = None
         self._status = None
 
     def __repr__(self):
@@ -136,16 +134,11 @@ class APDLTask(CAETask):
         self.__organize_additional_link_files(tempdir)
 
         # создание процесса по сконфигурированному application
-        if self._process_type == 'serial':
-            # при создании процесса список application превращается в строку
-            self._process = Popen(' '.join(application), shell=True).wait()
-            print("закончен расчёт ансис задачи " +
-                  self._task_name +
-                  " во временной директории " +
-                  os.path.basename(tempdir.name))
-        elif self._process_type == 'parallel':
-            # при создании процесса список application превращается в строку
-            self._process = Popen(' '.join(application), shell=True)
+        self._process = Popen(' '.join(application), shell=True).wait()
+        print("закончен расчёт ансис задачи " +
+              self._task_name +
+              " во временной директории " +
+              os.path.basename(tempdir.name))
 
         # переносим результаты в папку результатов
         for file in self._results_files_names:
@@ -191,17 +184,6 @@ class APDLTask(CAETask):
     @new_parameter_value.setter
     def new_parameter_value(self, value):
         self._new_parameter_value = value
-
-    @property
-    def process_type(self):
-        return self._process_type
-
-    @process_type.setter
-    def process_type(self, value):
-        if value in ['serial', 'parallel']:
-            self._process_type = value
-        else:
-            raise ValueError
 
     @property
     def memory_size(self):

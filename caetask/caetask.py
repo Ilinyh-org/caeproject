@@ -25,6 +25,7 @@ class CAETask(ABC):
         self._input_file = None
         self._input_file_code = None
         self._task_name = task_name
+        self._process = None
         self._increment_counter()
 
     def __del__(self):

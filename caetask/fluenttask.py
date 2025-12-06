@@ -29,8 +29,6 @@ class FluentTask(CAETask):
         self._dimension = "2d"
         self._graphics_regime = 'g'
         self._threads = '2'
-        self._process_type = 'serial'
-        self._process = None
 
     def __repr__(self):
         return self._task_name
@@ -106,20 +104,15 @@ class FluentTask(CAETask):
         self.__organize_additional_link_files(tempdir)
 
         # создание процесса по сконфигурированному application
-        if self._process_type == 'serial':
-            # при создании процесса список application превращается в строку
-            with open(os.path.join(tempdir.name, self._log_file), 'w') as f:
-                self._process = Popen(' '.join(application),
-                                      shell=True,
-                                      stdout=f,
-                                      cwd=tempdir.name).wait()
-            print("закончен расчёт ансис задачи " +
-                  self._task_name +
-                  " во временной директории " +
-                  os.path.basename(tempdir.name))
-        elif self._process_type == 'parallel':
-            # при создании процесса список application превращается в строку
-            self._process = Popen(' '.join(application), shell=True)
+        with open(os.path.join(tempdir.name, self._log_file), 'w') as f:
+            self._process = Popen(' '.join(application),
+                                  shell=True,
+                                  stdout=f,
+                                  cwd=tempdir.name).wait()
+        print("закончен расчёт ансис задачи " +
+              self._task_name +
+              " во временной директории " +
+              os.path.basename(tempdir.name))
 
         # делаем проверку на регулярные выражения и расширяем список файлов с их учётом
         results_files_names_to_add = []
