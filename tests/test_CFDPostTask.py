@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 import pytest
 from pytest_check import check
 from caetask import run_processes, run_threads, APDLTask, FluentTask
@@ -119,6 +121,43 @@ def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_
     task3.solve()
 
     with open("export.csv", "r") as file:
+        actual_result = len(file.readlines())
+    assert actual_result == expected_result
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_cfdposttask_not_in_current_directory(tmp_path: Path,
+                                              inp_mesh_file, scm_solve_file, cse_fluentpost_file, capsys):
+    tmpdir1 = tmp_path / "tmpdir1"
+    tmpdir1.mkdir()
+    tmpdir2 = tmp_path / "tmpdir2"
+    tmpdir2.mkdir()
+    os.chdir(tmpdir1)
+
+    expected_result = 6
+
+    task1 = APDLTask('apdl')
+    task1.input_file = inp_mesh_file
+    task1.results_directory_path = tmpdir2
+    task1.results_files_names = ["mesh.cdb"]
+    task1.solve()
+
+    task2 = FluentTask('fluent')
+    task2.input_file = scm_solve_file
+    task2.log_file = 'log_fluent.log'
+    task2.additional_link_files = [tmpdir2 / 'mesh.cdb']
+    task2.results_directory_path = tmpdir2
+    task2.results_files_names = ["log_fluent.log", "results.cas.h5", "results.dat.h5"]
+    task2.solve()
+
+    task3 = CFDPostTask('cfdpost')
+    task3.input_file = cse_fluentpost_file
+    task3.working_directory_path = os.path.abspath(tmpdir2)
+    task3.results_files_names = ["export.csv"]
+    task3.solve()
+
+    with open(tmpdir2 / "export.csv", "r") as file:
         actual_result = len(file.readlines())
     assert actual_result == expected_result
 

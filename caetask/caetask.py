@@ -189,12 +189,12 @@ class CAETask(ABC):
     @property
     def working_directory_path(self):
         check_attribute(self)
-        return self.__working_directory_path
+        return self._working_directory_path
 
     @working_directory_path.setter
     def working_directory_path(self, path):
         check_attribute(self)
-        self.__working_directory_path = os.path.abspath(path)
+        self._working_directory_path = os.path.abspath(path)
 
     @property
     def temporary_directory_path(self):

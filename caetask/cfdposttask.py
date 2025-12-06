@@ -31,10 +31,12 @@ class CFDPostTask(CAETask):
 
     def solve(self):
         if self._parameters_file_name:
-            with open(os.path.basename(self._parameters_file_name), 'w') as f:
+            with open(os.path.join(os.path.abspath(self._working_directory_path),
+                                   os.path.basename(self._parameters_file_name)), 'w') as f:
                 f.writelines(self._parameters_file_code)
         if self._input_file:
-            with open(os.path.basename(self._input_file), 'w') as f:
+            with open(os.path.join(os.path.abspath(self._working_directory_path),
+                                   os.path.basename(self._input_file)), 'w') as f:
                 f.writelines(self._input_file_code)
         print(f"запущен расчёт cfdpost задачи {os.path.basename(self._input_file)}")
         # составляем список команд и аттрибутов для запуска
