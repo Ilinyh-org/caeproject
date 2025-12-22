@@ -252,7 +252,7 @@ def log_execution_time():
             }
 
             # Записываем стартовую запись в JSON‑файл
-            with open(log_file, "w", encoding="utf-8") as f:
+            with open(log_file_full_path, "w", encoding="utf-8") as f:
                 json.dump(initial_log, f, indent=4, ensure_ascii=False)
 
             try:
