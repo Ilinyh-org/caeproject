@@ -1,0 +1,45 @@
+[project]
+
+name = "caecase"
+
+version = "0.0.1"
+
+description = "A module for running CAE tasks from python script"
+
+readme = "README.md"
+
+requires-python = ">=3.11.4"
+
+license-files = ["LICEN[CS]E*"]
+
+keywords = ["cae", "script", "mechanical"]
+
+authors = [
+  {name = "Gleb Ilinyh", email = "gleb@ilinyh.ru" }
+]
+
+maintainers = [
+  {name = "Gleb Ilinyh", email = "gleb@ilinyh.ru" }
+]
+
+dependencies = [
+    "caetask @ git+ssh://git@github.com/IlinyhGleb/caetask.git",
+    "pint"
+]
+
+[project.optional-dependencies] # Optional
+dev = ["pytest", "pytest_check", "pytest-cov"]
+test = ["pytest"]
+
+[project.urls]  # Optional
+"Homepage" = "https://github.com/IlinyhGleb/caecase"
+"Bug Reports" = "https://github.com/IlinyhGleb/caecase/issues"
+"Source" = "https://github.com/IlinyhGleb/caecase"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["caecase"]
+
+[build-system]
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"

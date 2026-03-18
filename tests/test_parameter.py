@@ -1,0 +1,436 @@
+
+import pytest
+from caecase import Parameter
+from pint import UnitRegistry
+
+EPS = 1e3
+
+@pytest.mark.parametrize("input_value, expected_value", [
+    (10, 10),
+    (5.5, 5.5),
+    ((20, "m"), 20),
+])
+def test_parameter_initialization_value(input_value, expected_value):
+
+    p = Parameter(value=input_value)
+
+    actual_value = p.value
+    assert actual_value == expected_value
+
+
+@pytest.mark.parametrize("input_value, input_units, expected_units", [
+    (23, "m", "m"),
+    (1e5, "Pa", "Pa"),
+    (2, "atm", "atm"),
+    (1500, "s^-1", "s^-1"),
+])
+def test_parameter_initialization_units(input_value, input_units, expected_units):
+
+    p = Parameter(value=input_value, units=input_units)
+
+    actual_units = p.units
+    assert actual_units == expected_units
+
+
+@pytest.mark.parametrize("input_value, expected_value, expected_units", [
+    ((2, "s"), 2, "s"),
+    ((2, "km"), 2000, "m"),
+    ((1.8, "km"), 1800, "m"),
+    ((30, "h^-1"), 0.00833, "s^-1"),
+    ((30, "m * h^-2"), 0.00833, "m*s^-2"),
+])
+def test_parameter_get_value_with_iconvertion(input_value, expected_value, expected_units):
+    p = Parameter(value=input_value)
+
+    p.ito_units(expected_units)
+
+    actual_value = p.value
+    actual_units = p.units
+    assert actual_value == pytest.approx(expected_value, abs=EPS)
+    assert actual_units == expected_units
+
+
+@pytest.mark.parametrize("input_value, expected_value, expected_units", [
+    ((2, "s"), 2, "s"),
+    ((2, "km"), 2000, "m"),
+    ((1.8, "km"), 1800, "m"),
+    ((30, "h^-1"), 0.00833, "s^-1"),
+    ((30, "m * h^-2"), 0.00833, "m*s^-2"),
+])
+def test_parameter_get_value_with_convertion(input_value, expected_value, expected_units):
+    p = Parameter(value=input_value)
+
+    p = p.to_units(expected_units)
+
+    actual_value = p.value
+    actual_units = p.units
+    assert actual_value == pytest.approx(expected_value, abs=EPS)
+    assert actual_units == expected_units
+
+
+def test_parameter_initialization_default_units():
+    input_value = 10
+    expected_units = ""
+
+    p = Parameter(value=input_value)
+
+    actual_units = p.units
+    assert actual_units == expected_units
+
+
+@pytest.mark.parametrize("input_value, expected_repr", [
+    (5.5, "Parameter(value=5.5, units='', description='')"),
+    ((20, "m"), "Parameter(value=20, units='m', description='')"),
+    # (ureg.Quantity(300, "kg"), "Parameter(value=300, units='kg', description='')"),
+])
+def test_parameter_initialization_repr(input_value, expected_repr):
+    p = Parameter(value=input_value)
+
+    actual_repr = repr(p)
+
+    assert actual_repr == expected_repr
+
+
+@pytest.mark.parametrize("input_value, expected_repr", [
+    (70, "Parameter(value=70, units='', description='')"),
+    ((20, "m"), "Parameter(value=20, units='m', description='')"),
+])
+def test_parameter_initialization(input_value, expected_repr):
+    p = Parameter(input_value)
+
+    actual_repr = repr(p)
+
+    assert actual_repr == expected_repr
+
+
+def test_parameter_initialization_empty():
+    expected_repr = "Parameter(value=None, units='', description='')"
+
+    p = Parameter()
+
+    actual_repr = repr(p)
+    assert actual_repr == expected_repr
+
+
+@pytest.mark.parametrize("input_value, expected_repr", [
+    (10, "Parameter(value=10, units='', description='')"),
+    ((20, "m"), "Parameter(value=20, units='m', description='')"),
+])
+def test_parameter_set_value_attribute(input_value, expected_repr):
+    p = Parameter()
+
+    p.value = input_value
+
+    actual_repr = repr(p)
+    assert actual_repr == expected_repr
+
+
+def test_parameter_creation_via_structure():
+    class Node:
+        def __init__(self, value):
+            self.parameter = Parameter(value)
+    input_value = 10
+    expected_repr = "Parameter(value=10, units='', description='')"
+
+    node = Node(input_value)
+
+    actual_repr = repr(node.parameter)
+    assert actual_repr == expected_repr
+
+
+def test_parameter_with_metadata():
+    input_value = 5.5
+    input_metadata = {"units": "mm", "description": "Толщина"}
+    expected_repr = "Parameter(value=5.5, units='mm', description='Толщина')"
+
+    p = Parameter(input_value, **input_metadata)
+
+    actual_repr = repr(p)
+    assert actual_repr == expected_repr
+
+
+@pytest.mark.parametrize("input_value, conversion_function, expected_value", [
+    (10.1, int, 10),
+    ("10.1", float, 10.1),
+    (-55.5, str, "-55.5"),
+])
+def test_parameter_type_conversion(input_value, conversion_function, expected_value):
+    p = Parameter(input_value)
+
+    actual_value = conversion_function(p)
+
+    assert actual_value == expected_value
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((20, "m"), (3, "m"), Parameter(value=23, units='m', description='')),
+    ((-1, "s"), (3, "s"), Parameter(value=2, units='s', description='')),
+    ((1, "h"), (30, "min"), Parameter(value=1.5, units='h', description='')),
+    ((30, "min"), (2, "h"), Parameter(value=150, units='min', description='')),
+])
+def test_parameters_arithmetic_sum(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    actual_sum = p1 + p2
+
+    assert abs(actual_sum - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2", [
+    ((20, ""), (3, "m")),
+    ((-1, "kg"), (3, "s")),
+])
+def test_parameters_arithmetic_sum_wrong_types(input_value1, input_value2):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    with pytest.raises(TypeError):
+        p1 + p2
+
+
+def test_parameter_arithmetic_unary_minus():
+    input_value = (20, "m")
+    p = Parameter(input_value)
+    expected_result = Parameter(value=-20, units='m', description='')
+
+    actual_result = -p
+
+    assert actual_result == expected_result
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((20, "m"), 3, Parameter(value=23, units='m', description='')),
+    ((3, "s"), 3.2, Parameter(value=6.2, units='s', description='')),
+])
+def test_parameter_number_arithmetic_sum(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+
+    actual_result = p1 + input_value2
+
+    assert abs(actual_result - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((20, "m"), 3, Parameter(value=17, units='m', description='')),
+    ((3, "s"), 3.2, Parameter(value=-0.2, units='s', description='')),
+])
+def test_parameter_number_arithmetic_sub(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+
+    actual_result = p1 - input_value2
+
+    assert abs(actual_result - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    (21, (19, "m"), Parameter(value=2, units='m', description='')),
+    (4.2, (3, "s"), Parameter(value=3.0, units='s', description='')),
+])
+def test_number_parameter_arithmetic_sub(input_value1, input_value2, expected_result):
+    p2 = Parameter(input_value2)
+
+    actual_result = input_value1 - p2
+
+    assert abs(actual_result - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    (4 , (21, "m"), Parameter(value=25, units='m', description='')),
+    (-2.2, (3, "s"), Parameter(value=0.8, units='s', description='')),
+])
+def test_number_parameter_arithmetic_sum(input_value1, input_value2, expected_result):
+    p2 = Parameter(input_value2)
+
+    actual_result = input_value1 + p2
+
+    assert abs(actual_result - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    (4 , (21, "Pa"), Parameter(value=25, units='Pa', description='')),
+    (-2.2, (3, "Pa s"), Parameter(value=0.8, units='Pa s', description='')),
+])
+def test_number_parameter_arithmetic_multiplication(input_value1, input_value2, expected_result):
+    p2 = Parameter(input_value2)
+
+    actual_result = input_value1 * p2
+
+    assert abs(actual_result - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((4.2, "V"), 4, Parameter(value=16.6, units='V', description='')),
+    ((3, "N"), 5.1, Parameter(value=15.3, units='N', description='')),
+])
+def test_parameter_number_arithmetic_multiplication(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+
+    actual_result = p1 * input_value2
+
+    assert abs(actual_result - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((1.2, "Pa"), (2, "s"), Parameter(value=2.4, units='Pa s', description='')),
+    ((3, "kg"), (-2, "m s^-1"), Parameter(value=6, units='kg*m*s^-1', description='')),
+    ((2, ""), (2, "A"), Parameter(value=4, units='A', description='')),
+    ((4, "W"), (1.5, ""), Parameter(value=6, units='W', description='')),
+    ((16, ""), (0.5, ""), Parameter(value=8, units='', description='')),
+])
+def test_parameters_arithmetic_multiplication(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    actual_result = p1 * p2
+
+    assert abs(actual_result - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((4, "s"), 2, Parameter(value=16, units='s^2', description='')),
+    ((2, ""), 2, Parameter(value=1.42, units='', description='')),
+])
+def test_parameter_number_arithmetic_power(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+
+    actual_result = p1 ** input_value2
+
+    assert abs(actual_result - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((5, "s"), 2, Parameter(value=2.5, units='s', description='')),
+    ((2.2, ""), 2, Parameter(value=1.1, units='', description='')),
+])
+def test_parameter_number_arithmetic_division(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+
+    actual_result = p1 / input_value2
+
+    assert abs(actual_result - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((1.2, "Pa"), (2, "s"), Parameter(value=0.6, units='Pa s^-1', description='')),
+    ((5, "kg"), (-2, ""), Parameter(value=-2.5, units='kg', description='')),
+])
+def test_parameters_arithmetic_division(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    actual_result = p1 / p2
+
+    assert abs(actual_result - expected_result) <= EPS
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((1.2, "Pa"), (1.2, "Pa"), True),
+    ((5, "kg"), (5, ""), False),
+    ((5, "kg"), (5.01, "kg"), False),
+])
+def test_parameters_comparison_eq(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    actual_result = p1 == p2
+
+    assert actual_result == expected_result
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((1.2, "Pa"), 1.2 , True),
+    ((5, "kg"), 5, True),
+    ((5, "kg"), 5.01, False),
+])
+def test_parameter_number_comparison_eq(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+
+    actual_result = p1 == input_value2
+
+    assert actual_result == expected_result
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((1.2, "Pa"), (1.2, "Pa"), False),
+    ((5, "kg"), (5, ""), True),
+    ((5, "kg"), (5.01, "kg"), True),
+])
+def test_parameters_comparison_ne(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    actual_result = p1 != p2
+
+    assert actual_result == expected_result
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((1.2, "Pa"), (2.2, "Pa"), True),
+    ((1.2, "Pa s"), (1.2, "Pa s"), True),
+    ((5, "V"), (2, "V"), False),
+    ((5.02, "kg"), (5.01, "kg"), False),
+])
+def test_parameters_comparison_le(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    actual_result = p1 <= p2
+
+    assert actual_result == expected_result
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((1.2, "Pa"), (2.2, "Pa"), False),
+    ((1.2, "Pa s"), (1.2, "Pa s"), True),
+    ((5, "V"), (2, "V"), True),
+    ((5.02, "kg"), (5.01, "kg"), True),
+])
+def test_parameters_comparison_ge(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    actual_result = p1 >= p2
+
+    assert actual_result == expected_result
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((1.2, "Pa"), (2.2, "Pa"), True),
+    ((1.2, "Pa s"), (1.2, "Pa s"), False),
+    ((5, "V"), (2, "V"), False),
+    ((5.02, "kg"), (5.01, "kg"), False),
+])
+def test_parameters_comparison_lt(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    actual_result = p1 < p2
+
+    assert actual_result == expected_result
+
+
+@pytest.mark.parametrize("input_value1, input_value2", [
+    ((20, ""), (3, "m")),
+    ((-1, "kg"), (3, "s")),
+])
+def test_parameters_arithmetic_lt_wrong_types(input_value1, input_value2):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    with pytest.raises(TypeError):
+        p1 < p2
+
+
+@pytest.mark.parametrize("input_value1, input_value2, expected_result", [
+    ((1.2, "Pa"), (2.2, "Pa"), False),
+    ((1.2, "Pa s"), (1.2, "Pa s"), False),
+    ((5, "V"), (2, "V"), True),
+    ((5.02, ""), (5.01, ""), True),
+])
+def test_parameters_comparison_gt(input_value1, input_value2, expected_result):
+    p1 = Parameter(input_value1)
+    p2 = Parameter(input_value2)
+
+    actual_result = p1 > p2
+
+    assert actual_result == expected_result

@@ -1,0 +1,14 @@
+.idea/*
+*.egg-info/*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Файлы, производные от работы тестов
+tests/text_file_from_ansys.dat
+
+#pytest coverage
+.coverage
+htmlcov/
