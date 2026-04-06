@@ -3,39 +3,7 @@ import pytest
 from pathlib import Path
 from caecase import CAECase, Parameter
 from caetask import APDLTask
-import os
-
-input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5), ('6', 6), ('7', 7))
-
-def create_task(index, tempdir=None):  # задаётся пользователем
-    global input_data
-
-    task_num = input_data[index][0]
-    num_par = input_data[index][1]
-
-    workdir = "temp" + task_num
-    os.mkdir(workdir)
-
-    with open(os.path.join(workdir, "test.parm"), "w") as file:
-        file.write("num=" + str(num_par))
-
-    task = APDLTask('test' + str(num_par))
-    task.input_file = 'test.inp'
-    task.parameters_file = os.path.join(workdir, "test.parm")
-    if tempdir:
-        task.temporary_directory_path = tempdir
-    task.memory_size = 64
-    task.database_size = 32
-    task.results_files_names = [
-        "task" + str(num_par) + "_text_file.dat",
-        "test" + str(num_par) + "_1.out",
-    ]
-    return task
-
-
-def solve_task(task: APDLTask):
-    task.solve()
-
+import os, json
 
 
 @pytest.fixture(scope="session")
@@ -68,3 +36,83 @@ def test_apdl_solve(tmpdir, apdl_file, capsys):
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result
 
+
+def test_caecase_check_directory(tmpdir):
+    caecase1 = CAECase(tmpdir)
+
+    assert caecase1.path.exists()
+
+
+@pytest.fixture(scope="session")
+def apdl_file2(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test.inp"
+    with open(fn, "w") as file:
+        file.write("/batch\n")
+        file.write("*dim,text,string,32,1\n")
+        file.write("text(1)=\'test text from ansys\'\n")
+        file.write("*cfopen,text_file_from_ansys,dat\n")
+        file.write("*vwrite,H1,NES_H1\n")
+        file.write("%G %I\n")
+        file.write("*cfclos\n")
+    return fn
+
+
+def test_caecase_add_files_to_case(tmpdir, apdl_file2):
+    caecase1 = CAECase(tmpdir)
+
+    caecase1.add_files_to_case([
+        apdl_file2,
+    ])
+
+    file_path = caecase1.path / apdl_file2.name
+    assert file_path.exists(), f"File {file_path} does not exist"
+
+
+def test_caecase_parameters(tmpdir):
+    caecase1 = CAECase(tmpdir)
+    expected_file_content = {
+        'geometry': {
+        "H1": {
+            "value": 5,
+            "units": "cm",
+        }},
+        'mesh':{
+        "NES_H1": {
+            "value": 11,
+        }}
+    }
+    caecase1.parameters.geometry.H1 = 5
+    caecase1.parameters.geometry.H1.units = 'cm'
+    caecase1.parameters.mesh.NES_H1 = 11
+
+    caecase1.parameters_save()
+
+    actual_file_content = json.load(caecase1.path / "case_data.json")
+    assert actual_file_content == expected_file_content
+
+
+def test_caecase_parameters_conversion_apdl(tmpdir):
+    caecase1 = CAECase(tmpdir)
+    expected_file_content = 'H1=5 ![cm]\nNES_H1=11\n'
+    caecase1.parameters.geometry.H1 = 5
+    caecase1.parameters.geometry.H1.units = 'cm'
+    caecase1.parameters.mesh.NES_H1 = 11
+
+    caecase1.parameters_save(format='apdl')
+
+    actual_file_content = json.load(caecase1.path / "case_data.json")
+    assert actual_file_content == expected_file_content
+
+
+def test_caecase_parameters_conversion_apdl_partial(tmpdir):
+    pass
+
+
+    # xmlconv.toapdl(PATH, ['materials', 'geometry', 'mesh', 'bc', 'solver'], os.path.join(resdir, 'filter1d.parm'), 'w')
+    # xmlconv.toscheme(PATH, ['materials', 'geometry', 'mesh', 'bc', 'solver'], os.path.join(resdir, 'filter1d_parm.scm'), 'w')
+    # xmlconv.toperl(PATH, ['materials', 'geometry', 'mesh', 'bc', 'solver'], os.path.join(resdir, 'filter1d.pl'), 'w')
+
+    # task = APDLTask('test')
+    # task.input_file = apdl_file
+    # task.results_files_names = ["text_file_from_ansys.dat"]
+    # task.solve()
