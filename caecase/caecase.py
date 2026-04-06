@@ -3,12 +3,14 @@ import caetask
 from .node import Node
 from pathlib import Path
 from .file_manager import FileManager
-from typing import List
+from typing import List, Iterable
 
 
 class CAECase:
     def __init__(self, base_path: Path = None):
         self.parameters = Node()
+        if base_path is None:
+            base_path = Path.cwd()
         self.file_manager = FileManager(base_path)  # Handles dir creation and saving
         self.tasks: List[caetask] = []
         self.status = {}
@@ -16,6 +18,8 @@ class CAECase:
 
     def add_files_to_case(self, files):
         """Delegates to FileManager."""
+        if not isinstance(files, Iterable):
+            files = [files]
         self.file_manager.add_files(files)
 
     def solve(self):
@@ -49,6 +53,9 @@ class CAECase:
         # Reconstruct tasks logic would go here
         self.status = data.get("status", {})
 
+    def parameters_save(self):
+        self.file_manager.save_immediately(self.parameters.to_dict())
+
     @property
     def files(self) -> List[str]:
         return self.file_manager.files
@@ -56,3 +63,7 @@ class CAECase:
     @files.setter
     def files(self, files):
         self.file_manager._files = files
+
+    @property
+    def path(self) -> Path:
+        return self.file_manager.case_dir

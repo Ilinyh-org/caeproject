@@ -5,7 +5,7 @@ import shutil
 import random
 import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Iterable
 import time
 
 
@@ -30,15 +30,14 @@ class FileManager:
             except FileExistsError:
                 time.sleep(random.uniform(0.001, 0.01))
 
-    def add_files(self, file_paths: list[str | Path]):
+    def add_files(self, files: Iterable[Path | str]):
         """Copies external files into the case directory."""
-        for file_path in file_paths:
-            src = Path(file_path)
-            if src.exists():
-                shutil.copyfile(src, self.case_dir / src.name)
-                self._files.append(src.name)
-            else:
-                print(f"Warning: File {src} not found.")
+        for file in files:
+            try:
+                shutil.copy(file, self.case_dir)
+                self._files.append(file)
+            except (FileNotFoundError, FileExistsError):
+                print(f"Warning: File {file} not found.")
 
     def get_file_path(self, filename: str) -> Path:
         """Returns the full path to a file inside the case directory."""
