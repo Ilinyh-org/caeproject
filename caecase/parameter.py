@@ -67,9 +67,50 @@ class Parameter:
             if field.name.startswith("_"):
                 continue
             attribute = getattr(self, field.name)
-            if attribute:  # защита от стандартных пустных значений
+            if attribute:  # защита от стандартных пустых значений
                 data[field.name] = attribute
         return data
+
+    def to_units_system(self, new_system):
+        """
+        Convert this quantity to a new unit system and return a new object.
+
+        Args:
+            new_system (str): Target unit system, e.g., 'SI', 'imperial'.
+
+        Returns:
+            New instance of the same class with converted value and units.
+        """
+        import pint
+        quantity = UREG.Quantity(self.value, self.units)
+
+        # Convert to base units first
+        quantity_base = quantity.to_base_units()
+
+        # Select units for the target system
+        if new_system.lower() == 'si':
+            # Keep base units (pint uses SI as default)
+            target_units = quantity_base.units
+        elif new_system.lower() == 'imperial':
+            # Convert to imperial units
+            # You may need to define a mapping from SI to imperial for your quantities
+            # Example: meters -> feet, kilograms -> pounds
+            try:
+                target_units = quantity_base.to(
+                    'feet').units if quantity_base.dimensionality == UREG.meter.dimensionality else quantity_base.units
+            except pint.DimensionalityError:
+                target_units = quantity_base.units  # fallback
+        else:
+            raise ValueError(f"Unknown unit system: {new_system}")
+
+        # Convert quantity to target units
+        converted = quantity_base.to(target_units)
+
+        # Format units string if needed
+        units = self._format_units_strict(converted.units)
+
+        # Return a new object of the same class
+        return self.__class__(converted.magnitude, units)
 
     def to_units(self, new_units):
         """returns new object"""
@@ -101,7 +142,7 @@ class Parameter:
             if power == 1:
                 parts.append(symbol)
             else:
-                parts.append(f"{symbol}^{power}")
+                parts.append(f"{symbol}^{int(power)}")
 
         return "*".join(parts)
 
@@ -174,7 +215,7 @@ class Parameter:
         return self.__add__(-other)
 
     def __rsub__(self, other):
-        return self.__sub__(other)
+        return self.__neg__().__add__(other)
 
     def __mul__(self, other):
         if isinstance(other, self.__class__):

@@ -1,6 +1,6 @@
 
 from caecase import Node
-
+import pytest
 
 def test_node_initialization_by_attributes():
     input_value = 100
@@ -77,5 +77,18 @@ def test_node_from_dict():
 
     assert actual_value == expected_value
     assert actual_units == expected_units
+
+
+@pytest.mark.parametrize("input_attr", [
+    "shape",
+    "dtype",
+])
+def test_node_no_recursion(input_attr):
+    node = Node()
+
+    node.a = 123
+
+    with pytest.raises(AttributeError):
+        getattr(node, input_attr)
 
 

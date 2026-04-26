@@ -8,9 +8,12 @@ from pathlib import Path
 from typing import Any, Dict, Iterable
 import time
 
+from caecase.converter import JSONConverter, DataConverter, APDLConverter, SchemeConverter
+from caecase.converter_registry import ConverterRegistry
+
 
 class FileManager:
-    def __init__(self, base_path: Path = None):
+    def __init__(self, base_path: Path = None, converter_registry: ConverterRegistry = None):
         self.base_path = base_path or Path.cwd()
         self.case_dir = self._create_case_dir()
         self._files = []
@@ -18,6 +21,15 @@ class FileManager:
         # Save configuration
         self.save_delay = 2.0  # seconds
         self._save_task: asyncio.Task | None = None
+
+        # Setup converter registry
+        self.converter_registry = converter_registry or ConverterRegistry()
+        if not self.converter_registry.list_formats():
+            # Register default converters
+            self.converter_registry.register('json', JSONConverter())
+            self.converter_registry.register('APDL', APDLConverter())
+            self.converter_registry.register('Scheme', SchemeConverter())
+
 
     def _create_case_dir(self) -> Path:
         """Creates a unique timestamped directory."""
@@ -57,18 +69,27 @@ class FileManager:
         except asyncio.CancelledError:
             pass  # Save was cancelled by a new update
 
-    def save_immediately(self, data: Dict[str, Any]):
+    def save_immediately(self, data: Dict[str, Any], format_type: str = 'json', filename: str = None):
         """Forces an immediate write to disk, cancelling any pending saves."""
+        converter = self.converter_registry.get(format_type)
         if self._save_task:
             self._save_task.cancel()
-        self._write_to_disk(data)
+        self._write_to_disk(data, converter, filename)
 
-    def _write_to_disk(self, data: Dict[str, Any]):
+    def _write_to_disk(self, data: Dict[str, Any], converter: DataConverter, filename: str = None):
         """Internal method to write JSON to disk."""
-        # We save to 'case_data.json' inside the case directory
-        save_path = self.case_dir / "case_data.json"
+        base_filename = filename if filename else "case_data"
+
+        extension = converter.get_extension()
+
+        save_path = self.case_dir / f"{base_filename}.{extension}"
+
+        # Convert data to string
+        content = converter.convert(data)
+
         with open(save_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+            f.write(content)
+
         print(f"Data saved to {save_path}")
 
     def load_from_disk(self) -> Dict[str, Any]:

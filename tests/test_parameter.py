@@ -3,7 +3,7 @@ import pytest
 from caecase import Parameter
 from pint import UnitRegistry
 
-EPS = 1e3
+EPS = 1e-3
 
 @pytest.mark.parametrize("input_value, expected_value", [
     (10, 10),
@@ -36,10 +36,10 @@ def test_parameter_initialization_units(input_value, input_units, expected_units
     ((2, "s"), 2, "s"),
     ((2, "km"), 2000, "m"),
     ((1.8, "km"), 1800, "m"),
-    ((30, "h^-1"), 0.00833, "s^-1"),
-    ((30, "m * h^-2"), 0.00833, "m*s^-2"),
+    ((3600, "h^-1"), 1, "s^-1"),
+    ((3600*3600, "m * h^-2"), 1, "m*s^-2"),
 ])
-def test_parameter_get_value_with_iconvertion(input_value, expected_value, expected_units):
+def test_parameter_get_value_with_iconversion(input_value, expected_value, expected_units):
     p = Parameter(value=input_value)
 
     p.ito_units(expected_units)
@@ -54,13 +54,33 @@ def test_parameter_get_value_with_iconvertion(input_value, expected_value, expec
     ((2, "s"), 2, "s"),
     ((2, "km"), 2000, "m"),
     ((1.8, "km"), 1800, "m"),
-    ((30, "h^-1"), 0.00833, "s^-1"),
-    ((30, "m * h^-2"), 0.00833, "m*s^-2"),
+    ((3600, "h^-1"), 1, "s^-1"),
+    ((3600*3600, "m * h^-2"), 1, "m*s^-2"),
 ])
-def test_parameter_get_value_with_convertion(input_value, expected_value, expected_units):
+def test_parameter_get_value_with_conversion(input_value, expected_value, expected_units):
     p = Parameter(value=input_value)
 
     p = p.to_units(expected_units)
+
+    actual_value = p.value
+    actual_units = p.units
+    assert actual_value == pytest.approx(expected_value, abs=EPS)
+    assert actual_units == expected_units
+
+
+@pytest.mark.parametrize("input_value, input_system, expected_value, expected_units", [
+    ((3, "min"), "SI", 180, "s"),
+    ((2, "km"), "SI", 2000, "m"),
+    ((20, "m"), "SI", 20, "m"),
+    ((1, "m"), "imperial", 3.280, "ft"),
+    ((3600, "h^-1"), 'si', 1, "s^-1"),
+    ((3600*3600, "m * h^-2"), 'si', 1, "m*s^-2"),
+])
+def test_parameter_get_value_with_system_conversion(input_value, input_system, expected_value, expected_units):
+
+    p = Parameter(value=input_value)
+
+    p = p.to_units_system(input_system)
 
     actual_value = p.value
     actual_units = p.units
@@ -225,7 +245,7 @@ def test_parameter_number_arithmetic_sub(input_value1, input_value2, expected_re
 
 @pytest.mark.parametrize("input_value1, input_value2, expected_result", [
     (21, (19, "m"), Parameter(value=2, units='m', description='')),
-    (4.2, (3, "s"), Parameter(value=3.0, units='s', description='')),
+    (4.2, (3, "s"), Parameter(value=1.2, units='s', description='')),
 ])
 def test_number_parameter_arithmetic_sub(input_value1, input_value2, expected_result):
     p2 = Parameter(input_value2)
@@ -248,8 +268,8 @@ def test_number_parameter_arithmetic_sum(input_value1, input_value2, expected_re
 
 
 @pytest.mark.parametrize("input_value1, input_value2, expected_result", [
-    (4 , (21, "Pa"), Parameter(value=25, units='Pa', description='')),
-    (-2.2, (3, "Pa s"), Parameter(value=0.8, units='Pa s', description='')),
+    (4 , (21, "Pa"), Parameter(value=84, units='Pa', description='')),
+    (-2.2, (3, "Pa s"), Parameter(value=-6.6, units='Pa s', description='')),
 ])
 def test_number_parameter_arithmetic_multiplication(input_value1, input_value2, expected_result):
     p2 = Parameter(input_value2)
@@ -260,7 +280,7 @@ def test_number_parameter_arithmetic_multiplication(input_value1, input_value2, 
 
 
 @pytest.mark.parametrize("input_value1, input_value2, expected_result", [
-    ((4.2, "V"), 4, Parameter(value=16.6, units='V', description='')),
+    ((4.2, "V"), 4, Parameter(value=16.8, units='V', description='')),
     ((3, "N"), 5.1, Parameter(value=15.3, units='N', description='')),
 ])
 def test_parameter_number_arithmetic_multiplication(input_value1, input_value2, expected_result):
@@ -273,7 +293,7 @@ def test_parameter_number_arithmetic_multiplication(input_value1, input_value2, 
 
 @pytest.mark.parametrize("input_value1, input_value2, expected_result", [
     ((1.2, "Pa"), (2, "s"), Parameter(value=2.4, units='Pa s', description='')),
-    ((3, "kg"), (-2, "m s^-1"), Parameter(value=6, units='kg*m*s^-1', description='')),
+    ((3, "kg"), (-2, "m s^-1"), Parameter(value=-6, units='kg*m*s^-1', description='')),
     ((2, ""), (2, "A"), Parameter(value=4, units='A', description='')),
     ((4, "W"), (1.5, ""), Parameter(value=6, units='W', description='')),
     ((16, ""), (0.5, ""), Parameter(value=8, units='', description='')),
@@ -289,7 +309,7 @@ def test_parameters_arithmetic_multiplication(input_value1, input_value2, expect
 
 @pytest.mark.parametrize("input_value1, input_value2, expected_result", [
     ((4, "s"), 2, Parameter(value=16, units='s^2', description='')),
-    ((2, ""), 2, Parameter(value=1.42, units='', description='')),
+    ((2, ""), 3, Parameter(value=8, units='', description='')),
 ])
 def test_parameter_number_arithmetic_power(input_value1, input_value2, expected_result):
     p1 = Parameter(input_value1)

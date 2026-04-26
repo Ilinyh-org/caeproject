@@ -53,8 +53,22 @@ class CAECase:
         # Reconstruct tasks logic would go here
         self.status = data.get("status", {})
 
-    def parameters_save(self):
-        self.file_manager.save_immediately(self.parameters.to_dict())
+    # In your main class
+    def parameters_save(self,
+                        format_type: str = 'json',
+                        filename: str = None,
+                        **filter_kwargs):
+        """Save parameters with optional filtering and format.
+
+        Args:
+            format_type: Output format - 'json', 'mytype', or 'mytype_indented'
+            **filter_kwargs: Filters to pass to to_dict() (include/exclude)
+        """
+        parameters = self.parameters
+        if filter_kwargs.get('new_system'):
+            parameters.to_units_system(**filter_kwargs)
+        data = parameters.to_dict(**filter_kwargs)
+        self.file_manager.save_immediately(data, format_type=format_type, filename=filename)
 
     @property
     def files(self) -> List[str]:

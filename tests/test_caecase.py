@@ -45,7 +45,7 @@ def test_caecase_set_parameter_via_item(caecase_obj):
     input_value = True
     expected_value = input_value
 
-    caecase_obj.parameters["clneanup"]["enabled"] = input_value
+    caecase_obj.parameters["cleanup"]["enabled"] = input_value
 
     actual_value = caecase_obj.parameters.cleanup.enabled.value
     assert actual_value == expected_value

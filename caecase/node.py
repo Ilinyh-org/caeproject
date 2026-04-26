@@ -1,6 +1,7 @@
 #caecase/node.py
 from .parameter import Parameter
-
+import weakref
+import sys
 
 class Node:
     """
@@ -13,18 +14,32 @@ class Node:
 
     def __init__(self, name='', parent=None):
         self._name = name
-        self._parent = parent
+        self._parent = weakref.ref(parent) if parent else None
         self._children = {}
 
-    def __getattr__(self, name):
-        # print(self._children)
-        if name.startswith('_'):
-            raise AttributeError(f"!Атрибут '{name}' недоступен")
-        if name == 'value':
-            raise AttributeError(f"ВОТ ТУТ НАДО ВСТАВИТЬ ДОБАВЛЕНИЕ ПАРАМЕТРА")
-        if name not in self._children:
-            self._children[name] = Node(name=name, parent=self)  # Автосоздание узла
-        return self._children[name]
+    def __repr__(self):
+        return f"Node({self._name}, {len(self._children)} children)"
+
+    def __getattr__(self, attr: str):
+        # Block internal or forbidden attributes
+        forbidden = ('shape', 'dtype', 'imag', 'real', 'conjugate', 'value')
+        if attr.startswith('_') or attr in forbidden:
+            raise AttributeError(attr)
+
+        children = object.__getattribute__(self, '_children')
+
+        # Return existing child if present
+        if attr in children:
+            return children[attr]
+
+        # Auto-create valid identifier nodes
+        if attr.isidentifier():
+            new_node = Node(name=attr, parent=self)
+            children[attr] = new_node
+            return new_node
+
+        raise AttributeError(attr)
+
 
     def __setattr__(self, name, value):
         if name.startswith('_'):
@@ -32,9 +47,7 @@ class Node:
             return
 
         if name == 'value':
-            # super().__setattr__('value', 12)
-            self._parent[self._name] = Parameter(value)
-            del self
+            self.parent[self._name] = Parameter(value)
             return
 
         # Если значение не Parameter — оборачиваем
@@ -78,18 +91,56 @@ class Node:
                 self._children[key] = Parameter(value)
         return self
 
-    def to_dict(self):
-        """Преобразует узел в обычный словарь."""
+    def to_dict(self, **filters):
+        """Преобразует узел в обычный словарь.
+
+        Args:
+            **filters: Can include 'include' and/or 'exclude' keys
+        """
+        include = filters.get('include')
+        exclude = filters.get('exclude')
+
         result = {}
+
+        include_set = set(include) if include else None
+        exclude_set = set(exclude) if exclude else None
+
         for key, value in self._children.items():
+            if include_set is not None and key not in include_set:
+                continue
+            if exclude_set is not None and key in exclude_set:
+                continue
+
             if isinstance(value, Node):
                 result[key] = value.to_dict()
             elif isinstance(value, Parameter):
                 result[key] = value.to_dict()
-                # result[key] = {
-                #     "value": value.value,
-                #     **{k: v for k, v in value.__dict__.items() if k != "value" and not k.startswith("_")}
-                # }
             else:
                 result[key] = value
         return result
+
+    def to_units_system(self, **filters):
+        new_system = filters.get('new_system')
+
+        include = filters.get('include')
+        exclude = filters.get('exclude')
+
+        include_set = set(include) if include else None
+        exclude_set = set(exclude) if exclude else None
+
+        for key, value in self._children.items():
+            if include_set is not None and key not in include_set:
+                continue
+            if exclude_set is not None and key in exclude_set:
+                continue
+
+            if isinstance(value, Node):
+                value.to_units_system(**filters)
+            elif isinstance(value, Parameter):
+                self._children[key] = value.to_units_system(new_system)
+            else:
+                pass
+
+    @property
+    def parent(self):
+        return self._parent() if self._parent else None
