@@ -1,6 +1,6 @@
 from typing import Dict
 
-from caecase.converter import DataConverter
+from core.converter import DataConverter
 
 
 class ConverterRegistry:

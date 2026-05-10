@@ -1,5 +1,5 @@
 
-from caecase import Node
+from core import Node
 import pytest
 
 def test_node_initialization_by_attributes():

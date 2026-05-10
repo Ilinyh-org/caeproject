@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Any, Dict, Iterable
 import time
 
-from caecase.converter import JSONConverter, DataConverter, APDLConverter, SchemeConverter
-from caecase.converter_registry import ConverterRegistry
+from core.converter import JSONConverter, DataConverter, APDLConverter, SchemeConverter
+from core.converter_registry import ConverterRegistry
 
 
 class FileManager:

@@ -1,7 +1,7 @@
-#caecase/node.py
-from .parameter import Parameter
+#core/node.py
+from core.parameter import Parameter
 import weakref
-import sys
+
 
 class Node:
     """

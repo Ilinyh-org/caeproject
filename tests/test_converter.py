@@ -1,6 +1,6 @@
 import pytest
 
-from caecase.converter import APDLConverter
+from core.converter import APDLConverter
 
 
 @pytest.mark.parametrize("input_data, expected_result",

@@ -1,8 +1,9 @@
 
 import pytest
 from pathlib import Path
-from caecase import CAECase, Parameter
+from caecase import CAECase
 from caetask import APDLTask
+from core import Parameter
 import os, json
 
 

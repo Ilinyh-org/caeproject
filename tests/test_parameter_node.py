@@ -1,5 +1,5 @@
 
-from caecase import Parameter, Node
+from core import Parameter, Node
 
 
 def test_parameter_creation_via_structure_attribute():

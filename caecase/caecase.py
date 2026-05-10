@@ -1,8 +1,8 @@
 
 import caetask
-from .node import Node
+from core.node import Node
 from pathlib import Path
-from .file_manager import FileManager
+from core.file_manager import FileManager
 from typing import List, Iterable
 
 
