@@ -20,6 +20,11 @@ class Node:
     def __repr__(self):
         return f"Node({self._name}, {len(self._children)} children)"
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return self._children == other._children
+
     def __getattr__(self, attr: str):
         # Block internal or forbidden attributes
         forbidden = ('shape', 'dtype', 'imag', 'real', 'conjugate', 'value')

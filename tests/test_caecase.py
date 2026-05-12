@@ -1,4 +1,5 @@
 
+import json
 import pytest
 from pathlib import Path
 from caecase import CAECase
@@ -75,3 +76,98 @@ def test_caecase_to_dict(caecase_obj):
     actual_dict = caecase_obj.to_dict()
 
     assert actual_dict == expected_dict
+
+
+def test_case_from_dict(tmp_path):
+    input_data = {
+        "parameters": {
+            "temperature": {
+                "value": 500,
+            }
+        },
+        "status": {
+            "state": "RUNNING"
+        },
+        "files": [
+            "results.csv"
+        ],
+    }
+    expected_parameter_temperature = 500
+    expected_status = {"state": "RUNNING"}
+    expected_files = ["results.csv"]
+
+    case = CAECase.from_dict(input_data, base_path=tmp_path)
+
+    assert case.parameters.temperature == expected_parameter_temperature
+    assert case.status == expected_status
+    assert case.files == expected_files
+
+
+def test_case_serialization_roundtrip(tmp_path):
+    case = CAECase(tmp_path)
+    case.parameters.alpha = 500
+    case.status = {"state": "DONE"}
+    case.files = ["results.csv"]
+
+    data = case.to_dict()
+
+    restored = CAECase.from_dict(data, base_path=tmp_path)
+
+    assert restored.parameters == case.parameters
+    assert restored.status == case.status
+    assert restored.files == case.files
+
+
+def test_save_config(tmp_path):
+    case = CAECase(tmp_path)
+
+    case.parameters.temperature = 300
+    case.status = {"state": "DONE"}
+    case.files = ["results.csv"]
+
+    case.save_config(tmp_path)
+
+    config_path = tmp_path / "config.json"
+
+    assert config_path.exists()
+
+    with open(config_path, "r") as f:
+        data = json.load(f)
+
+    assert data == {
+        "parameters": {
+            "temperature": {'value': 300}
+        },
+        "status": {
+            "state": "DONE"
+        },
+        "files": [
+            "results.csv"
+        ],
+        "tasks": []
+    }
+
+
+def test_load_config(tmp_path):
+    config_data = {
+        "parameters": {
+            "pressure": {'value': 42}
+        },
+        "status": {
+            "state": "RUNNING"
+        },
+        "files": [
+            "output.dat"
+        ],
+    }
+
+    config_path = tmp_path / "config.json"
+
+    with open(config_path, "w") as f:
+        json.dump(config_data, f)
+
+    case = CAECase.load_config(config_path, base_path=tmp_path)
+
+    assert case.parameters.pressure == 42
+    assert case.status == {"state": "RUNNING"}
+    assert case.files == ["output.dat"]

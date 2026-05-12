@@ -5,8 +5,10 @@ from pathlib import Path
 from core.file_manager import FileManager
 from typing import List, Iterable
 
+from core.serialization import Serializable
 
-class CAECase:
+
+class CAECase(Serializable):
     def __init__(self, base_path: Path = None):
         self.parameters = Node()
         if base_path is None:
@@ -46,12 +48,15 @@ class CAECase:
             "status": self.status
         }
 
-    def from_dict(self, data):
-        """Restore state from dictionary."""
-        self.parameters.from_dict(data.get("parameters", {}))
-        self.file_manager.files = data.get("files", [])
-        # Reconstruct tasks logic would go here
-        self.status = data.get("status", {})
+    @classmethod
+    def from_dict(cls, data: dict, **kwargs):
+        obj = cls(**kwargs)
+
+        obj.parameters.from_dict(data.get("parameters", {}))
+        obj.status = data.get("status", {})
+        obj.files = data.get("files", [])
+
+        return obj
 
     # In your main class
     def parameters_save(self,
