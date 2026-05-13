@@ -182,6 +182,20 @@ def test_parameter_type_conversion(input_value, conversion_function, expected_va
     assert actual_value == expected_value
 
 
+@pytest.mark.parametrize("input_value, expected_value", [
+    (10.1, {'value': 10.1}),
+    (0, {'value': 0}),
+    ("a", {'value': "a"}),
+    ("", {}),
+])
+def test_parameter_to_dict(input_value, expected_value):
+    p = Parameter(input_value)
+
+    actual_value = p.to_dict()
+
+    assert actual_value == expected_value
+
+
 @pytest.mark.parametrize("input_value1, input_value2, expected_result", [
     ((20, "m"), (3, "m"), Parameter(value=23, units='m', description='')),
     ((-1, "s"), (3, "s"), Parameter(value=2, units='s', description='')),

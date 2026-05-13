@@ -67,7 +67,7 @@ class Parameter:
             if field.name.startswith("_"):
                 continue
             attribute = getattr(self, field.name)
-            if attribute:  # защита от стандартных пустых значений
+            if attribute != "":  # защита от стандартных пустых значений
                 data[field.name] = attribute
         return data
 
