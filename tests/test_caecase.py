@@ -28,12 +28,21 @@ def caecase_obj(tmp_path):
 
 def test_caecase_sections(caecase_obj):
     assert hasattr(caecase_obj, "parameters")
-    assert hasattr(caecase_obj, "_files")
     assert hasattr(caecase_obj, "tasks")
     assert hasattr(caecase_obj, "status")
 
 
 def test_caecase_set_parameter(caecase_obj):
+    input_value = 0
+    expected_value = input_value
+
+    caecase_obj.parameters.h1 = input_value
+
+    actual_value = caecase_obj.parameters.h1.value
+    assert actual_value == expected_value
+
+
+def test_caecase_set_group_parameter(caecase_obj):
     input_value = 0.01
     expected_value = input_value
 
@@ -127,7 +136,7 @@ def test_save_config(tmp_path):
 
     case.save_config(tmp_path)
 
-    config_path = tmp_path / "config.json"
+    config_path = tmp_path / CAECase.CONFIG_DEFAULT_NAME
 
     assert config_path.exists()
 
@@ -160,13 +169,11 @@ def test_load_config(tmp_path):
             "output.dat"
         ],
     }
-
-    config_path = tmp_path / "config.json"
-
+    config_path = tmp_path / CAECase.CONFIG_DEFAULT_NAME
     with open(config_path, "w") as f:
         json.dump(config_data, f)
 
-    case = CAECase.load_config(config_path, base_path=tmp_path)
+    case = CAECase.load_config(tmp_path, base_path=tmp_path)
 
     assert case.parameters.pressure == 42
     assert case.status == {"state": "RUNNING"}
