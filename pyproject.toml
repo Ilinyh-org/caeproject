@@ -1,8 +1,8 @@
 [project]
 
-name = "caecase"
+name = "caeproject"
 
-version = "0.0.2"
+version = "0.1.0"
 
 description = "A module for running CAE tasks from python script"
 
@@ -32,13 +32,13 @@ dev = ["pytest", "pytest_check", "pytest-cov"]
 test = ["pytest"]
 
 [project.urls]  # Optional
-"Homepage" = "https://github.com/IlinyhGleb/caecase"
-"Bug Reports" = "https://github.com/IlinyhGleb/caecase/issues"
-"Source" = "https://github.com/IlinyhGleb/caecase"
+"Homepage" = "https://github.com/IlinyhGleb/caeproject"
+"Bug Reports" = "https://github.com/IlinyhGleb/caeproject/issues"
+"Source" = "https://github.com/IlinyhGleb/caeproject"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["caecase"]
+include = ["project", "caecase", "core"]
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
