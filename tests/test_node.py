@@ -1,5 +1,5 @@
 
-from core import Node
+from core import Node, Parameter
 import pytest
 
 def test_node_initialization_by_attributes():
@@ -11,6 +11,59 @@ def test_node_initialization_by_attributes():
 
     actual_value = node.a.b.c.value
     assert actual_value == expected_value
+
+
+def test_node_get_value_by_name():
+    input_value = 8
+    expected_value = input_value
+    expected_type = Parameter
+    node = Node()
+    node.a.b.c = input_value
+
+    actual_value = node.a.b.c
+    actual_type = type(actual_value)
+
+    assert actual_type == expected_type
+    assert actual_value == expected_value
+
+@pytest.mark.parametrize("input_value, expected_type", [
+    (8, int),
+    (3.5, float),
+])
+def test_node_get_value_by_value_attribute(input_value, expected_type):
+    expected_value = input_value
+    node = Node()
+    node.a.b.c = input_value
+
+    actual_value = node.a.b.c.value
+    actual_type = type(actual_value)
+
+    assert actual_type == expected_type
+    assert actual_value == expected_value
+
+
+def test_node_get_value_in_loop_list():
+    expected_result = [0, 1, 2]
+    nodes = []
+    for i in range(3):
+        nodes.append(Node())
+        nodes[len(nodes) - 1].a = i
+
+    actual_result = [node.a for node in nodes]
+
+    assert actual_result == expected_result
+
+
+def test_node_get_value_in_loop_set():
+    expected_result = {0, 1, 2}
+    nodes = []
+    for i in range(3):
+        nodes.append(Node())
+        nodes[len(nodes) - 1].a = i
+
+    actual_result = {node.a.value for node in nodes}
+
+    assert actual_result == expected_result
 
 
 def test_node_initialization_by_keys():

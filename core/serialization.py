@@ -4,6 +4,18 @@ from pathlib import Path
 class Serializable:
     CONFIG_DEFAULT_NAME = "config.json"
 
+    def __init__(
+            self,
+            base_path: Path | None = None,
+            name: str | None = None,
+    ):
+        self.base_path = base_path
+        self.name = name
+
+    @property
+    def path(self) -> Path:
+        return self.base_path / self.name
+
     def to_dict(self) -> dict:
         raise NotImplementedError
 
@@ -11,13 +23,16 @@ class Serializable:
     def from_dict(cls, data: dict):
         raise NotImplementedError
 
-    def save_config(self, config_path: Path):
-        if not config_path.is_dir():
-            raise NotADirectoryError(f"Ожидалась директория конфигурации, но получен файл: {config_path}")
+    def save_config(self, directory: Path | None = None):
+        if directory is None:
+            directory = self.path
 
-        config_path = config_path / self.CONFIG_DEFAULT_NAME
+        if not directory.is_dir():
+            raise NotADirectoryError(f"Ожидалась директория конфигурации, но получен файл: {directory}")
 
-        with open(config_path, "w") as f:
+        config_file = directory / self.CONFIG_DEFAULT_NAME
+
+        with open(config_file, "w") as f:
             json.dump(self.to_dict(), f, indent=2)
 
     @classmethod
@@ -28,4 +43,4 @@ class Serializable:
         with open(config_path / cls.CONFIG_DEFAULT_NAME, "r") as f:
             data = json.load(f)
 
-        return cls.from_dict(data, case_path=config_path, **kwargs)
+        return cls.from_dict(data, **kwargs)

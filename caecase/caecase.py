@@ -4,7 +4,7 @@ import caetask
 from caecase.utils import is_case_dir_name
 from core.node import Node
 from pathlib import Path
-from caecase.file_manager import FileManager
+from core.file_manager import FileManager
 from core.serialization import Serializable
 from typing import List, Iterable
 
@@ -12,22 +12,46 @@ from typing import List, Iterable
 class CAECase(Serializable):
     CONFIG_DEFAULT_NAME = "case_config.json"
 
-    def __init__(self,
-                 base_path: Path = None,
-                 case_path: Path = None):
+    def __init__(
+            self,
+            base_path: Path | None = None,
+            name: str | None = None,
+    ):
+        super().__init__(base_path, name)
+
+        self._files = []
         self.parameters = Node()
         self.tasks: List[caetask] = []
         self.status = {}
 
-        self.base_path = base_path or Path.cwd()
-        self.file_manager = FileManager(base_path)
-        self.case_path = case_path or self.file_manager.create_case_dir(self.base_path)
+    @classmethod
+    def create_new(
+            cls,
+            base_path: Path | None = None,
+            name: str | None = None,
+    ):
+        base_path = base_path or Path.cwd()
+
+        if not isinstance(base_path, (str, Path)):
+            raise TypeError(
+                f"Expected path to be str or Path, got {type(base_path).__name__}"
+            )
+
+        case_path = FileManager.create_case_dir(base_path, name)
+
+        return cls(
+            base_path=case_path.parent,
+            name=case_path.name,
+        )
+
+    def create_name(self):
+        return FileManager.create_case_dir(self.base_path)
 
     def add_files_to_case(self, files):
         """Delegates to FileManager."""
         if not isinstance(files, Iterable):
             files = [files]
-        self.file_manager.add_files(files, self.case_path)
+        self.files += FileManager.add_files(files, self.path)
 
     def solve(self):
         for task in self.tasks:
@@ -48,7 +72,7 @@ class CAECase(Serializable):
         """Prepare data for serialization."""
         return {
             "parameters": self.parameters.to_dict(),
-            "files": self.file_manager.files,  # Access list directly
+            "files": self.files,  # Access list directly
             "tasks": [t.name for t in self.tasks], # Assuming tasks have names
             "status": self.status
         }
@@ -77,22 +101,21 @@ class CAECase(Serializable):
         if filter_kwargs.get('new_system'):
             parameters.to_units_system(**filter_kwargs)
         data = parameters.to_dict(**filter_kwargs)
-        self.file_manager.save_immediately(data,
-                                           self.case_path,
-                                           format_type=format_type,
-                                           filename=filename)
+
+        FileManager.save(
+            data=data,
+            path=self.path,
+            format_type=format_type,
+            filename=filename
+        )
 
     @property
     def files(self) -> List[str]:
-        return self.file_manager.files
+        return self._files
 
     @files.setter
     def files(self, files):
-        self.file_manager._files = files
-
-    @property
-    def path(self) -> Path:
-        return self.case_path
+        self._files = files
 
     @classmethod
     def is_case_directory(cls, path: Path) -> bool:

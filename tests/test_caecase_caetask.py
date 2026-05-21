@@ -7,8 +7,8 @@ from core import Parameter
 import os, json
 
 
-def test_caecase_check_directory(tmpdir):
-    caecase1 = CAECase(tmpdir)
+def test_caecase_check_directory(tmp_path):
+    caecase1 = CAECase.create_new(base_path=tmp_path)
 
     assert caecase1.path.exists()
 
@@ -27,8 +27,8 @@ def apdl_file2(tmp_path_factory):
     return fn
 
 
-def test_caecase_add_files_to_case(tmpdir, apdl_file2):
-    caecase1 = CAECase(tmpdir)
+def test_caecase_add_files_to_case(tmp_path, apdl_file2):
+    caecase1 = CAECase.create_new(tmp_path)
 
     caecase1.add_files_to_case([
         apdl_file2,
@@ -38,7 +38,7 @@ def test_caecase_add_files_to_case(tmpdir, apdl_file2):
     assert file_path.exists(), f"File {file_path} does not exist"
 
 
-def test_caecase_parameters(tmpdir):
+def test_caecase_parameters(tmp_path):
     expected_file_content = {
         'geometry': {
         "H1": {
@@ -50,18 +50,19 @@ def test_caecase_parameters(tmpdir):
             "value": 11,
         }}
     }
-    caecase1 = CAECase(tmpdir)
+    caecase1 = CAECase.create_new(tmp_path)
     caecase1.parameters.geometry.H1 = 5
     caecase1.parameters.geometry.H1.units = 'cm'
     caecase1.parameters.mesh.NES_H1 = 11
 
     caecase1.parameters_save()
 
-    actual_file_content = json.load(caecase1.path / "case_data.json")
+    with open(caecase1.path / "case_data.json", 'r') as f:
+        actual_file_content = json.load(f)
     assert actual_file_content == expected_file_content
 
 
-def test_caecase_parameters_partial_include_option(tmpdir):
+def test_caecase_parameters_partial_include_option(tmp_path):
     expected_file_content = {
         'geometry': {
         "H1": {
@@ -69,18 +70,19 @@ def test_caecase_parameters_partial_include_option(tmpdir):
             "units": "cm",
         }}
     }
-    caecase1 = CAECase(tmpdir)
+    caecase1 = CAECase.create_new(tmp_path)
     caecase1.parameters.geometry.H1 = 5
     caecase1.parameters.geometry.H1.units = 'cm'
     caecase1.parameters.mesh.NES_H1 = 11
 
     caecase1.parameters_save(include=['geometry'])
 
-    actual_file_content = json.load(caecase1.path / "case_data.json")
+    with open(caecase1.path / "case_data.json", 'r') as f:
+        actual_file_content = json.load(f)
     assert actual_file_content == expected_file_content
 
 
-def test_caecase_parameters_partial_exclude_option(tmpdir):
+def test_caecase_parameters_partial_exclude_option(tmp_path):
     expected_file_content = {
         'geometry': {
         "H1": {
@@ -88,19 +90,20 @@ def test_caecase_parameters_partial_exclude_option(tmpdir):
             "units": "cm",
         }}
     }
-    caecase1 = CAECase(tmpdir)
+    caecase1 = CAECase.create_new(tmp_path)
     caecase1.parameters.geometry.H1 = 5
     caecase1.parameters.geometry.H1.units = 'cm'
     caecase1.parameters.mesh.NES_H1 = 11
 
     caecase1.parameters_save(exclude=['mesh'])
 
-    actual_file_content = json.load(caecase1.path / "case_data.json")
+    with open(caecase1.path / "case_data.json", 'r') as f:
+        actual_file_content = json.load(f)
     assert actual_file_content == expected_file_content
 
 
-def test_caecase_parameters_conversion_apdl(tmpdir):
-    caecase1 = CAECase(tmpdir)
+def test_caecase_parameters_conversion_apdl(tmp_path):
+    caecase1 = CAECase.create_new(tmp_path)
     expected_file_content = '!geometry\nH1=0.05 ![m]\n!mesh\nNES_H1=11\n'
     caecase1.parameters.geometry.H1 = 5
     caecase1.parameters.geometry.H1.units = 'cm'
@@ -114,7 +117,7 @@ def test_caecase_parameters_conversion_apdl(tmpdir):
     assert actual_file_content == expected_file_content
 
 
-def test_caecase_parameters_conversion_apdl_partial(tmpdir):
+def test_caecase_parameters_conversion_apdl_partial(tmp_path):
     pass
 
 
@@ -133,9 +136,9 @@ def apdl_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve(tmpdir, apdl_file):
+def test_apdl_solve(tmp_path, apdl_file):
     expected_file_content = '5\n'
-    caecase1 = CAECase(tmpdir)
+    caecase1 = CAECase.create_new(tmp_path)
     caecase1.add_files_to_case(apdl_file)
     caecase1.parameters.A1 = 2
     caecase1.parameters.B1 = 3

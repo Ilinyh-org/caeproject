@@ -16,14 +16,32 @@ def temp_caecase_obj_path():
 
 @pytest.fixture
 def caecase_obj(tmp_path):
-    return CAECase(tmp_path)
-
+    return CAECase.create_new(base_path=tmp_path)
 
 # @pytest.fixture
 # def caecase_obj(tmp_path):
 #     caecase = CAECase(tmp_path / "caecase_obj.json")
 #     caecase.files = ["input.txt", "output.txt"]
 #     return caecase
+
+def test_case_initialization(tmp_path):
+    case = CAECase.create_new(base_path=tmp_path)
+    expected_case_path = tmp_path / case.name
+
+    assert expected_case_path.exists()
+
+
+def test_case_initialization_wrong_path_type(tmpdir):
+    with pytest.raises(TypeError):
+        CAECase.create_new(base_path=tmpdir)
+
+
+def test_case_initialization_custom_name(tmp_path):
+    input_name = "myname"
+    CAECase.create_new(base_path=tmp_path, name=input_name)
+    expected_case_path = tmp_path / input_name
+
+    assert expected_case_path.exists()
 
 
 def test_caecase_sections(caecase_obj):
@@ -127,23 +145,14 @@ def test_case_serialization_roundtrip(tmp_path):
     assert restored.files == case.files
 
 
+def test_case_path(tmp_path):
+    case = CAECase.create_new(base_path=tmp_path)
+
+    assert case.path == tmp_path / case.name
+    assert case.path.exists()
+
 def test_save_config(tmp_path):
-    case = CAECase(tmp_path)
-
-    case.parameters.temperature = 300
-    case.status = {"state": "DONE"}
-    case.files = ["results.csv"]
-
-    case.save_config(tmp_path)
-
-    config_path = tmp_path / CAECase.CONFIG_DEFAULT_NAME
-
-    assert config_path.exists()
-
-    with open(config_path, "r") as f:
-        data = json.load(f)
-
-    assert data == {
+    expected_config = {
         "parameters": {
             "temperature": {'value': 300}
         },
@@ -155,9 +164,24 @@ def test_save_config(tmp_path):
         ],
         "tasks": []
     }
+    case = CAECase.create_new(base_path=tmp_path)
+    case.parameters.temperature = 300
+    case.status = {"state": "DONE"}
+    case.files = ["results.csv"]
+
+    case.save_config()
+
+    config_path = case.path / CAECase.CONFIG_DEFAULT_NAME
+    assert config_path.exists()
+    with open(config_path, "r") as f:
+        actual_config = json.load(f)
+    assert actual_config == expected_config
 
 
 def test_load_config(tmp_path):
+    expected_parameter_pressure = 42
+    expected_status = {"state": "RUNNING"}
+    expected_files = ["output.dat"]
     config_data = {
         "parameters": {
             "pressure": {'value': 42}
@@ -175,6 +199,6 @@ def test_load_config(tmp_path):
 
     case = CAECase.load_config(tmp_path, base_path=tmp_path)
 
-    assert case.parameters.pressure == 42
-    assert case.status == {"state": "RUNNING"}
-    assert case.files == ["output.dat"]
+    assert case.parameters.pressure == expected_parameter_pressure
+    assert case.status == expected_status
+    assert case.files == expected_files
