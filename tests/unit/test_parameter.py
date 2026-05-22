@@ -1,6 +1,6 @@
 
 import pytest
-from core import Parameter
+from core.parameter import Parameter
 from pint import UnitRegistry
 
 EPS = 1e-3

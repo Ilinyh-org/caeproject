@@ -1,5 +1,6 @@
 
-from core import Parameter, Node
+from core.parameter import Parameter
+from core.node import Node
 
 
 def test_parameter_creation_via_structure_attribute():

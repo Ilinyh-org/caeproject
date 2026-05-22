@@ -3,7 +3,7 @@ import pytest
 from pathlib import Path
 from caecase import CAECase
 from caetask import APDLTask
-from core import Parameter
+from core.parameter import Parameter
 import os, json
 
 
