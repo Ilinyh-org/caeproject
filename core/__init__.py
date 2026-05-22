@@ -1,6 +1,5 @@
 # core/__init__.py
-from .node import Node
-from .parameter import Parameter
-from core.file_manager import FileManager
 
-__all__ = ['Node', 'Parameter', 'FileManager']
+__all__ = ['node', 'parameter', 'file_manager']
+
+from core import node, parameter, file_manager
