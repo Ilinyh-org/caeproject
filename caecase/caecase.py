@@ -7,6 +7,7 @@ from pathlib import Path
 from core.file_manager import FileManager
 from core.serialization import Serializable
 from typing import List, Iterable
+from core.serialization import serialize
 
 
 class CAECase(Serializable):
@@ -72,8 +73,8 @@ class CAECase(Serializable):
         """Prepare data for serialization."""
         return {
             "parameters": self.parameters.to_dict(),
-            "files": self.files,  # Access list directly
-            "tasks": [t.name for t in self.tasks], # Assuming tasks have names
+            "files": [serialize(file) for file in self.files],
+            "tasks": [t.name for t in self.tasks],
             "status": self.status
         }
 
@@ -83,7 +84,7 @@ class CAECase(Serializable):
 
         obj.parameters.from_dict(data.get("parameters", {}))
         obj.status = data.get("status", {})
-        obj.files = data.get("files", [])
+        obj.files = [Path(file) for file in data.get("files", [])]
 
         return obj
 

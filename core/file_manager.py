@@ -95,7 +95,7 @@ class FileManager:
         for file in files:
             try:
                 shutil.copy(file, target_path)
-                files_to_append.append(file)
+                files_to_append.append(file.name)
             except (FileNotFoundError, FileExistsError):
                 print(f"Warning: File {file} not found.")
         return files_to_append

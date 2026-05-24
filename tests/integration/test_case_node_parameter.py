@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pytest
 
@@ -82,7 +83,7 @@ def test_case_from_dict(tmp_path):
     }
     expected_parameter_temperature = 500
     expected_status = {"state": "RUNNING"}
-    expected_files = ["results.csv"]
+    expected_files = [Path("results.csv")]
 
     case = CAECase.from_dict(input_data, base_path=tmp_path)
 
@@ -92,10 +93,10 @@ def test_case_from_dict(tmp_path):
 
 
 def test_case_serialization_roundtrip(tmp_path):
-    case = CAECase(tmp_path)
+    case = CAECase.create_new(tmp_path)
     case.parameters.alpha = 500
     case.status = {"state": "DONE"}
-    case.files = ["results.csv"]
+    case.files = [Path("results.csv")]
 
     data = case.to_dict()
 
@@ -136,7 +137,7 @@ def test_save_config(tmp_path):
 def test_load_config(tmp_path):
     expected_parameter_pressure = 42
     expected_status = {"state": "RUNNING"}
-    expected_files = ["output.dat"]
+    expected_files = [Path("output.dat")]
     config_data = {
         "parameters": {
             "pressure": {'value': 42}

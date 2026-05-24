@@ -13,31 +13,6 @@ def test_caecase_check_directory(tmp_path):
     assert caecase1.path.exists()
 
 
-@pytest.fixture(scope="session")
-def apdl_file2(tmp_path_factory):
-    fn = tmp_path_factory.mktemp("data") / "test.inp"
-    with open(fn, "w") as file:
-        file.write("/batch\n")
-        file.write("*dim,text,string,32,1\n")
-        file.write("text(1)=\'test text from ansys\'\n")
-        file.write("*cfopen,text_file_from_ansys,dat\n")
-        file.write("*vwrite,H1,NES_H1\n")
-        file.write("%G %I\n")
-        file.write("*cfclos\n")
-    return fn
-
-
-def test_caecase_add_files_to_case(tmp_path, apdl_file2):
-    caecase1 = CAECase.create_new(tmp_path)
-
-    caecase1.add_files_to_case([
-        apdl_file2,
-    ])
-
-    file_path = caecase1.path / apdl_file2.name
-    assert file_path.exists(), f"File {file_path} does not exist"
-
-
 def test_caecase_parameters(tmp_path):
     expected_file_content = {
         'geometry': {

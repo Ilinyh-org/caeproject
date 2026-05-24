@@ -27,9 +27,11 @@ def test_project_discovers_cases(tmp_path):
 def test_project_discovers_cases_into_existing_project(tmp_path):
     initial_case_parameter = 100
     project = CAEProject.from_existing_dir(tmp_path)
+
     existing_case = CAECase.create_new(base_path=tmp_path)
     existing_case.parameters.a = initial_case_parameter
     project.cases.append(existing_case)
+
     parameters_set = {0, 1, 2}
     expected_parameters = {0, 1, 2, 100}
 
