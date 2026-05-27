@@ -91,7 +91,7 @@ def solve_task(task):
     
 
 if __name__ == "__main__":
-    # is is recommended to use one worker if you use one folder, 
+    # it is recommended to use one worker if you use one folder, 
     # to ensure that every process uses its own parameters_file
     tasks = run_threads(create_task, [0, 1, 2, 3, 4], max_workers=1)  
     run_threads(solve_task, tasks, max_workers=2)
@@ -125,5 +125,5 @@ TODO
 add this code into your requirements.txt:
 
 ```
-git+http://gitea.ad.vmm.pstu.ru/IlinykhGV/caetask
+https://github.com/IlinyhGleb/caetask.git
 ```
