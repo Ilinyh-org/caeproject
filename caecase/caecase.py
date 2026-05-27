@@ -1,5 +1,6 @@
 
 import caetask
+from caetask.caetask import CAETask
 
 from caecase.utils import is_case_dir_name
 from core.node import Node
@@ -109,6 +110,9 @@ class CAECase(Serializable):
             format_type=format_type,
             filename=filename
         )
+
+    def add_task(self, task: CAETask):
+        self.tasks.append(task)
 
     @property
     def files(self) -> List[str]:
