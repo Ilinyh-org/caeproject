@@ -8,46 +8,46 @@ from core.parameter import Parameter
 
 
 @pytest.fixture
-def caecase_obj(tmp_path):
+def case_obj(tmp_path):
     return CAECase.create_new(base_path=tmp_path)
 
 
-def test_caecase_set_parameter(caecase_obj):
+def test_case_set_parameter(case_obj):
     input_value = 0
     expected_value = input_value
 
-    caecase_obj.parameters.h1 = input_value
+    case_obj.parameters.h1 = input_value
 
-    actual_value = caecase_obj.parameters.h1.value
+    actual_value = case_obj.parameters.h1.value
     assert actual_value == expected_value
 
 
-def test_caecase_set_group_parameter(caecase_obj):
+def test_case_set_group_parameter(case_obj):
     input_value = 0.01
     expected_value = input_value
 
-    caecase_obj.parameters.geometry.h1 = input_value
+    case_obj.parameters.geometry.h1 = input_value
 
-    actual_value = caecase_obj.parameters.geometry.h1.value
+    actual_value = case_obj.parameters.geometry.h1.value
     assert actual_value == expected_value
 
 
-def test_caecase_set_parameter_via_item(caecase_obj):
+def test_case_set_parameter_via_item(case_obj):
     input_value = True
     expected_value = input_value
 
-    caecase_obj.parameters["cleanup"]["enabled"] = input_value
+    case_obj.parameters["cleanup"]["enabled"] = input_value
 
-    actual_value = caecase_obj.parameters.cleanup.enabled.value
+    actual_value = case_obj.parameters.cleanup.enabled.value
     assert actual_value == expected_value
 
 
-def test_caecase_to_dict(caecase_obj):
+def test_case_to_dict(case_obj):
     input_gravity = 9.8066
     input_units = "m/s²"
     input_files = ["input.txt", "output.txt"]
-    caecase_obj.parameters.physics.gravity = Parameter(input_gravity, units=input_units)
-    caecase_obj.files = input_files
+    case_obj.parameters.physics.gravity = Parameter(input_gravity, units=input_units)
+    case_obj.files = input_files
     expected_dict = {
         "parameters": {
             "physics": {
@@ -62,7 +62,7 @@ def test_caecase_to_dict(caecase_obj):
         "status": {}
     }
 
-    actual_dict = caecase_obj.to_dict()
+    actual_dict = case_obj.to_dict()
 
     assert actual_dict == expected_dict
 

@@ -66,26 +66,26 @@ def apdl_file(tmp_path_factory):
 
 
 def test_case_add_files_to_case(tmp_path, apdl_file):
-    case1 = CAECase.create_new(tmp_path)
+    case = CAECase.create_new(tmp_path)
 
-    case1.add_files_to_case([
+    case.add_files_to_case([
         apdl_file,
     ])
 
-    file_path = case1.path / apdl_file.name
+    file_path = case.path / apdl_file.name
     assert file_path.exists(), f"File {file_path} does not exist"
 
 
 def test_case_safe_config_files(tmp_path, apdl_file):
-    case1 = CAECase.create_new(tmp_path)
+    case = CAECase.create_new(tmp_path)
 
-    case1.add_files_to_case([
+    case.add_files_to_case([
         apdl_file,
     ])
 
-    case1.save_config()
+    case.save_config()
 
-    file_path = case1.path / apdl_file.name
+    file_path = case.path / apdl_file.name
     assert file_path.exists(), f"File {file_path} does not exist"
 
 
@@ -121,12 +121,12 @@ def test_case_load_config_files(tmp_path, apdl_file):
 def test_case_safe_config_status(tmp_path):
     expected_status = {"state": "DONE"}
 
-    case1 = CAECase.create_new(tmp_path)
-    case1.status = {"state": "DONE"}
+    case = CAECase.create_new(tmp_path)
+    case.status = {"state": "DONE"}
 
-    case1.save_config()
+    case.save_config()
 
-    with open(case1.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
+    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
         data = json.load(f)
     assert data["status"] == expected_status
 
