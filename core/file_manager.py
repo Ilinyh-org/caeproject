@@ -12,6 +12,52 @@ from core.converter import JSONConverter, DataConverter, APDLConverter, SchemeCo
 from core.converter_registry import ConverterRegistry
 
 
+def create_case_dir(base_path: Path, name: str | None = None) -> Path:
+    """Creates a unique timestamped directory."""
+    while True:
+        try:
+            dir_name = name or format_case_dir()
+            dir_path = base_path / dir_name
+            dir_path.mkdir()
+
+            return dir_path
+        except FileExistsError:
+            time.sleep(random.uniform(0.001, 0.01))
+
+
+def add_files(
+        files: Iterable[Path | str],
+        target_path: Path
+):
+    """Copies external files into the case directory."""
+    files_to_append = []
+    for file in files:
+        try:
+            shutil.copy(file, target_path)
+            files_to_append.append(file.name)
+        except (FileNotFoundError, FileExistsError):
+            print(f"Warning: File {file} not found.")
+    return files_to_append
+
+
+def save(
+    data: Dict[str, Any],
+    path: Path,
+    format_type: str = "json",
+    filename: str = None,
+):
+
+    registry = ConverterRegistry.create_default_registry()
+    converter = registry.get(format_type)
+
+    _write_to_disk(
+        data,
+        path,
+        converter,
+        filename,
+    )
+
+
 def _write_to_disk(data: Dict[str, Any],
                    path: Path,
                    converter: DataConverter,
@@ -72,34 +118,6 @@ class FileManager:
 
         return dir_path
 
-    @staticmethod
-    def create_case_dir(base_path: Path, name: str | None = None) -> Path:
-        """Creates a unique timestamped directory."""
-        while True:
-            try:
-                dir_name = name or format_case_dir()
-                dir_path = base_path / dir_name
-                dir_path.mkdir()
-
-                return dir_path
-            except FileExistsError:
-                time.sleep(random.uniform(0.001, 0.01))
-
-    @staticmethod
-    def add_files(
-            files: Iterable[Path | str],
-            target_path: Path
-    ):
-        """Copies external files into the case directory."""
-        files_to_append = []
-        for file in files:
-            try:
-                shutil.copy(file, target_path)
-                files_to_append.append(file.name)
-            except (FileNotFoundError, FileExistsError):
-                print(f"Warning: File {file} not found.")
-        return files_to_append
-
     def schedule_save(self, data: Dict[str, Any]):
         """Schedules a save operation with a delay (debouncing)."""
         if self._save_task:
@@ -124,24 +142,6 @@ class FileManager:
         if self._save_task:
             self._save_task.cancel()
         _write_to_disk(data, path, converter, filename)
-
-    @staticmethod
-    def save(
-        data: Dict[str, Any],
-        path: Path,
-        format_type: str = "json",
-        filename: str = None,
-    ):
-
-        registry = ConverterRegistry.create_default_registry()
-        converter = registry.get(format_type)
-
-        _write_to_disk(
-            data,
-            path,
-            converter,
-            filename,
-        )
 
     @property
     def files(self) -> list[str]:

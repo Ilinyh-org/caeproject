@@ -1,15 +1,15 @@
-from caetask.caetask import CAETask
+from caetask import CAETask
 from subprocess import Popen
 import os
 
 
 class CFDPostTask(CAETask):
-    def __init__(self, task_name='task'):
-        super().__init__(task_name)
-        self._task_name = task_name
+    def __init__(self, name='task'):
+        super().__init__(name)
+        self._name = name
         self._input_file = ''
         self._input_file_code = ''
-        self._log_file = task_name + '.log'
+        self._log_file = name + '.log'
         self._parameters_file_name = ''
         self._parameters_file_code = ''
         self._results_file_name = None
@@ -18,7 +18,7 @@ class CFDPostTask(CAETask):
         self._application_version = "212"
 
     def __repr__(self):
-        return self._task_name
+        return self._name
 
     def __str__(self):
         output = super().__str__()

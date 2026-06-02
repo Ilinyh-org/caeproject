@@ -3,16 +3,16 @@ import shutil
 import tempfile
 from subprocess import Popen
 
-from caetask.caetask import CAETask, log_execution_time
+from caetask import CAETask, log_execution_time
 
 
 class APDLTask(CAETask):
-    def __init__(self, task_name='task'):
-        super().__init__(task_name)
-        self._task_name = task_name
+    def __init__(self, name='task'):
+        super().__init__(name)
+        self._name = name
         self._input_file = ''
         self._input_file_code = ''
-        self._log_file = task_name + '.log'
+        self._log_file = name + '.log'
         self._parameters_file_name = ''
         self._parameters_file_code = ''
         self._results_file_name = ''
@@ -34,7 +34,7 @@ class APDLTask(CAETask):
         self._status = None
 
     def __repr__(self):
-        return self._task_name
+        return self._name
 
     def __str__(self):
         output = super().__str__()
@@ -115,7 +115,7 @@ class APDLTask(CAETask):
                        '-db', self._database_size,
                        '-dir', tempdir.name,
                        '-np', self._cores,
-                       '-j', self._task_name,
+                       '-j', self._name,
                        '-i', os.path.basename(self._input_file),
                        '-o', os.path.join(tempdir.name, self._log_file),
                        '-gtmfile', self._geometry_file_name,
@@ -136,7 +136,7 @@ class APDLTask(CAETask):
         # создание процесса по сконфигурированному application
         self._process = Popen(' '.join(application), shell=True).wait()
         print("закончен расчёт ансис задачи " +
-              self._task_name +
+              self._name +
               " во временной директории " +
               os.path.basename(tempdir.name))
 
@@ -145,13 +145,21 @@ class APDLTask(CAETask):
             try:
                 shutil.copy2(os.path.join(tempdir.name, file), self._results_directory_path)
                 print(
-                    f"Файл {file} ансис задачи {self._task_name} скопирован из {os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory_path)}")
+                    f"Файл {file} ансис задачи {self._name} скопирован из {os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory_path)}")
             except OSError:
                 print(f"Файл {file} не найден для копирования в {self._results_directory_path}")
 
         if cleanup:
             tempdir.cleanup()
         return self
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = str(name)
 
     @property
     def geometry_file_name(self):

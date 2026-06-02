@@ -1,11 +1,11 @@
 
 import caetask
-from caetask.caetask import CAETask
+from caetask import CAETask
 
 from caecase.utils import is_case_dir_name
 from core.node import Node
 from pathlib import Path
-from core.file_manager import FileManager
+from core.file_manager import create_case_dir, add_files, save
 from core.serialization import Serializable
 from typing import List, Iterable
 from core.serialization import serialize
@@ -39,7 +39,7 @@ class CAECase(Serializable):
                 f"Expected path to be str or Path, got {type(base_path).__name__}"
             )
 
-        case_path = FileManager.create_case_dir(base_path, name)
+        case_path = create_case_dir(base_path, name)
 
         return cls(
             base_path=case_path.parent,
@@ -47,13 +47,13 @@ class CAECase(Serializable):
         )
 
     def create_name(self):
-        return FileManager.create_case_dir(self.base_path)
+        return create_case_dir(self.base_path)
 
     def add_files_to_case(self, files):
         """Delegates to FileManager."""
         if not isinstance(files, Iterable):
             files = [files]
-        self.files += FileManager.add_files(files, self.path)
+        self.files += add_files(files, self.path)
 
     def solve(self):
         for task in self.tasks:
@@ -104,7 +104,7 @@ class CAECase(Serializable):
             parameters.to_units_system(**filter_kwargs)
         data = parameters.to_dict(**filter_kwargs)
 
-        FileManager.save(
+        save(
             data=data,
             path=self.path,
             format_type=format_type,

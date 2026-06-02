@@ -20,11 +20,11 @@ def check_attribute(class_object):
 class CAETask(ABC):
     _class_counts = {}  # Словарик для хранения счётчиков по классам
 
-    def __init__(self, task_name='task'):
+    def __init__(self, name='task'):
         self._log_file = None
         self._input_file = None
         self._input_file_code = None
-        self._task_name = task_name
+        self._name = name
         self._process = None
         self._increment_counter()
 
@@ -36,7 +36,7 @@ class CAETask(ABC):
             pass
 
     def __str__(self):
-        output = 'имя задачи: ' + self._task_name + '\n'
+        output = 'имя задачи: ' + self._name + '\n'
         output += 'исполняемый файл: ' + str(os.path.basename(self._input_file)) + '\n'
         if self._parameters_file_name:
             output += 'файл параметров: ' + self._parameters_file_name + '\n'
@@ -70,8 +70,8 @@ class CAETask(ABC):
         ...
 
     @property
-    def task_name(self):
-        return self._task_name
+    def name(self):
+        return self._name
 
     @classmethod
     def count(cls):
@@ -231,7 +231,7 @@ def log_execution_time():
         def wrapper(*args, **kwargs):
             # Формируем имя лог‑файла
             # Предполагаем, что первый аргумент (args[0]) — это экземпляр класса с атрибутом task_name
-            task_name = args[0].task_name
+            task_name = args[0].name
             results_directory_path = args[0].results_directory_path
 
             func_qualname = func.__qualname__.replace(".", "_")

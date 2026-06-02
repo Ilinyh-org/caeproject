@@ -4,7 +4,7 @@ name = "caeproject"
 
 version = "0.2.0"
 
-description = "A module for running CAE tasks from python script"
+description = "A module for running CAE applications from python script"
 
 readme = "README.md"
 

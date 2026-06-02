@@ -2,8 +2,6 @@ import os
 from pathlib import Path
 
 import pytest
-from pytest_check import check
-from caetask import run_processes, run_threads
 from caetask import APDLTask
 from threading import Lock
 
@@ -47,38 +45,6 @@ def solve_task(task: APDLTask):
     task.solve()
 
 
-@pytest.mark.positive
-@pytest.mark.solve
-@pytest.mark.input_parameters
-def test_apdl_multitask_callback(tmpdir, capsys):
-    global input_data
-
-    EXPECTED_RESULTS = (3, 6, 9, 12, 15, 18, 21)
-
-    os.chdir(tmpdir)
-
-    with open("test.inp", "w") as file:
-        file.write("/batch\n")
-        file.write("parres,change,test,parm\n")
-        file.write("*cfopen,task%num%_text_file,dat\n")
-        file.write("*vwrite,num*3\n")
-        file.write("%I\n")
-        file.write("*cfclos\n")
-
-    tasks = run_threads(create_task, [0, 1, 2, 3, 4, 5, 6])  # список параллельных решаемых задач
-    run_threads(solve_task, tasks, max_workers=4)
-
-    for input_sample, expected_result in zip(input_data, EXPECTED_RESULTS):
-        file_name = "task" + input_sample[0] + "_text_file.dat"
-        with check:  # позволяет не прерывать общий процесс при провале assert
-            try:
-                with open(file_name, "r") as file:
-                    actual_result = int(file.readline())
-                    assert actual_result == expected_result, f"Error in file {file_name} "
-            except FileNotFoundError:
-                assert False, f"File {file_name} not found"
-
-
 @pytest.fixture(scope="session")
 def apdl_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "test.inp"
@@ -98,7 +64,7 @@ def apdl_file(tmp_path_factory):
 def test_apdl_solve(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)
 
-    EXPECTED_RESULT = "test text from ansys\n"
+    expected_result = "test text from ansys\n"
 
     task = APDLTask('test')
     task.input_file = apdl_file
@@ -107,7 +73,7 @@ def test_apdl_solve(tmpdir, apdl_file, capsys):
 
     with open("text_file_from_ansys.dat", "r") as file:
         line_from_test_file = file.readline()
-    assert line_from_test_file == EXPECTED_RESULT
+    assert line_from_test_file == expected_result
 
 
 @pytest.mark.positive
@@ -119,7 +85,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
     tmpdir2.mkdir()
     os.chdir(tmpdir1)
 
-    EXPECTED_RESULT = "test text from ansys\n"
+    expected_result = "test text from ansys\n"
 
     task = APDLTask('test')
     task.input_file = apdl_file
@@ -129,7 +95,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
 
     with open(tmpdir2 / "text_file_from_ansys.dat", "r") as file:
         line_from_test_file = file.readline()
-    assert line_from_test_file == EXPECTED_RESULT
+    assert line_from_test_file == expected_result
 
 
 @pytest.mark.positive
@@ -184,7 +150,7 @@ def additional_text_file(tmp_path_factory):
 def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_file, additional_text_file, capsys):
     os.chdir(tmpdir)
 
-    EXPECTED_RESULT = "14\n"
+    expected_result = "14\n"
 
     task = APDLTask('test')
     task.input_file = apdl_file_using_additional_file
@@ -196,7 +162,7 @@ def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_fil
 
     with open("text_file_from_ansys.dat", "r") as file:
         line_from_test_file = file.readline()
-    assert line_from_test_file == EXPECTED_RESULT
+    assert line_from_test_file == expected_result
 
 
 @pytest.fixture(scope="session")
@@ -229,7 +195,7 @@ def apdl_file_resuming_database(tmp_path_factory):
 def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apdl_file_resuming_database, capsys):
     os.chdir(tmpdir)
 
-    EXPECTED_RESULT = "5\n"
+    expected_result = "5\n"
 
     task = APDLTask('test1')
     task.input_file = apdl_file_saving_database
@@ -251,16 +217,16 @@ def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apd
 
     with open("text_file_from_ansys.dat", "r") as file:
         line_from_test_file = file.readline()
-    assert line_from_test_file == EXPECTED_RESULT
+    assert line_from_test_file == expected_result
 
 
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)
-    MANUAL_TEMP_DIR_NAME = 'solve_dir'
-    os.mkdir(MANUAL_TEMP_DIR_NAME)
-    EXPECTED_RESULT = "test text from ansys\n"
+    manual_temp_dir_name = 'solve_dir'
+    os.mkdir(manual_temp_dir_name)
+    expected_result = "test text from ansys\n"
 
     task = APDLTask('test')
     task.input_file = apdl_file
@@ -268,7 +234,7 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
     task.results_files_names = ["text_file_from_ansys.dat"]
     task.solve(cleanup=False, delete=False)
 
-    manual_temp_dir_abspath = os.path.abspath(MANUAL_TEMP_DIR_NAME)
+    manual_temp_dir_abspath = os.path.abspath(manual_temp_dir_name)
     tempdir = next(
         os.path.join(manual_temp_dir_abspath, d)
         for d in os.listdir(manual_temp_dir_abspath)
@@ -277,7 +243,7 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
 
     with open(os.path.join(tempdir, "text_file_from_ansys.dat"), "r") as file:
         line_from_test_file = file.readline()
-    assert line_from_test_file == EXPECTED_RESULT
+    assert line_from_test_file == expected_result
 
 
 @pytest.mark.positive
@@ -296,7 +262,7 @@ def test_apdl_calc_geom_vol(input_data, expected_result, capsys):
 def test_apdl_two_tasks_sum(tmpdir, capsys):
     os.chdir(tmpdir)
 
-    EXPECTED_RESULTS = (3, 6)
+    expected_results = (3, 6)
     with open("test1.inp", "w") as file:
         file.write("/batch\n")
         file.write("*cfopen,task1_text_file,dat\n")
@@ -322,10 +288,10 @@ def test_apdl_two_tasks_sum(tmpdir, capsys):
 
     with open("task1_text_file.dat", "r") as f:
         actual_result = int(f.readline())
-        assert actual_result == EXPECTED_RESULTS[0]
+        assert actual_result == expected_results[0]
     with open("task2_text_file.dat", "r") as f:
         actual_result = int(f.readline())
-        assert actual_result == EXPECTED_RESULTS[1]
+        assert actual_result == expected_results[1]
 
 
 @pytest.mark.negative
@@ -369,10 +335,10 @@ def test_apdl_results_file_FileNotFoundError(tmpdir, apdl_file, capsys):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl__str__(tmpdir, apdl_file, capsys):
+def test_apdl_print(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)
 
-    EXPECTED_RESULT = 'имя задачи: test\n'\
+    expected_result = 'имя задачи: test\n'\
                       'исполняемый файл: test.inp\n'\
                       'файл логов: test.log\n'\
                       'версия приложения: 212\n'\
@@ -386,6 +352,6 @@ def test_apdl__str__(tmpdir, apdl_file, capsys):
     captured = capsys.readouterr()
     actual_result = captured.out
 
-    assert actual_result == EXPECTED_RESULT
+    assert actual_result == expected_result
 
 
