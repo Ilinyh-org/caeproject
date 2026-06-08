@@ -77,17 +77,22 @@ def test_case_add_files_to_case(tmp_path, apdl_file):
 
 
 def test_case_safe_config_files(tmp_path, apdl_file):
+    expected_config = {
+        "parameters": {},
+        "files": ["test.inp"],
+        "tasks": [],
+        "status": {}
+    }
     case = CAECase.create_new(tmp_path)
-
     case.add_files_to_case([
         apdl_file,
     ])
 
     case.save_config()
 
-    file_path = case.path / apdl_file.name
-    assert file_path.exists(), f"File {file_path} does not exist"
-
+    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
+        actual_config = json.load(f)
+    assert actual_config == expected_config
 
 def test_case_load_config_files(tmp_path, apdl_file):
     case_name = "case_dir"

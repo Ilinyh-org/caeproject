@@ -10,7 +10,6 @@ from caetask import CAETask, log_execution_time
 class FluentTask(CAETask):
     def __init__(self, name='task'):
         super().__init__(name)
-        self._name = name
         self._input_file = ''
         self._input_file_code = ''
         self._log_file = name + '.log'
@@ -31,7 +30,7 @@ class FluentTask(CAETask):
         self._threads = '2'
 
     def __repr__(self):
-        return self._name
+        return self.name
 
     def __str__(self):
         output = super().__str__()
@@ -110,7 +109,7 @@ class FluentTask(CAETask):
                                   stdout=f,
                                   cwd=tempdir.name).wait()
         print("закончен расчёт ансис задачи " +
-              self._name +
+              self.name +
               " во временной директории " +
               os.path.basename(tempdir.name))
 
@@ -134,7 +133,7 @@ class FluentTask(CAETask):
         for file in self._results_files_names:
             try:
                 shutil.copy2(os.path.join(tempdir.name, file), self._results_directory_path)
-                print(f"Файл {file} fluent задачи {self._name} скопирован из "
+                print(f"Файл {file} fluent задачи {self.name} скопирован из "
                       f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory_path)}")
             except OSError:
                 print(f"Файл {file} не найден для копирования в {self._results_directory_path}")

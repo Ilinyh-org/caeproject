@@ -6,6 +6,8 @@ import functools
 import json
 import sys
 
+from core.serialization import Serializable
+
 
 def check_attribute(class_object):
     attr_name = sys._getframe(1).f_code.co_name
@@ -17,14 +19,15 @@ def check_attribute(class_object):
         )
 
 
-class CAETask(ABC):
+class CAETask(ABC, Serializable):
     _class_counts = {}  # Словарик для хранения счётчиков по классам
 
-    def __init__(self, name='task'):
+    def __init__(self, name='task', base_path=None):
+        super().__init__(base_path, name)
+
         self._log_file = None
         self._input_file = None
         self._input_file_code = None
-        self._name = name
         self._process = None
         self._increment_counter()
 
@@ -36,7 +39,7 @@ class CAETask(ABC):
             pass
 
     def __str__(self):
-        output = 'имя задачи: ' + self._name + '\n'
+        output = 'имя задачи: ' + self.name + '\n'
         output += 'исполняемый файл: ' + str(os.path.basename(self._input_file)) + '\n'
         if self._parameters_file_name:
             output += 'файл параметров: ' + self._parameters_file_name + '\n'
@@ -68,10 +71,6 @@ class CAETask(ABC):
     @abstractmethod
     def solve(self):
         ...
-
-    @property
-    def name(self):
-        return self._name
 
     @classmethod
     def count(cls):

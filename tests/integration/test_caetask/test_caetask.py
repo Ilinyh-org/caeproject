@@ -171,7 +171,7 @@ def scm_simple_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
-def test_fluent_solve_log(tmpdir, scm_simple_file, capsys):
+def test_fluent_solve_log(tmpdir, scm_simple_file):
     os.chdir(tmpdir)
 
     log_file_name = "test_FluentTask_solve.log"

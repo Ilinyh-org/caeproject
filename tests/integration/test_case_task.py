@@ -121,7 +121,7 @@ def test_apdl_solve(tmp_path, apdl_file):
 
     task = APDLTask('test')
     task.results_directory_path = case.path
-    task.input_file = case.path / "test.inp"
+    task.input_file = case.path / apdl_file.name
     task.parameters_file = case.path / "test.parm"
     task.results_files_names = ["text_file_from_ansys.dat"]
 
@@ -132,3 +132,34 @@ def test_apdl_solve(tmp_path, apdl_file):
     with open(case.path / "text_file_from_ansys.dat", "r") as file:
         actual_file_content = file.read()
     assert actual_file_content == expected_file_content
+
+
+def test_case_safe_config_task(tmp_path, apdl_file):
+    expected_config = {
+        "parameters": {'A1': {'value': 2}, 'B1': {'value': 3}},
+        "files": ["test.inp"],
+        "tasks": ['test'],
+        "status": {}
+    }
+
+    case = CAECase.create_new(tmp_path)
+    case.add_files_to_case(apdl_file)
+    case.parameters.A1 = 2
+    case.parameters.B1 = 3
+    case.parameters_save(filename='test', format_type='APDL')
+
+    task = APDLTask('test')
+    task.results_directory_path = case.path
+    task.input_file = case.path / apdl_file.name
+    task.parameters_file = case.path / "test.parm"
+    task.results_files_names = ["text_file_from_ansys.dat"]
+
+    case.tasks.append(task)
+
+    #case.solve()
+
+    case.save_config()
+
+    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
+        actual_config = json.load(f)
+    assert actual_config == expected_config
