@@ -8,8 +8,12 @@ from caetask import CAETask, log_execution_time
 
 
 class FluentTask(CAETask):
-    def __init__(self, name='task'):
-        super().__init__(name)
+    def __init__(
+            self,
+            name='task',
+            base_path: str | None = None
+    ):
+        super().__init__(name, base_path)
         self._input_file = ''
         self._input_file_code = ''
         self._log_file = name + '.log'
@@ -21,7 +25,7 @@ class FluentTask(CAETask):
         self._additional_text_files_codes = []
         self._additional_link_files = []
         self._copy_link_files = False
-        self._results_directory_path = os.path.abspath(os.curdir)
+        self._results_directory_path = self.base_path
         # self.__working_directory_path = os.path.abspath(os.curdir)
         self._temporary_directory_path = None
         self._application_version = "212"

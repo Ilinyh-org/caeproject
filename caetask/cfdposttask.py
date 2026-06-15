@@ -4,8 +4,12 @@ import os
 
 
 class CFDPostTask(CAETask):
-    def __init__(self, name='task'):
-        super().__init__(name)
+    def __init__(
+            self,
+            name='task',
+            base_path: str | None = None
+    ):
+        super().__init__(name, base_path)
         self._name = name
         self._input_file = ''
         self._input_file_code = ''

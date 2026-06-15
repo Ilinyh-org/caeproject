@@ -37,11 +37,14 @@ class CAEProject(Serializable):
 
     def to_dict(self):
         """Prepare data for serialization."""
-        return {
-            "name": self.name,
+        data = super().to_dict()
+
+        data.update({
             "cases": [str(c.path) for c in self.cases],
             "base_path": str(self.base_path)
-        }
+        })
+
+        return data
 
     def add_case(self, new_case: CAECase):
         for case in self.cases:

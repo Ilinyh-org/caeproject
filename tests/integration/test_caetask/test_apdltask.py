@@ -12,39 +12,6 @@ def setup_method():
     pass
 
 
-input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5), ('6', 6), ('7', 7))
-
-
-def create_task(index, tempdir=None):  # задаётся пользователем
-    global input_data
-
-    task_num = input_data[index][0]
-    num_par = input_data[index][1]
-
-    workdir = "temp" + task_num
-    os.mkdir(workdir)
-
-    with open(os.path.join(workdir, "test.parm"), "w") as file:
-        file.write("num=" + str(num_par))
-
-    task = APDLTask('test' + str(num_par))
-    task.input_file = 'test.inp'
-    task.parameters_file = os.path.join(workdir, "test.parm")
-    if tempdir:
-        task.temporary_directory_path = tempdir
-    task.memory_size = 64
-    task.database_size = 32
-    task.results_files_names = [
-        "task" + str(num_par) + "_text_file.dat",
-        "test" + str(num_par) + "_1.out",
-    ]
-    return task
-
-
-def solve_task(task: APDLTask):
-    task.solve()
-
-
 @pytest.fixture(scope="session")
 def apdl_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "test.inp"
@@ -61,12 +28,12 @@ def apdl_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve(tmpdir, apdl_file, capsys):
-    os.chdir(tmpdir)
+def test_apdl_solve(tmpdir, apdl_file):
+    tmpdir.chdir()
 
     expected_result = "test text from ansys\n"
 
-    task = APDLTask('test')
+    task = APDLTask.create_new('test')
     task.input_file = apdl_file
     task.results_files_names = ["text_file_from_ansys.dat"]
     task.solve()
@@ -87,7 +54,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
 
     expected_result = "test text from ansys\n"
 
-    task = APDLTask('test')
+    task = APDLTask.create_new('test')
     task.input_file = apdl_file
     task.results_directory_path = tmpdir2
     task.results_files_names = ["text_file_from_ansys.dat"]
@@ -110,7 +77,7 @@ def test_apdl_log(tmpdir, apdl_file, capsys):
         "A N S Y S   S T A T I S T I C S",
         "ANSYS RUN COMPLETED"]
 
-    task = APDLTask('test')
+    task = APDLTask.create_new('test')
     task.input_file = apdl_file
     task.log_file = 'test_log_file.log'
     task.results_files_names = ['test_log_file.log']
@@ -152,7 +119,7 @@ def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_fil
 
     expected_result = "14\n"
 
-    task = APDLTask('test')
+    task = APDLTask.create_new('test')
     task.input_file = apdl_file_using_additional_file
     task.additional_text_files = additional_text_file
     task.results_files_names = [
@@ -197,14 +164,14 @@ def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apd
 
     expected_result = "5\n"
 
-    task = APDLTask('test1')
+    task = APDLTask.create_new('test1')
     task.input_file = apdl_file_saving_database
     task.results_files_names = [
         "database.db",
     ]
     task.solve()
 
-    task = APDLTask('test2')
+    task = APDLTask.create_new('test2')
     task.copy_link_files = True
     task.input_file = apdl_file_resuming_database
     task.additional_link_files = [
@@ -228,7 +195,7 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
     os.mkdir(manual_temp_dir_name)
     expected_result = "test text from ansys\n"
 
-    task = APDLTask('test')
+    task = APDLTask.create_new('test')
     task.input_file = apdl_file
     task.temporary_directory_path = os.path.abspath('solve_dir')
     task.results_files_names = ["text_file_from_ansys.dat"]
@@ -276,10 +243,10 @@ def test_apdl_two_tasks_sum(tmpdir, capsys):
         file.write("%I\n")
         file.write("*cfclos\n")
 
-    task1 = APDLTask('test1')
+    task1 = APDLTask.create_new('test1')
     task1.input_file = 'test1.inp'
     task1.results_files_names = ["task1_text_file.dat"]
-    task2 = APDLTask('test2')
+    task2 = APDLTask.create_new('test2')
     task2.input_file = 'test2.inp'
     task2.results_files_names = ["task2_text_file.dat"]
 
@@ -305,7 +272,7 @@ def test_apdl_FileNotFoundError(tmpdir, capsys):
     expected_error_message = "some_file.inp не найден"
 
     with pytest.raises(expected_error) as exc:
-        task = APDLTask('test')
+        task = APDLTask.create_new('test')
         task.input_file = "some_file.inp"
         task.results_files_names = ["text_file_from_ansys.dat"]
 
@@ -322,7 +289,7 @@ def test_apdl_results_file_FileNotFoundError(tmpdir, apdl_file, capsys):
 
     expected_error_message = "wrong_file_from_ansys.dat не найден для копирования в "
 
-    task = APDLTask('test')
+    task = APDLTask.create_new('test')
     task.input_file = apdl_file
     task.results_files_names = ["wrong_file_from_ansys.dat"]
 
@@ -345,7 +312,7 @@ def test_apdl_print(tmpdir, apdl_file, capsys):
                       'количество потоков в задаче: 2\n'\
                       '\n'
 
-    task1 = APDLTask('test')
+    task1 = APDLTask.create_new('test')
     task1.input_file = apdl_file
     task1.results_files_names = ["text_file_from_apdl_file.dat"]
     print(task1)

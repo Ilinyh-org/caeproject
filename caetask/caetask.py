@@ -5,6 +5,7 @@ import datetime
 import functools
 import json
 import sys
+from pathlib import Path
 
 from core.serialization import Serializable
 
@@ -22,14 +23,58 @@ def check_attribute(class_object):
 class CAETask(ABC, Serializable):
     _class_counts = {}  # Словарик для хранения счётчиков по классам
 
-    def __init__(self, name='task', base_path=None):
+    def __init__(
+            self,
+            name: str = 'task',
+            base_path: Path | None = None
+    ):
         super().__init__(base_path, name)
 
+        self._case = None
         self._log_file = None
         self._input_file = None
         self._input_file_code = None
         self._process = None
         self._increment_counter()
+
+    @property
+    def case(self):
+        return self._case
+
+    @classmethod
+    def create_new(
+            cls,
+            name: str | None = None,
+            base_path: Path | None = None,
+    ):
+        base_path = base_path or Path.cwd()
+
+        if not isinstance(base_path, (str, Path)):
+            raise TypeError(
+                f"Expected path to be str or Path, got {type(base_path).__name__}"
+            )
+
+        return cls(
+            base_path=base_path,
+            name=name,
+        )
+
+    def to_dict(self):
+        """Prepare data for serialization."""
+        data = super().to_dict()
+
+        data.update({
+            # "self.case": self._case,
+            "self.log_file": self._log_file,
+            "self.input_file": self._input_file,
+            "self.process": self._process,
+        })
+
+        return data
+
+    @property
+    def path(self) -> Path:
+        return self.base_path
 
     def __del__(self):
         try:
@@ -81,11 +126,16 @@ class CAETask(ABC, Serializable):
         return self._input_file
 
     @input_file.setter
-    def input_file(self, file):
+    def input_file(self, file: Path):
+        if isinstance(file, str):
+            if self.case:
+                file = self.case.path / file
+            else:
+                file = Path.cwd() / file
         try:
             with open(file, encoding="utf-8") as f:
                 self._input_file_code = f.readlines()
-            self._input_file = file
+            self._input_file = file.name
         except FileNotFoundError:
             raise FileNotFoundError(os.path.abspath(file) + " не найден")
 
@@ -94,7 +144,7 @@ class CAETask(ABC, Serializable):
         return self._log_file
 
     @log_file.setter
-    def log_file(self, file):
+    def log_file(self, file: Path):
         self._log_file = file
 
     @property
@@ -102,11 +152,16 @@ class CAETask(ABC, Serializable):
         return self._parameters_file_name
 
     @parameters_file.setter
-    def parameters_file(self, file):
+    def parameters_file(self, file: Path | str):
+        if isinstance(file, str):
+            if self.case:
+                file = self.case.path / file
+            else:
+                file = Path.cwd() / file
         try:
             with open(file) as f:
                 self._parameters_file_code = f.readlines()
-            self._parameters_file_name = file
+            self._parameters_file_name = file.name
         except FileNotFoundError:
             raise FileNotFoundError(os.path.abspath(file) + " не найден")
 
@@ -123,7 +178,7 @@ class CAETask(ABC, Serializable):
         for file in flist:
             try:
                 with open(file, encoding="utf-8") as f:
-                    self._additional_text_files.append((file, f.readlines()))
+                    self._additional_text_files.append((file.name, f.readlines()))
             except FileNotFoundError:
                 raise FileNotFoundError(os.path.abspath(file) + " не найден")
             except UnicodeDecodeError:
@@ -135,12 +190,12 @@ class CAETask(ABC, Serializable):
         return self._additional_link_files
 
     @additional_link_files.setter
-    def additional_link_files(self, flist):
+    def additional_link_files(self, flist: list[Path] | Path):
         check_attribute(self)
         if type(flist) is not list:
             flist = [flist]
         for file in flist:
-            self._additional_link_files.append(os.path.abspath(file))
+            self._additional_link_files.append(file)
 
     @property
     def copy_link_files(self):
@@ -159,7 +214,7 @@ class CAETask(ABC, Serializable):
         return self._results_file_name
 
     @results_file_name.setter
-    def results_file_name(self, name):
+    def results_file_name(self, name: str):
         check_attribute(self)
         self._results_file_name = name
 
@@ -169,7 +224,7 @@ class CAETask(ABC, Serializable):
         return self._results_files_names
 
     @results_files_names.setter
-    def results_files_names(self, flist):
+    def results_files_names(self, flist: list[Path] | Path):
         check_attribute(self)
         if type(flist) is list:
             self._results_files_names = flist
@@ -182,17 +237,17 @@ class CAETask(ABC, Serializable):
         return self._application_version
 
     @application_version.setter
-    def application_version(self, name):
+    def application_version(self, name: str):
         check_attribute(self)
         self._application_version = name
 
     @property
-    def working_directory_path(self):
+    def working_directory_path(self) -> Path:
         check_attribute(self)
         return self._working_directory_path
 
     @working_directory_path.setter
-    def working_directory_path(self, path):
+    def working_directory_path(self, path: Path):
         check_attribute(self)
         self._working_directory_path = os.path.abspath(path)
 
@@ -202,9 +257,9 @@ class CAETask(ABC, Serializable):
         return self._temporary_directory_path
 
     @temporary_directory_path.setter
-    def temporary_directory_path(self, path):
+    def temporary_directory_path(self, path: Path):
         check_attribute(self)
-        self._temporary_directory_path = os.path.abspath(path)
+        self._temporary_directory_path = path
 
     @property
     def results_directory_path(self):
@@ -212,9 +267,9 @@ class CAETask(ABC, Serializable):
         return self._results_directory_path
 
     @results_directory_path.setter
-    def results_directory_path(self, path):
+    def results_directory_path(self, path: Path):
         check_attribute(self)
-        self._results_directory_path = os.path.abspath(path)
+        self._results_directory_path = path
 
 
 def log_execution_time():
@@ -235,7 +290,7 @@ def log_execution_time():
 
             func_qualname = func.__qualname__.replace(".", "_")
             log_file = f"{task_name}_{func_qualname}.log"
-            log_file_full_path = os.path.join(results_directory_path, log_file)
+            log_file_full_path = results_directory_path / log_file
 
             # Время начала
             start_time = time.time()

@@ -46,7 +46,7 @@ def test_apdl_solve_log(tmpdir, apdl_file, capsys):
     expected_function_name = 'solve'
     expected_status = 'success'
 
-    task = APDLTask('test')
+    task = APDLTask.create_new('test')
     task.input_file = apdl_file
     task.solve()
 
@@ -80,7 +80,7 @@ def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file, caps
     expected_function_name = 'solve'
     expected_status = 'success'
 
-    task = APDLTask('test')
+    task = APDLTask.create_new('test')
     task.input_file = apdl_file
     task.results_directory_path = tmpdir2
     task.solve()
@@ -108,8 +108,8 @@ def test_counter_increment(tmpdir, apdl_file, capsys):
     expected_apdl_tasks_count = 2
     expected_fluent_tasks_count = 3
 
-    task1 = APDLTask('test1apdl')
-    task2 = APDLTask('test2apdl')
+    task1 = APDLTask.create_new('test1apdl')
+    task2 = APDLTask.create_new('test2apdl')
     task3 = FluentTask('test1fluent')
     task4 = FluentTask('test2fluent')
     task5 = FluentTask('test3fluent')
@@ -172,14 +172,14 @@ def scm_simple_file(tmp_path_factory):
 @pytest.mark.solve
 @pytest.mark.log
 def test_fluent_solve_log(tmpdir, scm_simple_file):
-    os.chdir(tmpdir)
+    tmpdir.chdir()
 
     log_file_name = "test_FluentTask_solve.log"
     expected_log_fields = {'function_name', 'start_time', 'end_time', 'duration_seconds', 'status'}
     expected_function_name = 'solve'
     expected_status = 'success'
 
-    task = FluentTask('test')
+    task = FluentTask.create_new('test')
     task.input_file = scm_simple_file
     task.solve()
 
@@ -195,7 +195,7 @@ def test_fluent_solve_log(tmpdir, scm_simple_file):
         expected_duration = (end_dt - start_dt).total_seconds()
         actual_duration = data['duration_seconds']
 
-        assert abs(actual_duration - expected_duration) < 0.001
+        assert actual_duration == pytest.approx(expected_duration, 1E-3)
 
 
 @pytest.mark.negative
@@ -223,7 +223,7 @@ def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expec
     expected_log_fields = {'function_name', 'start_time', 'end_time', 'duration_seconds', 'status'}
     expected_function_name = 'solve'
 
-    task = APDLTask('test')
+    task = APDLTask.create_new('test')
     task.input_file = apdl_file
 
     with pytest.raises(raising_exception):
@@ -274,7 +274,7 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exceptio
     expected_log_fields = {'function_name', 'start_time', 'end_time', 'duration_seconds', 'status'}
     expected_function_name = 'solve'
 
-    task = APDLTask('test')
+    task = APDLTask.create_new('test')
     task.input_file = apdl_file
     task.results_directory_path = tmpdir2
 
@@ -307,4 +307,3 @@ def test_cfdposttask_AttributeError(tmpdir):
         task = CFDPostTask('test')
         task.temporary_directory_path = '/'
     assert expected_error_message in str(exc.value)
-

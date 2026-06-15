@@ -28,7 +28,7 @@ def test_fluent_task_start(tmpdir, scm_simple_file):
 
     expected_result = "test text from fluent\n"
 
-    task1 = FluentTask('test')
+    task1 = FluentTask.create_new('test')
     task1.input_file = scm_simple_file
     task1.results_files_names = ["text_file_from_fluent.dat"]
     task1.solve()
@@ -74,7 +74,7 @@ def test_fluent_task_parameters_file(tmpdir, scm_use_parm_file, scm_parm_file):
 
     expected_result = ["0.01\n", "2\n", "\"text\"\n"]
 
-    task1 = FluentTask('test')
+    task1 = FluentTask.create_new('test')
     task1.input_file = scm_use_parm_file
     task1.parameters_file = scm_parm_file
     task1.results_files_names = ["text_file_from_fluent.dat"]
@@ -92,7 +92,7 @@ def test_fluent_task_logs(tmpdir, scm_simple_file):
 
     expected_result = "Welcome to ANSYS Fluent"
 
-    task1 = FluentTask('test')
+    task1 = FluentTask.create_new('test')
     task1.input_file = scm_simple_file
     task1.log_file = 'log_test.log'
     task1.results_files_names = [
@@ -145,12 +145,12 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
 
     expected_result = "iter  continuity  x-velocity  y-velocity"
 
-    task1 = APDLTask('apdl')
+    task1 = APDLTask.create_new('apdl')
     task1.input_file = inp_mesh_file
     task1.results_files_names = ["mesh.cdb"]
     task1.solve()
 
-    task2 = FluentTask('fluent')
+    task2 = FluentTask.create_new('fluent')
     task2.input_file = scm_solve_file
     task2.log_file = 'log_fluent.log'
     task2.additional_link_files = ['mesh.cdb']
@@ -168,12 +168,12 @@ def test_fluent_task_solve_wrong_dimension(tmpdir, inp_mesh_file, scm_solve_file
 
     expected_error = PermissionError
 
-    task1 = APDLTask('apdl')
+    task1 = APDLTask.create_new('apdl')
     task1.input_file = inp_mesh_file
     task1.results_files_names = ["mesh.cdb"]
     task1.solve()
 
-    task2 = FluentTask('fluent')
+    task2 = FluentTask.create_new('fluent')
     task2.input_file = scm_solve_file
     task2.log_file = 'log_fluent.log'
     task2.additional_link_files = ['mesh.cdb']
@@ -208,12 +208,12 @@ def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transi
                         "cas_files_number": 5,
                         "flprj_files_number": 1}
 
-    task1 = APDLTask('apdl')
+    task1 = APDLTask.create_new('apdl')
     task1.input_file = inp_mesh_file
     task1.results_files_names = ["mesh.cdb"]
     task1.solve()
 
-    task2 = FluentTask('fluent')
+    task2 = FluentTask.create_new('fluent')
     task2.input_file = scm_transient_solve_file
     task2.log_file = 'log_fluent.log'
     task2.additional_link_files = ['mesh.cdb']
@@ -236,7 +236,7 @@ def test_fluent_task_return_files_regular_expression(tmpdir, scm_simple_file):
 
     expected_result = "test text from fluent\n"
 
-    task1 = FluentTask('test')
+    task1 = FluentTask.create_new('test')
     task1.input_file = scm_simple_file
     task1.results_files_names = ["text_file_*.dat"]
     task1.solve()
@@ -258,7 +258,7 @@ def test_fluent__str__(tmpdir, scm_simple_file, capsys):
                       'количество потоков в задаче: 2\n'\
                       '\n'
 
-    task1 = FluentTask('test')
+    task1 = FluentTask.create_new('test')
     task1.input_file = scm_simple_file
     task1.results_files_names = ["text_file_from_fluent.dat"]
     print(task1)

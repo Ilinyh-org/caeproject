@@ -28,7 +28,7 @@ def test_cfdposttask_start(tmpdir, cse_file, capsys):
     os.chdir(tmpdir)
     expected_result = "test text from cfdpost\n"
 
-    task = CFDPostTask('test')
+    task = CFDPostTask.create_new('test')
     task.input_file = cse_file
     task.solve()
 
@@ -71,7 +71,7 @@ def test_cfdpost_print(tmpdir, cse_fluentpost_file, capsys):
             'версия приложения: 212\n' +
             'путь рабочей директории: ' + str(tmpdir) + '\n\n')
 
-    task1 = CFDPostTask('test')
+    task1 = CFDPostTask.create_new('test')
     task1.input_file = cse_fluentpost_file
 
     print(task1)

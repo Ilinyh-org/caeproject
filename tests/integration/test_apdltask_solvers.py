@@ -1,10 +1,37 @@
-import os
+from pathlib import Path
 
 import pytest
 from pytest_check import check
 
-from caetask import run_threads
-from tests.integration.test_caetask.test_apdltask import create_task, solve_task
+from caetask import run_threads, APDLTask
+
+
+def create_task(index, tempdir=None):  # задаётся пользователем
+    task_num = index[0]
+    num_par = index[1]
+
+    workdir = Path.cwd() / f"temp{task_num}" # + task_num
+    workdir.mkdir()
+
+    with open(workdir / "test.parm", "w") as file:
+        file.write("num=" + str(num_par))
+
+    task = APDLTask.create_new(f'test{num_par}')
+    task.input_file = 'test.inp'
+    task.parameters_file = workdir / "test.parm"
+    if tempdir:
+        task.temporary_directory_path = tempdir
+    task.memory_size = 64
+    task.database_size = 32
+    task.results_files_names = [
+        f"task{num_par}_text_file.dat",
+        f"test{num_par}_1.out",
+    ]
+    return task
+
+
+def solve_task(task: APDLTask):
+    task.solve()
 
 
 @pytest.mark.positive
@@ -15,7 +42,7 @@ def test_apdl_multitask_callback(tmpdir):
 
     expected_results = (3, 6, 9, 12, 15, 18, 21)
 
-    os.chdir(tmpdir)
+    tmpdir.chdir()
 
     with open("test.inp", "w") as file:
         file.write("/batch\n")
@@ -25,15 +52,15 @@ def test_apdl_multitask_callback(tmpdir):
         file.write("%I\n")
         file.write("*cfclos\n")
 
-    tasks = run_threads(create_task, [0, 1, 2, 3, 4, 5, 6])  # список параллельных решаемых задач
+    tasks = run_threads(create_task, input_data)  # список параллельных решаемых задач
     run_threads(solve_task, tasks, max_workers=4)
 
     for input_sample, expected_result in zip(input_data, expected_results):
-        file_name = "task" + input_sample[0] + "_text_file.dat"
+        file_name = f"task{input_sample[0]}_text_file.dat"
         with check:  # позволяет не прерывать общий процесс при провале assert
-            try:
-                with open(file_name, "r") as file:
-                    actual_result = int(file.readline())
-                    assert actual_result == expected_result, f"Error in file {file_name} "
-            except FileNotFoundError:
-                assert False, f"File {file_name} not found"
+            # try:
+            with open(file_name, "r") as file:
+                actual_result = int(file.readline())
+                assert actual_result == expected_result, f"Error in file {file_name}"
+            # except FileNotFoundError:
+            #     assert False, f"File {file_name} not found"

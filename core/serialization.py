@@ -32,7 +32,9 @@ class Serializable:
         return self.base_path / self.name
 
     def to_dict(self) -> dict:
-        raise NotImplementedError
+        return {
+            "name": self.name
+        }
 
     @classmethod
     def from_dict(cls, data: dict):

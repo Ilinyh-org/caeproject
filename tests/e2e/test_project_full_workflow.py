@@ -6,6 +6,9 @@ from caeproject import CAEProject
 
 import pandas as pd
 
+from core.series_merger import series_merger
+
+
 @pytest.fixture(scope="session")
 def apdl_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "square_compression.inp"
@@ -29,70 +32,51 @@ def test_project_apdl_create_solve_get_results(tmp_path, apdl_file):
 
     project = CAEProject.from_existing_dir(tmp_project_path)
 
-    # добавить исходные данные
-    ds_H1 = pd.Series([1], dtype='float64', name="H1")  #[cm]
+    ds_H1 = pd.Series([1, 2], dtype='float64', name="H1")  #[cm]
     ds_B1 = pd.Series([1], dtype='float64', name="B1")  #[cm]
     ds_L1 = pd.Series([10], dtype='float64', name="L1")  #[cm]
     ds_NES_H1 = pd.Series([2], dtype='int64', name="NES_H1")
     ds_NES_B1 = pd.Series([2], dtype='int64', name="NES_B1")
     ds_NES_L1 = pd.Series([20], dtype='int64', name="NES_L1")
-    df = pd.DataFrame({'H1': ds_H1, 'B1': ds_B1, 'L1': ds_L1,
-                       'NES_H1': ds_NES_H1, 'NES_B1': ds_NES_B1, 'NES_L1': ds_NES_L1})
 
-    # запустить кейсы
-
-
-    # caecase1.add_files_to_case([
-    #     "filter1d.inp",
-    #     "filter1d.scm",
-    #     "filter1d_vof.c",
-    #     "filter1d.cse",
-    #     # "macroslibrary.mac",
-    # ])
+    df = series_merger(ds_H1, ds_B1, ds_L1, ds_NES_H1, ds_NES_B1, ds_NES_L1)
 
     def create_task(df):
-        case1 = CAECase.create_new(tmp_project_path)
-        case1.parameters.geometry.H1 = df["H1"]
-        case1.parameters.geometry.H1.units = 'cm'
-        case1.parameters.geometry.B1 = df["B1"]
-        case1.parameters.geometry.B1.units = 'cm'
-        case1.parameters.mesh.NES_H1 = df["NES_H1"]
-        case1.parameters.mesh.NES_B1 = df["NES_B1"]
+        case = CAECase.create_new(tmp_project_path)
+        case.parameters.geometry.H1 = df["H1"]
+        case.parameters.geometry.H1.units = 'cm'
+        case.parameters.geometry.B1 = df["B1"]
+        case.parameters.geometry.B1.units = 'cm'
+        case.parameters.mesh.NES_H1 = df["NES_H1"]
+        case.parameters.mesh.NES_B1 = df["NES_B1"]
 
-        case1.add_files_to_case([
+        case.add_files_to_case([
             apdl_file,
+         # "macroslibrary.mac",
         ])
-        case1.parameters_save(format_type='APDL', new_system="SI") #TODO прописать имя
+        case.parameters_save(format_type='APDL', new_system="SI") #TODO прописать имя
 
-        #TODO можно ли создать объект через case сразу добавив его в кейс?
-        task1 = APDLTask('square_compression')
-        task1.input_file = case1.path / 'square_compression.inp'
-        task1.parameters_file = case1.path / 'case_data.parm' # 'square_compression.parm'
-        task1.results_directory_path = case1.path
-        task1.temporary_directory_path = tmp_wd_path
-        task1.log_file = 'log_square_compression.log'
-        # task1.application_version = '212'
-        task1.cores = 2
-        # task1.memory_size = 512
-        # task1.database_size = 64
-        task1.results_files_names = [
+        task = APDLTask.create_new('square_compression')
+        task.input_file = case.path / 'square_compression.inp'
+        task.parameters_file = case.path / 'case_data.parm' # 'square_compression.parm'
+        task.results_directory_path = case.path
+        task.temporary_directory_path = tmp_wd_path
+        task.log_file = 'log_square_compression.log'
+        task.cores = 2
+        task.results_files_names = [
             "log_square_compression.log",
             "square_compression0.err",
             "square_compression1.err",
-        #     "filter1d.db",
-        #     "filter1d_ANF.cdb",
-        #     "filter1d_IGES.cdb",
             "RESULTS.dat",
         #     "RESULT_MODEL_INFO.CSV"
         ]
 
-
         # запуск решения проекта
         # project.solve()
-        case1.add_task(task1)
-        case1.save_config()
+        case.add_task(task)
+        case.save_config()
 
-        return task1
+        return task
 
     def solving(tasks):
         from collections.abc import Iterable  # TODO костыль

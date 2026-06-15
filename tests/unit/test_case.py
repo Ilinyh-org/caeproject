@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 from pathlib import Path
@@ -92,7 +93,9 @@ def test_case_safe_config_files(tmp_path, apdl_file):
 
     with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
         actual_config = json.load(f)
+    assert re.match(r"\d{4}_\d{2}_\d{2}T\d{6}_\d{6}", actual_config.pop("name") )
     assert actual_config == expected_config
+
 
 def test_case_load_config_files(tmp_path, apdl_file):
     case_name = "case_dir"

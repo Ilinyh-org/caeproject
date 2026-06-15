@@ -1,14 +1,19 @@
 import os
 import shutil
 import tempfile
+from pathlib import Path
 from subprocess import Popen
 
 from caetask import CAETask, log_execution_time
 
 
 class APDLTask(CAETask):
-    def __init__(self, name='task'):
-        super().__init__(name)
+    def __init__(
+            self,
+            name : str = 'task',
+            base_path: Path | None = None
+    ):
+        super().__init__(name, base_path)
         self._name = name
         self._input_file = ''
         self._input_file_code = ''
@@ -21,7 +26,7 @@ class APDLTask(CAETask):
         self._additional_text_files_codes = []
         self._additional_link_files = []
         self._copy_link_files = False
-        self._results_directory_path = os.path.abspath(os.curdir)
+        self._results_directory_path = self.base_path
         self._geometry_file_name = ''
         # self.__working_directory_path = os.path.abspath(os.curdir)
         self._temporary_directory_path = None
@@ -32,6 +37,30 @@ class APDLTask(CAETask):
         self._memory_size = '2048'
         self._database_size = '1024'
         self._status = None
+
+    def to_dict(self):
+        data = super().to_dict()
+
+        data.update({
+            "parameters_file_name": self._parameters_file_name,
+            "results_file_name": self._results_file_name,
+            "results_files_names": self._results_files_names,
+            "additional_text_files": self._additional_text_files,
+            "additional_text_files_codes": self._additional_text_files_codes,
+            "additional_link_files": self._additional_link_files,
+            "copy_link_files": self._copy_link_files,
+            "results_directory_path": str(self._results_directory_path.relative_to(self.base_path)),
+            "geometry_file_name": self._geometry_file_name,
+            "temporary_directory_path": self._temporary_directory_path,
+            "application_version": self._application_version,
+            "cores": self._cores,
+            "new_parameter_name": self._new_parameter_name,
+            "new_parameter_value": self._new_parameter_value,
+            "memory_size": self._memory_size,
+            "database_size": self._database_size,
+            "status": self._status,
+        })
+        return data
 
     def __repr__(self):
         return self._name

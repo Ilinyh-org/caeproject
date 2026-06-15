@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -64,6 +65,7 @@ def test_case_to_dict(case_obj):
 
     actual_dict = case_obj.to_dict()
 
+    assert re.match(r"\d{4}_\d{2}_\d{2}T\d{6}_\d{6}", actual_dict.pop("name") )
     assert actual_dict == expected_dict
 
 
@@ -131,6 +133,7 @@ def test_save_config(tmp_path):
     assert config_path.exists()
     with open(config_path, "r") as f:
         actual_config = json.load(f)
+    assert re.match(r"\d{4}_\d{2}_\d{2}T\d{6}_\d{6}", actual_config.pop("name") )
     assert actual_config == expected_config
 
 

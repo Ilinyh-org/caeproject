@@ -46,6 +46,33 @@ class CAECase(Serializable):
             name=case_path.name,
         )
 
+    def add_task(self, task: CAETask):
+        if task.case is not None:
+            raise ValueError(
+                "Task already belongs to a vase"
+            )
+        task._case = self
+
+        self.tasks.append(task)
+
+    def create_task(
+            self,
+            task_class: CAETask,
+            name: str,
+    ) -> CAETask:
+
+        task = task_class.create_new(name, self.path)
+        task._case = self
+
+        self.add_task(task)
+
+        return task
+
+    def remove_task(self, task):
+        self.tasks.remove(task)
+
+        task._case = None
+
     def create_name(self):
         return create_case_dir(self.base_path)
 
@@ -72,12 +99,16 @@ class CAECase(Serializable):
 
     def to_dict(self):
         """Prepare data for serialization."""
-        return {
+        data = super().to_dict()
+
+        data.update({
             "parameters": self.parameters.to_dict(),
             "files": [serialize(file) for file in self.files],
-            "tasks": [t.name for t in self.tasks],
+            "tasks": [t.to_dict() for t in self.tasks],
             "status": self.status
-        }
+        })
+
+        return data
 
     @classmethod
     def from_dict(cls, data: dict, **kwargs):
