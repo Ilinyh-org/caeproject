@@ -51,7 +51,6 @@ class APDLTask(CAETask):
             "copy_link_files": self._copy_link_files,
             "results_directory_path": str(self._results_directory_path.relative_to(self.base_path)),
             "geometry_file_name": self._geometry_file_name,
-            "temporary_directory_path": self._temporary_directory_path,
             "application_version": self._application_version,
             "cores": self._cores,
             "new_parameter_name": self._new_parameter_name,
