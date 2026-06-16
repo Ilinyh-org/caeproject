@@ -99,14 +99,12 @@ class CAECase(Serializable):
 
     def to_dict(self):
         """Prepare data for serialization."""
-        data = super().to_dict()
-
-        data.update({
+        data ={
             "parameters": self.parameters.to_dict(),
             "files": [serialize(file) for file in self.files],
             "tasks": [t.to_dict() for t in self.tasks],
             "status": self.status
-        })
+        }
 
         return data
 

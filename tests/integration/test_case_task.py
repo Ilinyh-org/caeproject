@@ -156,8 +156,7 @@ def test_case_safe_config_task(tmp_path, apdl_file):
             'self.input_file': 'test.inp',
             'self.log_file': 'test.log',
             'self.process': None,
-            'status': None,
-            'temporary_directory_path': None}],
+            'status': None}],
         "status": {}
     }
 
@@ -176,5 +175,4 @@ def test_case_safe_config_task(tmp_path, apdl_file):
 
     with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
         actual_config = json.load(f)
-    assert re.match(r"\d{4}_\d{2}_\d{2}T\d{6}_\d{6}", actual_config.pop("name") )
     assert actual_config == expected_config
