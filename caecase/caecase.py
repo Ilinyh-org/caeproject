@@ -1,3 +1,4 @@
+import pandas as pd
 
 import caetask
 from caetask import CAETask
@@ -9,6 +10,21 @@ from core.file_manager import create_case_dir, add_files, save
 from core.serialization import Serializable
 from typing import List, Iterable
 from core.serialization import serialize
+
+
+def append_df(df_main: pd.DataFrame, df_new):
+    if df_new is None or df_new.empty:
+        return df_main
+    if df_main.empty:
+        return df_new
+    return pd.concat([df_main, df_new])
+
+
+def get_csv_results(file: Path | str):
+
+    df = pd.read_csv(file)
+
+    return df
 
 
 class CAECase(Serializable):
@@ -86,6 +102,20 @@ class CAECase(Serializable):
         for task in self.tasks:
             task.solve()
 
+    def get_results(self):
+        df = pd.DataFrame()
+        for task in self.tasks:
+            for file in task.results_files_names:
+                # проверка типа файла
+                if file.name.suffix() == "csv":
+                    df_file = get_csv_results(file)
+                    df_file["ID"] = self.name
+                    df = append_df(df, df_file)
+                if file.name.suffix() == "dat":
+                    pass
+                if file.name.suffix() == "json":
+                    pass
+
     def save(self):
         """Public method to trigger a save."""
         self.file_manager.save_immediately(self.to_dict())
@@ -115,6 +145,8 @@ class CAECase(Serializable):
         obj.parameters.from_dict(data.get("parameters", {}))
         obj.status = data.get("status", {})
         obj.files = [Path(file) for file in data.get("files", [])]
+        obj.parameters = data.get("parameters", {})
+        obj.tasks = data.get("tasks", [])
 
         return obj
 

@@ -1,7 +1,7 @@
-import pytest
-from caetask import APDLTask, run_threads
 
+import pytest
 from caecase import CAECase
+from caetask import APDLTask, run_threads
 from caeproject import CAEProject
 
 import pandas as pd
@@ -16,7 +16,7 @@ def apdl_file(tmp_path_factory):
         file.write("/batch\n")
         file.write("*dim,text,string,32,1\n")
         file.write("text(1)=\'test text from ansys\'\n")
-        file.write("*cfopen,results,dat\n")
+        file.write("*cfopen,results,csv\n")
         file.write("*vwrite,H1,NES_H1\n")
         file.write("%G %I\n")
         file.write("*cfclos\n")
@@ -55,25 +55,24 @@ def test_project_apdl_create_solve_get_results(tmp_path, apdl_file):
          # "macroslibrary.mac",
         ])
         case.parameters_save(format_type='APDL', new_system="SI") #TODO прописать имя
-
-        task = APDLTask.create_new('square_compression')
-        task.input_file = case.path / 'square_compression.inp'
-        task.parameters_file = case.path / 'case_data.parm' # 'square_compression.parm'
-        task.results_directory_path = case.path
+        task = case.create_task(APDLTask, 'square_compression')
+        task.input_file = 'square_compression.inp'
+        task.parameters_file = 'case_data.parm' # 'square_compression.parm'
+        #task.results_directory_path = case.path
         task.temporary_directory_path = tmp_wd_path
         task.log_file = 'log_square_compression.log'
-        task.cores = 2
+        # task.cores = 2
         task.results_files_names = [
             "log_square_compression.log",
             "square_compression0.err",
             "square_compression1.err",
-            "RESULTS.dat",
+            "RESULTS.csv",
         #     "RESULT_MODEL_INFO.CSV"
         ]
 
         # запуск решения проекта
         # project.solve()
-        case.add_task(task)
+        #case.add_task(task)
         case.save_config()
 
         return task
@@ -88,19 +87,13 @@ def test_project_apdl_create_solve_get_results(tmp_path, apdl_file):
     ## TODO запихнуть эти команды в проект?
     tasks = run_threads(create_task, df.to_dict(orient="records"), max_workers=1)
     run_threads(solving, tasks, max_workers=2)
-    #
-    # #подтянуть результаты
-    project.discover_cases()
 
+    # подтянуть результаты
+    project.discover_cases()
 
     for case in project.cases:
         print("1: ", case)
-
-    #должен ли подтяигвать проект? да должен
-    #результаты формируются автоматически на основе данных кейсов
-    #нужен цикл по кейсам с обходмо резульатов
-    #можно ли взять результаты не из кейсов? нет они не сохраняется
-    #типы результатов в блокноете
+        case.get_results()
 
     #обработать результаты
     #нарисовать график(?)
