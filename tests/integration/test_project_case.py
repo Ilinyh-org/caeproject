@@ -12,6 +12,7 @@ def test_project_discovers_cases(tmp_path):
         case.parameters.a = parameter_a
         case.save_config()
         created_cases.append(case)
+    del case
 
     project = CAEProject.from_existing_dir(tmp_path)
 

@@ -145,7 +145,6 @@ class CAECase(Serializable):
         obj.parameters.from_dict(data.get("parameters", {}))
         obj.status = data.get("status", {})
         obj.files = [Path(file) for file in data.get("files", [])]
-        obj.parameters = data.get("parameters", {})
         obj.tasks = data.get("tasks", [])
 
         return obj
