@@ -1,6 +1,6 @@
 import pytest
 
-from core.converter import APDLConverter
+from data_converter import APDLConverter
 
 
 @pytest.mark.parametrize("input_data, expected_result",
@@ -11,9 +11,9 @@ from core.converter import APDLConverter
                           ({'A':{"value": 5,"units": "cm",},'B':7},'A=5 ![cm]\nB=7\n'),
                           ])
 def test_convert(input_data, expected_result):
-    converter = APDLConverter()
+    data_converter = APDLConverter()
 
-    actual_result = converter.convert(input_data)
+    actual_result = data_converter.convert(input_data)
 
     assert actual_result == expected_result
 
