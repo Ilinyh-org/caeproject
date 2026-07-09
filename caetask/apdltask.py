@@ -8,6 +8,30 @@ from caetask import CAETask, log_execution_time
 
 
 class APDLTask(CAETask):
+    TYPE = "apdl"
+    SERIALIZABLE_FIELDS = (
+        "additional_link_files",
+        "additional_text_files",
+        "additional_text_files_codes",
+        "application_version",
+        "copy_link_files",
+        "cores",
+        "database_size",
+        "geometry_file_name",
+        "memory_size",
+        "name",
+        "new_parameter_name",
+        "new_parameter_value",
+        "parameters_file_name",
+        "results_directory_path",
+        "results_file_name",
+        "results_files_names",
+        "input_file",
+        "log_file",
+        "process",
+        #"status",
+    )
+
     def __init__(
             self,
             name : str = 'task',
@@ -41,6 +65,8 @@ class APDLTask(CAETask):
     def to_dict(self):
         data = super().to_dict()
 
+        data["type"] = self.TYPE #TODO add type in another tasks
+
         data.update({
             "parameters_file_name": self._parameters_file_name,
             "results_file_name": self._results_file_name,
@@ -60,6 +86,16 @@ class APDLTask(CAETask):
             "status": self._status,
         })
         return data
+
+    @classmethod
+    def from_dict(cls, data: dict, **kwargs):
+        obj = cls(**kwargs)
+
+        for field in cls.SERIALIZABLE_FIELDS:
+            if field in data:
+                setattr(obj, field, data[field])
+
+        return obj
 
     def __repr__(self):
         return self._name

@@ -5,7 +5,7 @@ from .scheme_converter import SchemeConverter
 from .registry import ConverterRegistry
 
 
-def create_default_registry():
+def create_default_converter_registry():
     registry = ConverterRegistry()
 
     registry.register("json", JSONConverter())

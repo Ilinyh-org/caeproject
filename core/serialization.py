@@ -59,7 +59,7 @@ class Serializable:
             **kwargs
     ):
         if not config_path.is_dir():
-            raise NotADirectoryError(f"Ожидалась директория конфигурации, но получен файл: {config_path}")
+            config_path = config_path.parent
 
         with open(config_path / cls.CONFIG_DEFAULT_NAME, "r") as f:
             data = json.load(f)

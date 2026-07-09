@@ -1,9 +1,10 @@
 import pandas as pd
 
-import caetask
+import data_converter
 from caetask import CAETask
+from caetask.default_registry import create_default_task_registry
 
-from caecase.utils import is_case_dir_name
+from .utils import is_case_dir_name
 from core.node import Node
 from pathlib import Path
 from core.file_manager import create_case_dir, add_files, save
@@ -39,7 +40,7 @@ class CAECase(Serializable):
 
         self._files = []
         self.parameters = Node()
-        self.tasks: List[caetask] = []
+        self.tasks: List[CAETask] = []
         self.status = {}
 
     @classmethod
@@ -145,7 +146,12 @@ class CAECase(Serializable):
         obj.parameters.from_dict(data.get("parameters", {}))
         obj.status = data.get("status", {})
         obj.files = [Path(file) for file in data.get("files", [])]
-        obj.tasks = data.get("tasks", [])
+
+        obj.tasks = []
+        registry = create_default_task_registry()
+        for task_data in data.get("tasks", []):
+            task_type = registry.get(task_data["type"])
+            obj.tasks.append(task_type.from_dict(task_data))
 
         return obj
 
@@ -157,6 +163,7 @@ class CAECase(Serializable):
 
         Args:
             format_type: Output format - 'json', 'mytype', or 'mytype_indented'
+            filename: File name
             **filter_kwargs: Filters to pass to to_dict() (include/exclude)
         """
         parameters = self.parameters
@@ -164,10 +171,18 @@ class CAECase(Serializable):
             parameters.to_units_system(**filter_kwargs)
         data = parameters.to_dict(**filter_kwargs)
 
+        registry = data_converter.create_default_converter_registry()
+        converter = registry.get(format_type)
+        data = converter.convert(data)
+
+        if not filename:
+            filename = "case_data"
+        if filename.find(".") == -1:
+            filename += "." + converter.get_extension()
+
         save(
             data=data,
             path=self.path,
-            format_type=format_type,
             filename=filename
         )
 

@@ -64,10 +64,10 @@ class CAETask(ABC, Serializable):
         data = super().to_dict()
 
         data.update({
-            # "self.case": self._case,
-            "self.log_file": self._log_file,
-            "self.input_file": self._input_file,
-            "self.process": self._process,
+            # "case": self._case,
+            "log_file": self._log_file,
+            "input_file": self._input_file,
+            "process": self._process,
         })
 
         return data

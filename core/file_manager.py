@@ -8,8 +8,8 @@ from typing import Any, Dict, Iterable
 import time
 
 from caecase.utils import format_case_dir
-from core.converter import JSONConverter, DataConverter, APDLConverter, SchemeConverter
-from core.converter_registry import ConverterRegistry
+from caetask.default_registry import create_default_task_registry
+from data_converter import ConverterRegistry
 
 
 def create_case_dir(base_path: Path, name: str | None = None) -> Path:
@@ -41,39 +41,26 @@ def add_files(
 
 
 def save(
-    data: Dict[str, Any],
+    data: str,
     path: Path,
-    format_type: str = "json",
     filename: str = None,
 ):
-
-    registry = ConverterRegistry.create_default_registry()
-    converter = registry.get(format_type)
 
     _write_to_disk(
         data,
         path,
-        converter,
         filename,
     )
 
 
-def _write_to_disk(data: Dict[str, Any],
+def _write_to_disk(data: str,
                    path: Path,
-                   converter: DataConverter,
                    filename: str = None):
     """Internal method to write JSON to disk."""
-    base_filename = filename if filename else "case_data"
-
-    extension = converter.get_extension()
-
-    save_path = path / f"{base_filename}.{extension}"
-
-    # Convert data to string
-    content = converter.convert(data)
+    save_path = path / f"{filename}"
 
     with open(save_path, 'w', encoding='utf-8') as f:
-        f.write(content)
+        f.write(data)
 
     print(f"Data saved to {save_path}")
 
@@ -100,11 +87,7 @@ class FileManager:
 
         # Setup converter registry
         self.converter_registry = converter_registry or ConverterRegistry()
-        if not self.converter_registry.list_formats():
-            # Register default converters
-            self.converter_registry.register('json', JSONConverter())
-            self.converter_registry.register('APDL', APDLConverter())
-            self.converter_registry.register('Scheme', SchemeConverter())
+        self.converter_registry = create_default_task_registry()
 
     @staticmethod
     def create_project_dir(

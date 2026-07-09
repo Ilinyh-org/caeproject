@@ -3,7 +3,6 @@ import pytest
 from caecase import CAECase
 from caetask import APDLTask
 import json
-import re
 
 
 def test_case_check_directory(tmp_path):
@@ -137,7 +136,9 @@ def test_case_safe_config_task(tmp_path, apdl_file):
     expected_config = {
         "parameters": {'A1': {'value': 2}, 'B1': {'value': 3}},
         "files": ["test.inp"],
-        'tasks': [{'additional_link_files': [],
+        'tasks': [{
+            'type': 'apdl',
+            'additional_link_files': [],
             'additional_text_files': [],
             'additional_text_files_codes': [],
             'application_version': '212',
@@ -153,9 +154,9 @@ def test_case_safe_config_task(tmp_path, apdl_file):
             'results_directory_path': '.',
             'results_file_name': '',
             'results_files_names': ['text_file_from_ansys.dat'],
-            'self.input_file': 'test.inp',
-            'self.log_file': 'test.log',
-            'self.process': None,
+            'input_file': 'test.inp',
+            'log_file': 'test.log',
+            'process': None,
             'status': None}],
         "status": {}
     }
@@ -164,7 +165,7 @@ def test_case_safe_config_task(tmp_path, apdl_file):
     case.add_files_to_case(apdl_file)
     case.parameters.A1 = 2
     case.parameters.B1 = 3
-    case.parameters_save(filename='test', format_type='APDL')
+    case.parameters_save(filename='test.parm', format_type='APDL')
 
     task = case.create_task(APDLTask, 'test')
     task.input_file = apdl_file.name
