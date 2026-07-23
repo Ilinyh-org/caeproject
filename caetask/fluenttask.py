@@ -16,8 +16,8 @@ class FluentTask(CAETask):
         super().__init__(name, base_path)
         self._input_file = ''
         self._input_file_code = ''
-        self._log_file = name + '.log'
-        self._parameters_file_name = ''
+        self._log_file_name = name + '.log'
+        self._parameters_file = ''
         self._parameters_file_code = ''
         self._results_file_name = ''
         self._results_files_names = []
@@ -25,9 +25,9 @@ class FluentTask(CAETask):
         self._additional_text_files_codes = []
         self._additional_link_files = []
         self._copy_link_files = False
-        self._results_directory_path = self.base_path
+        self._results_directory = self.base_path
         # self.__working_directory_path = os.path.abspath(os.curdir)
-        self._temporary_directory_path = None
+        self._temporary_directory = None
         self._application_version = "212"
         self._dimension = "2d"
         self._graphics_regime = 'g'
@@ -38,8 +38,8 @@ class FluentTask(CAETask):
 
     def __str__(self):
         output = super().__str__()
-        if self._temporary_directory_path:
-            output += 'путь временной директории: ' + self._temporary_directory_path + '\n'
+        if self._temporary_directory:
+            output += 'путь временной директории: ' + self._temporary_directory + '\n'
         if self._results_file_name:
             output += 'файл результатов: ' + self._results_file_name + '\n'
         output += 'количество потоков в задаче: ' + str(self._threads) + '\n'
@@ -74,11 +74,13 @@ class FluentTask(CAETask):
 
     @log_execution_time()
     def solve(self, cleanup=True):
-        tempdir = tempfile.TemporaryDirectory(dir=self._temporary_directory_path)
+        tempdir = tempfile.TemporaryDirectory(dir=self._temporary_directory)
+
+        self.load_inputs()
 
         # чтение исходных файлов и запись их в рабочей директории
-        if self._parameters_file_name:
-            with open(os.path.join(tempdir.name, os.path.basename(self._parameters_file_name)), 'w') as f:
+        if self._parameters_file:
+            with open(os.path.join(tempdir.name, os.path.basename(self._parameters_file)), 'w') as f:
                 f.writelines(self._parameters_file_code)
         if self._input_file:
             with open(os.path.join(tempdir.name, os.path.basename(self._input_file)), 'w') as f:
@@ -107,7 +109,7 @@ class FluentTask(CAETask):
         self.__organize_additional_link_files(tempdir)
 
         # создание процесса по сконфигурированному application
-        with open(os.path.join(tempdir.name, self._log_file), 'w') as f:
+        with open(os.path.join(tempdir.name, self._log_file_name), 'w') as f:
             self._process = Popen(' '.join(application),
                                   shell=True,
                                   stdout=f,
@@ -136,11 +138,11 @@ class FluentTask(CAETask):
         # переносим результаты в папку результатов
         for file in self._results_files_names:
             try:
-                shutil.copy2(os.path.join(tempdir.name, file), self._results_directory_path)
+                shutil.copy2(os.path.join(tempdir.name, file), self._results_directory)
                 print(f"Файл {file} fluent задачи {self.name} скопирован из "
-                      f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory_path)}")
+                      f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory)}")
             except OSError:
-                print(f"Файл {file} не найден для копирования в {self._results_directory_path}")
+                print(f"Файл {file} не найден для копирования в {self._results_directory}")
 
         if cleanup:
             tempdir.cleanup()

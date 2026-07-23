@@ -27,11 +27,7 @@ class CAEProject(Serializable):
     def discover_cases(self):
         for path in self.path.iterdir():
             if CAECase.is_case_directory(path):
-                case = CAECase.load_config(
-                    path,
-                    base_path=path.parent,
-                    name=path.name
-                )
+                case = CAECase.load_config(path)
 
                 self.cases.append(case)
 

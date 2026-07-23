@@ -31,9 +31,20 @@ class CAETask(ABC, Serializable):
         super().__init__(base_path, name)
 
         self._case = None
-        self._log_file = None
-        self._input_file = None
+
+        self._working_directory = None
+        self._temporary_directory = None
+        self._results_directory = None
+
+        self._log_file_name = None
+        self._input_file: Path | None = None
         self._input_file_code = None
+        self._parameters_file: Path | None = None
+        self._parameters_file_code = None
+
+        self._additional_text_files = None
+        self._copy_link_files = None
+
         self._process = None
         self._increment_counter()
 
@@ -47,12 +58,7 @@ class CAETask(ABC, Serializable):
             name: str | None = None,
             base_path: Path | None = None,
     ):
-        base_path = base_path or Path.cwd()
-
-        if not isinstance(base_path, (str, Path)):
-            raise TypeError(
-                f"Expected path to be str or Path, got {type(base_path).__name__}"
-            )
+        base_path = cls.normalize_path(base_path)
 
         return cls(
             base_path=base_path,
@@ -63,12 +69,9 @@ class CAETask(ABC, Serializable):
         """Prepare data for serialization."""
         data = super().to_dict()
 
-        data.update({
-            # "case": self._case,
-            "log_file": self._log_file,
-            "input_file": self._input_file,
-            "process": self._process,
-        })
+        data.update({"log_file_name": self.log_file_name})
+
+        data.update({"input_file": str(self.input_file)})
 
         return data
 
@@ -86,11 +89,42 @@ class CAETask(ABC, Serializable):
     def __str__(self):
         output = 'имя задачи: ' + self.name + '\n'
         output += 'исполняемый файл: ' + str(os.path.basename(self._input_file)) + '\n'
-        if self._parameters_file_name:
-            output += 'файл параметров: ' + self._parameters_file_name + '\n'
-        output += 'файл логов: ' + self._log_file + '\n'
+        if self._parameters_file:
+            output += 'файл параметров: ' + self._parameters_file + '\n'
+        output += 'файл логов: ' + self.log_file_name + '\n'
         output += 'версия приложения: ' + self._application_version + '\n'
         return output
+
+    def load_inputs(self):
+        #it has to be checked for the self.case case that path is in the case dir, if it's not, then the file has to be copied to the dir
+
+        if self._input_file:
+            try:
+                with open(self._input_file, encoding="utf-8") as f:
+                    self._input_file_code = f.readlines()
+            except FileNotFoundError:
+                raise FileNotFoundError(str(self._input_file.absolute()) + " is not found")
+            if self.case and self._input_file.parent != self.case.path:  # copy file to the case dir
+                input_file = self.case.path / self._input_file.name
+                with open(input_file, "w", encoding="utf-8") as f:
+                    f.writelines(self._input_file_code)
+                self._input_file = input_file.relative_to(self.case.path)
+
+        if self._parameters_file:
+            try:
+                with open(self._parameters_file, encoding="utf-8") as f:
+                    self._parameters_file_code = f.readlines()
+            except FileNotFoundError:
+                raise FileNotFoundError(str(self._parameters_file.absolute()) + " is not found")
+            if self.case:
+                if self._parameters_file.parent != self.case.path:  # copy file to the case dir
+                    parameters_file = self.case.path / self._parameters_file.name
+                    with open(parameters_file, "w", encoding="utf-8") as f:
+                        f.writelines(self._parameters_file_code)
+                else:
+                    parameters_file = self._parameters_file
+                self._parameters_file = parameters_file.relative_to(self.case.path)
+
 
     @classmethod
     def _increment_counter(cls):
@@ -126,30 +160,28 @@ class CAETask(ABC, Serializable):
         return self._input_file
 
     @input_file.setter
-    def input_file(self, file: Path):
+    def input_file(self, file: Path | str):
         if isinstance(file, str):
             if self.case:
                 file = self.case.path / file
             else:
                 file = Path.cwd() / file
-        try:
-            with open(file, encoding="utf-8") as f:
-                self._input_file_code = f.readlines()
-            self._input_file = file.name
-        except FileNotFoundError:
-            raise FileNotFoundError(os.path.abspath(file) + " не найден")
+
+        self._input_file = file
 
     @property
-    def log_file(self):
-        return self._log_file
+    def log_file_name(self) -> str:
+        if self._log_file_name is None:
+            self._log_file_name = f"{self.name}.log"
+        return self._log_file_name
 
-    @log_file.setter
-    def log_file(self, file: Path):
-        self._log_file = file
+    @log_file_name.setter
+    def log_file_name(self, name: str):
+        self._log_file_name = name
 
     @property
     def parameters_file(self):
-        return self._parameters_file_name
+        return self._parameters_file
 
     @parameters_file.setter
     def parameters_file(self, file: Path | str):
@@ -158,12 +190,8 @@ class CAETask(ABC, Serializable):
                 file = self.case.path / file
             else:
                 file = Path.cwd() / file
-        try:
-            with open(file) as f:
-                self._parameters_file_code = f.readlines()
-            self._parameters_file_name = file.name
-        except FileNotFoundError:
-            raise FileNotFoundError(os.path.abspath(file) + " не найден")
+
+        self._parameters_file = file
 
     @property
     def additional_text_files(self):
@@ -242,34 +270,36 @@ class CAETask(ABC, Serializable):
         self._application_version = name
 
     @property
-    def working_directory_path(self) -> Path:
+    def working_directory(self) -> Path:
         check_attribute(self)
-        return self._working_directory_path
+        return self._working_directory
 
-    @working_directory_path.setter
-    def working_directory_path(self, path: Path):
+    @working_directory.setter
+    def working_directory(self, path: Path):
         check_attribute(self)
-        self._working_directory_path = os.path.abspath(path)
-
-    @property
-    def temporary_directory_path(self):
-        check_attribute(self)
-        return self._temporary_directory_path
-
-    @temporary_directory_path.setter
-    def temporary_directory_path(self, path: Path):
-        check_attribute(self)
-        self._temporary_directory_path = path
+        self._working_directory = os.path.abspath(path)
 
     @property
-    def results_directory_path(self):
+    def temporary_directory(self):
         check_attribute(self)
-        return self._results_directory_path
+        return self._temporary_directory
 
-    @results_directory_path.setter
-    def results_directory_path(self, path: Path):
+    @temporary_directory.setter
+    def temporary_directory(self, path: Path):
         check_attribute(self)
-        self._results_directory_path = path
+        self._temporary_directory = path
+
+    @property
+    def results_directory(self):
+        check_attribute(self)
+        return self._results_directory
+
+    @results_directory.setter
+    def results_directory(self, path: Path | str | None):
+        check_attribute(self)
+        if isinstance(path, str):
+            path = Path(path)
+        self._results_directory = path
 
 
 def log_execution_time():
@@ -286,7 +316,7 @@ def log_execution_time():
             # Формируем имя лог‑файла
             # Предполагаем, что первый аргумент (args[0]) — это экземпляр класса с атрибутом task_name
             task_name = args[0].name
-            results_directory_path = args[0].results_directory_path
+            results_directory_path = args[0].results_directory
 
             func_qualname = func.__qualname__.replace(".", "_")
             log_file = f"{task_name}_{func_qualname}.log"

@@ -1,19 +1,6 @@
 import json
 from pathlib import Path
-
-
-def serialize(
-        value,
-        relative_to: Path | None = None
-):
-    if isinstance(value, Path):
-        if relative_to is not None:
-            return str(
-                value.relative_to(relative_to)
-            )
-        return str(value)
-
-    return value
+from typing import Any
 
 
 class Serializable:
@@ -37,7 +24,12 @@ class Serializable:
         }
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(
+            cls,
+            data: dict,
+            base_path: Path | str | None,
+            name: str | None
+    ):
         raise NotImplementedError
 
     def save_config(self, directory: Path | None = None):
@@ -55,18 +47,52 @@ class Serializable:
     @classmethod
     def load_config(
             cls,
-            config_path: Path | None = None,
-            **kwargs
+            config_path: Path | str | None = None,
     ):
-        if not config_path.is_dir():
-            config_path = config_path.parent
+        if isinstance(config_path, str):
+            config_path = Path(config_path)
 
-        with open(config_path / cls.CONFIG_DEFAULT_NAME, "r") as f:
+        if config_path.is_dir():
+            config_path /= cls.CONFIG_DEFAULT_NAME
+
+        with open(config_path, "r") as f:
             data = json.load(f)
 
-        if not "base_path" in kwargs:
-            kwargs['base_path'] = config_path.parent
-        if not "name" in kwargs:
-            kwargs['name'] = config_path.name
+        config_folder_path = config_path.parent
 
-        return cls.from_dict(data, **kwargs)
+        base_path = config_folder_path.parent
+        name = config_folder_path.name
+
+        return cls.from_dict(
+            data,
+            base_path=base_path,
+            name=name
+        )
+
+    @staticmethod
+    def serialize(
+            value: Any,
+            relative_to: Path | None = None
+    ):
+        if isinstance(value, Path):
+            if (
+                    relative_to is not None
+                    and value.is_relative_to(relative_to.absolute())
+            ):
+                value = value.relative_to(relative_to.absolute())
+            return str(value)
+
+        return value
+
+    @staticmethod
+    def normalize_path(path: str | Path | None) -> Path:
+        if path is None:
+            return Path.cwd()
+
+        if isinstance(path, str):
+            return Path(path)
+
+        if isinstance(path, Path):
+            return path
+
+        raise TypeError(f"Expected str, Path or None, got {type(path).__name__}")

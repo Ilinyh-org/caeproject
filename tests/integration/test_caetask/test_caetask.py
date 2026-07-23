@@ -35,6 +35,15 @@ def apdl_file(tmp_path_factory):
     return fn
 
 
+@pytest.fixture(scope="session")
+def apdl_parameters_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test.parm"
+    with open(fn, "w") as file:
+        file.write("a=1\n")
+        file.write("b=-2.4\n")
+    return fn
+
+
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
@@ -82,7 +91,7 @@ def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file, caps
 
     task = APDLTask.create_new('test')
     task.input_file = apdl_file
-    task.results_directory_path = tmpdir2
+    task.results_directory = tmpdir2
     task.solve()
 
     with open(tmpdir2 / log_file_name, "r", encoding="utf-8") as file:
@@ -276,7 +285,7 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exceptio
 
     task = APDLTask.create_new('test')
     task.input_file = apdl_file
-    task.results_directory_path = tmpdir2
+    task.results_directory = tmpdir2
 
     with pytest.raises(raising_exception):
         task.solve()
@@ -297,13 +306,55 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exceptio
             assert data['duration_seconds'] is None
 
 
+@pytest.mark.positive
+def test_load_inputs_input_file(tmpdir, apdl_file):
+    expected_input_file_code = ["/batch\n"]
+
+    task = APDLTask.create_new('test')
+    task.input_file = apdl_file
+    task.load_inputs()
+
+    actual_input_file_code = task._input_file_code
+
+    assert actual_input_file_code == expected_input_file_code
+
+
+@pytest.mark.positive
+def test_load_inputs_parameters_file(tmpdir, apdl_parameters_file):
+    expected_parameters_file_code = ["a=1\n", "b=-2.4\n"]
+
+    task = APDLTask.create_new('test')
+    task.parameters_file = apdl_parameters_file
+    task.load_inputs()
+
+    actual_parameters_file_code = task._parameters_file_code
+
+    assert actual_parameters_file_code == expected_parameters_file_code
+
+
 @pytest.mark.negative
-@pytest.mark.AttributeError
-def test_cfdposttask_AttributeError(tmpdir):
-    expected_error = AttributeError
-    expected_error_message = "Объект CFDPostTask не поддерживает атрибут temporary_directory_path"
+def test_load_inputs_input_file_FileNotFoundError(tmpdir):
+    expected_error = FileNotFoundError
+    expected_error_message = str(Path.cwd() / "test.inp") + " is not found"
+
+    task = APDLTask.create_new('test')
+    task.input_file = "test.inp"
 
     with pytest.raises(expected_error) as exc:
-        task = CFDPostTask('test')
-        task.temporary_directory_path = '/'
+        task.load_inputs()
+
+    assert expected_error_message in str(exc.value)
+
+
+@pytest.mark.negative
+def test_load_inputs_parameters_file_FileNotFoundError(tmpdir):
+    expected_error = FileNotFoundError
+    expected_error_message = str(Path.cwd() / "test.parm") + " is not found"
+
+    task = APDLTask.create_new('test')
+    task.parameters_file = "test.parm"
+
+    with pytest.raises(expected_error) as exc:
+        task.load_inputs()
+
     assert expected_error_message in str(exc.value)

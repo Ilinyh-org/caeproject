@@ -17,32 +17,31 @@ class APDLTask(CAETask):
         "copy_link_files",
         "cores",
         "database_size",
-        "geometry_file_name",
+        "geometry_file",
         "memory_size",
         "name",
         "new_parameter_name",
         "new_parameter_value",
-        "parameters_file_name",
-        "results_directory_path",
+        "parameters_file",
+        "results_directory",
         "results_file_name",
         "results_files_names",
         "input_file",
-        "log_file",
-        "process",
+        "log_file_name",
         #"status",
     )
 
     def __init__(
             self,
-            name : str = 'task',
+            name: str = 'task',
             base_path: Path | None = None
     ):
         super().__init__(name, base_path)
         self._name = name
         self._input_file = ''
         self._input_file_code = ''
-        self._log_file = name + '.log'
-        self._parameters_file_name = ''
+        self._log_file_name = None
+        self._parameters_file = None
         self._parameters_file_code = ''
         self._results_file_name = ''
         self._results_files_names = []
@@ -50,10 +49,10 @@ class APDLTask(CAETask):
         self._additional_text_files_codes = []
         self._additional_link_files = []
         self._copy_link_files = False
-        self._results_directory_path = self.base_path
-        self._geometry_file_name = ''
+        self._results_directory = self.base_path
+        self._geometry_file = ''
         # self.__working_directory_path = os.path.abspath(os.curdir)
-        self._temporary_directory_path = None
+        self._temporary_directory = None
         self._application_version = "212"
         self._cores = '2'
         self._new_parameter_name = None
@@ -65,18 +64,16 @@ class APDLTask(CAETask):
     def to_dict(self):
         data = super().to_dict()
 
-        data["type"] = self.TYPE #TODO add type in another tasks
+        data["type"] = self.TYPE
 
         data.update({
-            "parameters_file_name": self._parameters_file_name,
             "results_file_name": self._results_file_name,
             "results_files_names": self._results_files_names,
             "additional_text_files": self._additional_text_files,
             "additional_text_files_codes": self._additional_text_files_codes,
             "additional_link_files": self._additional_link_files,
             "copy_link_files": self._copy_link_files,
-            "results_directory_path": str(self._results_directory_path.relative_to(self.base_path)),
-            "geometry_file_name": self._geometry_file_name,
+            "geometry_file": self._geometry_file,
             "application_version": self._application_version,
             "cores": self._cores,
             "new_parameter_name": self._new_parameter_name,
@@ -85,11 +82,35 @@ class APDLTask(CAETask):
             "database_size": self._database_size,
             "status": self._status,
         })
+
+        data["parameters_file"] = self.serialize(
+            self._parameters_file,
+            relative_to=self.base_path,
+        )
+
+        data["input_file"] = self.serialize(
+            self._input_file,
+            relative_to=self.base_path,
+        )
+
+        data["results_directory"] = self.serialize(
+            self._results_directory,
+            relative_to=self.base_path,
+        )
+
         return data
 
     @classmethod
-    def from_dict(cls, data: dict, **kwargs):
-        obj = cls(**kwargs)
+    def from_dict(
+            cls,
+            data: dict,
+            *,
+            base_path: Path | None = None,
+            name: str | None = None
+    ):
+        base_path = cls.normalize_path(base_path)
+
+        obj = cls(base_path=base_path, name=name)
 
         for field in cls.SERIALIZABLE_FIELDS:
             if field in data:
@@ -102,10 +123,10 @@ class APDLTask(CAETask):
 
     def __str__(self):
         output = super().__str__()
-        if self._temporary_directory_path:
-            output += 'путь временной директории: ' + self._temporary_directory_path + '\n'
-        if self._geometry_file_name:
-            output += 'файл геометрии: ' + self._geometry_file_name + '\n'
+        if self._temporary_directory:
+            output += 'путь временной директории: ' + self._temporary_directory + '\n'
+        if self._geometry_file:
+            output += 'файл геометрии: ' + self._geometry_file + '\n'
         if self._results_file_name:
             output += 'файл результатов: ' + self._results_file_name + '\n'
         output += 'количество потоков в задаче: ' + str(self._cores) + '\n'
@@ -148,19 +169,20 @@ class APDLTask(CAETask):
 
     @log_execution_time()
     def solve(self, cleanup=True, delete=True):
-        tempdir = tempfile.TemporaryDirectory(dir=self._temporary_directory_path,
+        tempdir = tempfile.TemporaryDirectory(dir=self._temporary_directory,
                                               delete=delete)
 
+        self.load_inputs()
+
         # чтение исходных файлов и запись их в рабочей директории
-        if self._parameters_file_name:
-            with open(os.path.join(tempdir.name, os.path.basename(self._parameters_file_name)), 'w') as f:
+        if self._parameters_file:
+            with open(Path(tempdir.name) / self._parameters_file.name, 'w') as f:
                 f.writelines(self._parameters_file_code)
         if self._input_file:
-            with open(os.path.join(tempdir.name, os.path.basename(self._input_file)), 'w') as f:
+            with open(Path(tempdir.name) / self._input_file.name, 'w') as f:
                 f.writelines(self._input_file_code)
-
         for file in self._additional_text_files:
-            with open(os.path.join(tempdir.name, os.path.basename(file[0])), 'w') as f:
+            with open(Path(tempdir.name) / file[0], 'w') as f:
                 f.writelines(file[1])
 
         print("запущен расчёт ансис задачи \"" +
@@ -181,10 +203,13 @@ class APDLTask(CAETask):
                        '-np', self._cores,
                        '-j', self._name,
                        '-i', os.path.basename(self._input_file),
-                       '-o', os.path.join(tempdir.name, self._log_file),
-                       '-gtmfile', self._geometry_file_name,
-                       '-resfile', self._results_file_name,
-                       '-parfile', os.path.basename(self._parameters_file_name)]
+                       '-o', os.path.join(tempdir.name, self.log_file_name)]
+        if self._geometry_file:
+            application += ['-gtmfile', self._geometry_file]
+        if self._results_file_name:
+            application += ['-resfile', self._results_file_name]
+        if self._parameters_file:
+            application += ['-parfile', os.path.basename(self._parameters_file)]
         if self._new_parameter_name:  # no new parameters
             if type(self._new_parameter_name) == list:  # list of  new parameter
                 for a, b in zip(self._new_parameter_name, self._new_parameter_value):
@@ -207,11 +232,12 @@ class APDLTask(CAETask):
         # переносим результаты в папку результатов
         for file in self._results_files_names:
             try:
-                shutil.copy2(os.path.join(tempdir.name, file), self._results_directory_path)
+                shutil.copy2(os.path.join(tempdir.name, file), self._results_directory)
                 print(
-                    f"Файл {file} ансис задачи {self._name} скопирован из {os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory_path)}")
+                    f"Файл {file} ансис задачи {self._name} скопирован из "
+                    f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory)}")
             except OSError:
-                print(f"Файл {file} не найден для копирования в {self._results_directory_path}")
+                print(f"Файл {file} не найден для копирования в {self._results_directory}")
 
         if cleanup:
             tempdir.cleanup()
@@ -226,12 +252,12 @@ class APDLTask(CAETask):
         self._name = str(name)
 
     @property
-    def geometry_file_name(self):
-        return self._geometry_file_name
+    def geometry_file(self):
+        return self._geometry_file
 
-    @geometry_file_name.setter
-    def geometry_file_name(self, name):
-        self._geometry_file_name = name
+    @geometry_file.setter
+    def geometry_file(self, name):
+        self._geometry_file = name
 
     @property
     def cores(self):

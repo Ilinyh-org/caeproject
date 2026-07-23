@@ -20,7 +20,7 @@ def create_task(index, tempdir=None):  # задаётся пользовател
     task.input_file = 'test.inp'
     task.parameters_file = workdir / "test.parm"
     if tempdir:
-        task.temporary_directory_path = tempdir
+        task.temporary_directory = tempdir
     task.memory_size = 64
     task.database_size = 32
     task.results_files_names = [

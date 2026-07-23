@@ -154,7 +154,7 @@ def test_load_config(tmp_path):
     with open(config_path, "w") as f:
         json.dump(config_data, f)
 
-    case = CAECase.load_config(tmp_path, base_path=tmp_path)
+    case = CAECase.load_config(tmp_path)
 
     assert case.parameters.pressure == expected_parameter_pressure
     assert case.status == expected_status

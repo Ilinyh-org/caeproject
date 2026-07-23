@@ -10,7 +10,6 @@ from pathlib import Path
 from core.file_manager import create_case_dir, add_files, save
 from core.serialization import Serializable
 from typing import List, Iterable
-from core.serialization import serialize
 
 
 def append_df(df_main: pd.DataFrame, df_new):
@@ -46,15 +45,10 @@ class CAECase(Serializable):
     @classmethod
     def create_new(
             cls,
-            base_path: Path | None = None,
+            base_path: Path | str | None = None,
             name: str | None = None,
     ):
-        base_path = base_path or Path.cwd()
-
-        if not isinstance(base_path, (str, Path)):
-            raise TypeError(
-                f"Expected path to be str or Path, got {type(base_path).__name__}"
-            )
+        base_path = cls.normalize_path(base_path)
 
         case_path = create_case_dir(base_path, name)
 
@@ -132,7 +126,7 @@ class CAECase(Serializable):
         """Prepare data for serialization."""
         data ={
             "parameters": self.parameters.to_dict(),
-            "files": [serialize(file) for file in self.files],
+            "files": [self.serialize(file) for file in self.files],
             "tasks": [t.to_dict() for t in self.tasks],
             "status": self.status
         }
@@ -140,8 +134,16 @@ class CAECase(Serializable):
         return data
 
     @classmethod
-    def from_dict(cls, data: dict, **kwargs):
-        obj = cls(**kwargs)
+    def from_dict(
+            cls,
+            data: dict,
+            *,
+            base_path: Path | str | None = None,
+            name: str | None = None
+    ):
+        base_path = cls.normalize_path(base_path)
+
+        obj = cls(base_path=base_path, name=name)
 
         obj.parameters.from_dict(data.get("parameters", {}))
         obj.status = data.get("status", {})
@@ -151,7 +153,12 @@ class CAECase(Serializable):
         registry = create_default_task_registry()
         for task_data in data.get("tasks", []):
             task_type = registry.get(task_data["type"])
-            obj.tasks.append(task_type.from_dict(task_data))
+            obj.tasks.append(
+                task_type.from_dict(
+                    task_data,
+                    base_path=obj.path
+                )
+            )
 
         return obj
 

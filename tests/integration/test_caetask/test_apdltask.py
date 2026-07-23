@@ -56,7 +56,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
 
     task = APDLTask.create_new('test')
     task.input_file = apdl_file
-    task.results_directory_path = tmpdir2
+    task.results_directory = tmpdir2
     task.results_files_names = ["text_file_from_ansys.dat"]
     task.solve()
 
@@ -79,7 +79,7 @@ def test_apdl_log(tmpdir, apdl_file, capsys):
 
     task = APDLTask.create_new('test')
     task.input_file = apdl_file
-    task.log_file = 'test_log_file.log'
+    task.log_file_name = 'test_log_file.log'
     task.results_files_names = ['test_log_file.log']
     task.solve()
 
@@ -197,7 +197,7 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
 
     task = APDLTask.create_new('test')
     task.input_file = apdl_file
-    task.temporary_directory_path = os.path.abspath('solve_dir')
+    task.temporary_directory = os.path.abspath('solve_dir')
     task.results_files_names = ["text_file_from_ansys.dat"]
     task.solve(cleanup=False, delete=False)
 
@@ -269,7 +269,7 @@ def test_apdl_FileNotFoundError(tmpdir, capsys):
     os.chdir(tmpdir)
 
     expected_error = FileNotFoundError
-    expected_error_message = "some_file.inp не найден"
+    expected_error_message = "some_file.inp is not found"
 
     with pytest.raises(expected_error) as exc:
         task = APDLTask.create_new('test')
@@ -322,3 +322,95 @@ def test_apdl_print(tmpdir, apdl_file, capsys):
     assert actual_result == expected_result
 
 
+@pytest.mark.positive
+def test_task_to_dict(apdl_file):
+    expected_result = {'type': 'apdl',
+                       'additional_link_files': [],
+                       'additional_text_files': [],
+                       'additional_text_files_codes': [],
+                       'application_version': '212',
+                       'copy_link_files': False,
+                       'cores': '2',
+                       'database_size': '1024',
+                       'geometry_file': '',
+                       'memory_size': '2048',
+                       'name': 'test',
+                       'new_parameter_name': None,
+                       'new_parameter_value': None,
+                       'parameters_file': None,
+                       'results_directory': '.',
+                       'results_file_name': '',
+                       'results_files_names': ['text_file_from_apdl_file.dat'],
+                       'input_file': str(apdl_file),
+                       'log_file_name': 'test.log',
+                       'status': None}
+
+    task1 = APDLTask.create_new('test')
+    task1.input_file = apdl_file
+    task1.results_files_names = ["text_file_from_apdl_file.dat"]
+
+    actual_result = task1.to_dict()
+
+    assert actual_result == expected_result
+
+
+@pytest.mark.positive
+def test_task_to_dict_after_solve(apdl_file):
+    expected_result = {'type': 'apdl',
+                       'additional_link_files': [],
+                       'additional_text_files': [],
+                       'additional_text_files_codes': [],
+                       'application_version': '212',
+                       'copy_link_files': False,
+                       'cores': '2',
+                       'database_size': '1024',
+                       'geometry_file': '',
+                       'memory_size': '2048',
+                       'name': 'test',
+                       'new_parameter_name': None,
+                       'new_parameter_value': None,
+                       'parameters_file': None,
+                       'results_directory': '.',
+                       'results_file_name': '',
+                       'results_files_names': ['text_file_from_apdl_file.dat'],
+                       'input_file': str(apdl_file),
+                       'log_file_name': 'test.log',
+                       'status': None}
+
+    task1 = APDLTask.create_new('test')
+    task1.input_file = apdl_file
+    task1.results_files_names = ["text_file_from_apdl_file.dat"]
+    task1.solve()
+
+    actual_result = task1.to_dict()
+
+    assert actual_result == expected_result
+
+
+def test_task_from_dict():
+    input_data = {'additional_link_files': [],
+                  'additional_text_files': [],
+                  'additional_text_files_codes': [],
+                  'application_version': '212',
+                  'copy_link_files': False,
+                  'cores': '2',
+                  'database_size': '1024',
+                  'geometry_file_name': '',
+                  'memory_size': '2048',
+                  'name': 'test',
+                  'new_parameter_name': None,
+                  'new_parameter_value': None,
+                  'parameters_file_name': '',
+                  'results_directory_path': '.',
+                  'results_file_name': '',
+                  'results_files_names': ['text_file_from_apdl_file.dat'],
+                  'input_file': 'test.inp',
+                  'log_file': 'test.log',
+                  'process': None,
+                  'status': None}
+
+    #task1 = APDLTask.from_dict(input_data)
+
+
+
+    pass

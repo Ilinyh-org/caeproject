@@ -1,8 +1,10 @@
+import shutil
 
 import pytest
 from caecase import CAECase
 from caetask import APDLTask
 import json
+import os
 
 
 def test_case_check_directory(tmp_path):
@@ -118,7 +120,7 @@ def test_apdl_solve(tmp_path, apdl_file):
     case.parameters_save(filename='test', format_type='APDL')
 
     task = APDLTask.create_new('test')
-    task.results_directory_path = case.path
+    task.results_directory = case.path
     task.input_file = case.path / apdl_file.name
     task.parameters_file = case.path / "test.parm"
     task.results_files_names = ["text_file_from_ansys.dat"]
@@ -145,18 +147,17 @@ def test_case_safe_config_task(tmp_path, apdl_file):
             'copy_link_files': False,
             'cores': '2',
             'database_size': '1024',
-            'geometry_file_name': '',
+            'geometry_file': '',
             'memory_size': '2048',
             'name': 'test',
             'new_parameter_name': None,
             'new_parameter_value': None,
-            'parameters_file_name': 'test.parm',
-            'results_directory_path': '.',
+            'parameters_file': 'test.parm',
+            'results_directory': '.',
             'results_file_name': '',
             'results_files_names': ['text_file_from_ansys.dat'],
-            'input_file': 'test.inp',
-            'log_file': 'test.log',
-            'process': None,
+            'input_file': apdl_file.name,
+            'log_file_name': 'test.log',
             'status': None}],
         "status": {}
     }
@@ -168,12 +169,98 @@ def test_case_safe_config_task(tmp_path, apdl_file):
     case.parameters_save(filename='test.parm', format_type='APDL')
 
     task = case.create_task(APDLTask, 'test')
-    task.input_file = apdl_file.name
+    task.input_file = apdl_file
     task.parameters_file = "test.parm"
     task.results_files_names = ["text_file_from_ansys.dat"]
-
+    task.solve()
     case.save_config()
 
     with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
         actual_config = json.load(f)
     assert actual_config == expected_config
+
+
+@pytest.fixture(scope="session")
+def config_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "case.json"
+    config = {
+        "parameters": {'A1': {'value': 2}, 'B1': {'value': 3}},
+        "files": ["test.inp"],
+        'tasks': [{
+            'type':'apdl',
+            'name': 'test',
+            'additional_link_files': [],
+            'additional_text_files': [],
+            'additional_text_files_codes': [],
+            'application_version': '212',
+            'copy_link_files': False,
+            'cores': '2',
+            'database_size': '1024',
+            'geometry_file': None,
+            'memory_size': '2048',
+            'new_parameter_name': None,
+            'new_parameter_value': None,
+            'parameters_file': 'test.parm',
+            'results_directory': '.',
+            'results_file_name': '',
+            'results_files_names': ['text_file_from_ansys.dat'],
+            'input_file': 'test.inp',
+            'log_file_name': 'test.log',
+            'status': None}],
+        "status": {}
+    }
+
+    with open(fn, "w") as file:
+        json.dump(config, file)
+    return fn
+
+
+def test_case_task_from_dict(tmp_path, config_file):
+    case_dir = tmp_path / "case_dir"
+    case_dir.mkdir()
+    os.chdir(case_dir)
+
+    with open(config_file) as file:
+        input_config = json.load(file)
+    expected_task_config = input_config['tasks'][0]
+    expected_parameters = input_config['parameters']
+    expected_files = input_config['files']
+
+    case = CAECase.from_dict(input_config, base_path=case_dir.parent, name=case_dir.name)
+
+    actual_task_config = case.tasks[0].to_dict()
+    actual_parameters = case.parameters.to_dict()
+    actual_files = [str(file) for file in case.files]
+    assert actual_task_config == expected_task_config
+    assert actual_parameters == expected_parameters
+    assert actual_files == expected_files
+
+
+def test_case_task_load_config(tmp_path, config_file):
+    case_dir = tmp_path / "case_dir"
+    case_dir.mkdir()
+    os.chdir(case_dir)
+    config_file = shutil.copy2(config_file, case_dir)
+
+    with open(config_file) as file:
+        input_config = json.load(file)
+    expected_task_config = input_config['tasks'][0]
+    expected_parameters = input_config['parameters']
+    expected_files = input_config['files']
+    expected_base_path = tmp_path
+    expected_case_name = case_dir.name
+
+    case = CAECase.load_config(config_file)
+
+    actual_base_path = case.base_path
+    actual_case_name = case.name
+    actual_task_config = case.tasks[0].to_dict()
+    actual_parameters = case.parameters.to_dict()
+    actual_files = [str(file) for file in case.files]
+    assert actual_base_path == expected_base_path
+    assert actual_case_name == expected_case_name
+    assert actual_task_config == expected_task_config
+    assert actual_parameters == expected_parameters
+    assert actual_files == expected_files
+
+

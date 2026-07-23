@@ -94,7 +94,7 @@ def test_fluent_task_logs(tmpdir, scm_simple_file):
 
     task1 = FluentTask.create_new('test')
     task1.input_file = scm_simple_file
-    task1.log_file = 'log_test.log'
+    task1.log_file_name = 'log_test.log'
     task1.results_files_names = [
         "text_file_from_fluent.dat",
         'log_test.log'
@@ -152,7 +152,7 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
 
     task2 = FluentTask.create_new('fluent')
     task2.input_file = scm_solve_file
-    task2.log_file = 'log_fluent.log'
+    task2.log_file_name = 'log_fluent.log'
     task2.additional_link_files = ['mesh.cdb']
     task2.results_files_names = ["log_fluent.log"]
     task2.solve()
@@ -175,7 +175,7 @@ def test_fluent_task_solve_wrong_dimension(tmpdir, inp_mesh_file, scm_solve_file
 
     task2 = FluentTask.create_new('fluent')
     task2.input_file = scm_solve_file
-    task2.log_file = 'log_fluent.log'
+    task2.log_file_name = 'log_fluent.log'
     task2.additional_link_files = ['mesh.cdb']
     task2.results_files_names = ["log_fluent.log"]
     task2.dimension = "3d"
@@ -215,7 +215,7 @@ def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transi
 
     task2 = FluentTask.create_new('fluent')
     task2.input_file = scm_transient_solve_file
-    task2.log_file = 'log_fluent.log'
+    task2.log_file_name = 'log_fluent.log'
     task2.additional_link_files = ['mesh.cdb']
     task2.results_files_names = ["log_fluent.log", "results*"]
     task2.solve()
