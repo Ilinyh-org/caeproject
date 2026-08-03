@@ -12,7 +12,7 @@ from core.serialization import Serializable
 from typing import List, Iterable
 
 
-def append_df(df_main: pd.DataFrame, df_new):
+def append_df(df_main: pd.DataFrame, df_new: pd.DataFrame):
     if df_new is None or df_new.empty:
         return df_main
     if df_main.empty:
@@ -62,7 +62,7 @@ class CAECase(Serializable):
     def add_task(self, task: CAETask):
         if task.case is not None:
             raise ValueError(
-                "Task already belongs to a vase"
+                "Task already belongs to a case"
             )
         task._case = self
 
