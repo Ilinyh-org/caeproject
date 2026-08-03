@@ -24,12 +24,13 @@ maintainers = [
 
 dependencies = [
     "caetask @ git+ssh://git@github.com/IlinyhGleb/caetask.git",
-    "pint"
+    "pint",
+    "pandas"
 ]
 
 [project.optional-dependencies] # Optional
 dev = ["pytest", "pytest_check", "pytest-cov"]
-test = ["pytest"]
+test = ["pytest", "plotly"]
 
 [project.urls]  # Optional
 "Homepage" = "https://github.com/IlinyhGleb/caeproject"
