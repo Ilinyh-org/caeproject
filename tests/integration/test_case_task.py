@@ -1,4 +1,5 @@
 import shutil
+from pathlib import Path
 
 import pytest
 from caecase import CAECase
@@ -132,6 +133,44 @@ def test_apdl_solve(tmp_path, apdl_file):
     with open(case.path / "text_file_from_ansys.dat", "r") as file:
         actual_file_content = file.read()
     assert actual_file_content == expected_file_content
+
+
+@pytest.fixture(scope="session")
+def apdl_file_empty(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test.inp"
+    with open(fn, "w") as file:
+        file.write("/batch\n")
+    return fn
+
+
+@pytest.mark.positive
+@pytest.mark.solve
+@pytest.mark.log
+def test_apdl_solve_log_file(tmp_path, apdl_file_empty):
+    expected_log_file_name = 'test.log'
+    expected_log_text_parts = [
+        "Ansys Mechanical",
+        "W E L C O M E   T O   T H E   A N S Y S (R)  P R O G R A M",
+        "ANSYS COMMAND LINE ARGUMENTS",
+        "A N S Y S   S T A T I S T I C S",
+        "ANSYS RUN COMPLETED"]
+
+    case = CAECase.create_new(tmp_path)
+    case.add_files_to_case(apdl_file_empty)
+
+    task = APDLTask.create_new('test')
+    task.results_directory = case.path
+    task.input_file = case.path / apdl_file_empty.name
+
+    case.tasks.append(task)
+
+    case.solve()
+
+    assert Path(case.path / expected_log_file_name).exists()
+    with open(case.path / expected_log_file_name, "r") as file:
+        log_text = file.read()
+        for expected_log_text_part in expected_log_text_parts:
+            assert expected_log_text_part in log_text
 
 
 def test_case_safe_config_task(tmp_path, apdl_file):

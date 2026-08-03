@@ -16,7 +16,7 @@ class FluentTask(CAETask):
         super().__init__(name, base_path)
         self._input_file = ''
         self._input_file_code = ''
-        self._log_file_name = name + '.log'
+        self._log_file_name = None
         self._parameters_file = ''
         self._parameters_file_code = ''
         self._results_file_name = ''
@@ -109,7 +109,7 @@ class FluentTask(CAETask):
         self.__organize_additional_link_files(tempdir)
 
         # создание процесса по сконфигурированному application
-        with open(os.path.join(tempdir.name, self._log_file_name), 'w') as f:
+        with open(os.path.join(tempdir.name, self.log_file_name), 'w') as f:
             self._process = Popen(' '.join(application),
                                   shell=True,
                                   stdout=f,
@@ -143,6 +143,15 @@ class FluentTask(CAETask):
                       f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory)}")
             except OSError:
                 print(f"Файл {file} не найден для копирования в {self._results_directory}")
+
+        # переносим файл лога в папку результатов
+        try:
+            shutil.copy2(os.path.join(tempdir.name, self._log_file_name), self._results_directory)
+            print(
+                f"Файл лога {self._log_file_name} fluent задачи {self._name} скопирован из "
+                f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory)}")
+        except OSError:
+            print(f"Файл лога {self._log_file_name} не найден для копирования в {self._results_directory}")
 
         if cleanup:
             tempdir.cleanup()

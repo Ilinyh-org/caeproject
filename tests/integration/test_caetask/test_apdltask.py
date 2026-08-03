@@ -66,6 +66,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
 
 
 @pytest.mark.positive
+@pytest.mark.solve
 @pytest.mark.log
 def test_apdl_log(tmpdir, apdl_file, capsys):
     os.chdir(tmpdir)

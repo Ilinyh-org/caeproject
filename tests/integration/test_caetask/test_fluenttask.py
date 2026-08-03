@@ -97,7 +97,6 @@ def test_fluent_task_logs(tmpdir, scm_simple_file):
     task1.log_file_name = 'log_test.log'
     task1.results_files_names = [
         "text_file_from_fluent.dat",
-        'log_test.log'
     ]
     task1.solve()
 
@@ -154,7 +153,6 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
     task2.input_file = scm_solve_file
     task2.log_file_name = 'log_fluent.log'
     task2.additional_link_files = ['mesh.cdb']
-    task2.results_files_names = ["log_fluent.log"]
     task2.solve()
 
     with open("log_fluent.log", "r") as file:
@@ -177,7 +175,6 @@ def test_fluent_task_solve_wrong_dimension(tmpdir, inp_mesh_file, scm_solve_file
     task2.input_file = scm_solve_file
     task2.log_file_name = 'log_fluent.log'
     task2.additional_link_files = ['mesh.cdb']
-    task2.results_files_names = ["log_fluent.log"]
     task2.dimension = "3d"
 
     with pytest.raises(expected_error):
@@ -217,7 +214,7 @@ def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transi
     task2.input_file = scm_transient_solve_file
     task2.log_file_name = 'log_fluent.log'
     task2.additional_link_files = ['mesh.cdb']
-    task2.results_files_names = ["log_fluent.log", "results*"]
+    task2.results_files_names = ["results*"]
     task2.solve()
 
     dat_files_number = len(glob.glob("results*.dat.h5"))

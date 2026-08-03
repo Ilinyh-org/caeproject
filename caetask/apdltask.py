@@ -37,7 +37,6 @@ class APDLTask(CAETask):
             base_path: Path | None = None
     ):
         super().__init__(name, base_path)
-        self._name = name
         self._input_file = ''
         self._input_file_code = ''
         self._log_file_name = None
@@ -239,17 +238,18 @@ class APDLTask(CAETask):
             except OSError:
                 print(f"Файл {file} не найден для копирования в {self._results_directory}")
 
+        # переносим файл лога в папку результатов
+        try:
+            shutil.copy2(os.path.join(tempdir.name, self._log_file_name), self._results_directory)
+            print(
+                f"Файл лога {self._log_file_name} ансис задачи {self._name} скопирован из "
+                f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory)}")
+        except OSError:
+            print(f"Файл лога {self._log_file_name} не найден для копирования в {self._results_directory}")
+
         if cleanup:
             tempdir.cleanup()
         return self
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        self._name = str(name)
 
     @property
     def geometry_file(self):

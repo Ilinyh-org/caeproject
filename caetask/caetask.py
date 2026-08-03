@@ -29,6 +29,7 @@ class CAETask(ABC, Serializable):
             base_path: Path | None = None
     ):
         super().__init__(base_path, name)
+        self._name = name
 
         self._case = None
 
@@ -154,6 +155,14 @@ class CAETask(ABC, Serializable):
     @classmethod
     def count(cls):
         return CAETask._class_counts.get(cls, 0)
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = str(name)
 
     @property
     def input_file(self):
