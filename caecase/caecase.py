@@ -102,16 +102,18 @@ class CAECase(Serializable):
     def get_results(self):
         df = pd.DataFrame()
         for task in self.tasks:
-            for file in task.results_files_names:
+            for file_name in task.results_files_names:
                 # проверка типа файла
-                if file.name.suffix() == "csv":
-                    df_file = get_csv_results(file)
+                suffix = Path(file_name).suffix
+                if suffix == ".csv":
+                    df_file = get_csv_results(self.path / file_name)
                     df_file["ID"] = self.name
                     df = append_df(df, df_file)
-                if file.name.suffix() == "dat":
+                if suffix == ".dat":
                     pass
-                if file.name.suffix() == "json":
+                if suffix == ".json":
                     pass
+        return df
 
     def save(self):
         """Public method to trigger a save."""
