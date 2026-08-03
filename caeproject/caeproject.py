@@ -24,6 +24,31 @@ class CAEProject(Serializable):
     def create_name(cls):
         return cls.DIR_DEFAULT_NAME
 
+    def create_case(
+            self,
+            name: str | None = None,
+    ) -> CAECase:
+
+        case = CAECase.create_new(self.path, name)
+        case._project = self
+
+        self.add_case(case)
+
+        return case
+
+    def add_case(self, case: CAECase):
+        if case.project is not None:
+            raise ValueError(
+                "Case already belongs to a project"
+            )
+        case._project = self
+
+        self.cases.append(case)
+
+    def solve(self, max_workers: int = 2):
+        for case in self.cases:
+            case.solve()
+
     def discover_cases(self):
         for path in self.path.iterdir():
             if CAECase.is_case_directory(path):

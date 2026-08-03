@@ -37,6 +37,8 @@ class CAECase(Serializable):
     ):
         super().__init__(base_path, name)
 
+        self._project = None
+
         self._files = []
         self.parameters = Node()
         self.tasks: List[CAETask] = []
@@ -195,6 +197,10 @@ class CAECase(Serializable):
 
     def add_task(self, task: CAETask):
         self.tasks.append(task)
+
+    @property
+    def project(self):
+        return self._project
 
     @property
     def files(self) -> List[str]:

@@ -25,7 +25,7 @@ def test_project_discovers_cases(tmp_path):
         assert case.path.exists()
 
 
-def test_project_discovers_cases_into_existing_project(tmp_path):
+def test_project_discover_cases_into_existing_project(tmp_path):
     initial_case_parameter = 100
     project = CAEProject.from_existing_dir(tmp_path)
 
@@ -34,7 +34,7 @@ def test_project_discovers_cases_into_existing_project(tmp_path):
     project.cases.append(existing_case)
 
     parameters_set = {0, 1, 2}
-    expected_parameters = {0, 1, 2, 100}
+    expected_parameters = [0, 1, 2, 100]
 
     for a in parameters_set:
         case = CAECase.create_new(base_path=tmp_path)
@@ -43,10 +43,10 @@ def test_project_discovers_cases_into_existing_project(tmp_path):
 
     project.discover_cases()
 
-    actual_parameters = {case.parameters.a.value for case in project.cases}
+    actual_parameters = [case.parameters.a.value for case in project.cases]
 
     assert len(actual_parameters) == len(expected_parameters)
-    assert actual_parameters == expected_parameters
+    assert sorted(actual_parameters) == (expected_parameters)
     assert initial_case_parameter in actual_parameters
 
 
