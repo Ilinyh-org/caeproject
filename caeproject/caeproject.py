@@ -18,7 +18,7 @@ class CAEProject(Serializable):
     ):
         super().__init__(base_path, name)
 
-        self.cases: List[CAECase] = []
+        self.cases: dict[str, CAECase] = {}
 
     @classmethod
     def create_name(cls):
@@ -43,7 +43,7 @@ class CAEProject(Serializable):
             )
         case._project = self
 
-        self.cases.append(case)
+        self.cases.setdefault(case.name, case)
 
     def solve(self, max_workers: int = 2):
         for case in self.cases:
@@ -54,25 +54,18 @@ class CAEProject(Serializable):
             if CAECase.is_case_directory(path):
                 case = CAECase.load_config(path)
 
-                if case not in self.cases:
-                    self.cases.append(case)
+                self.cases.setdefault(case.name, case)
 
     def to_dict(self):
         """Prepare data for serialization."""
         data = super().to_dict()
 
         data.update({
-            "cases": [str(c.path) for c in self.cases],
+            "cases": list(self.cases.keys()),
             "base_path": str(self.base_path)
         })
 
         return data
-
-    def add_case(self, new_case: CAECase):
-        for case in self.cases:
-            if case == new_case:
-                return
-        self.cases.append(new_case)
 
     @classmethod
     def create_new(

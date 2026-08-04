@@ -18,10 +18,10 @@ def test_project_discovers_cases(tmp_path):
 
     project.discover_cases()
 
-    received_parameters_set = {case.parameters.a.value for case in project.cases}
+    received_parameters_set = {case.parameters.a.value for case in project.cases.values()}
     assert len(project.cases) == len(parameters_set)
     assert received_parameters_set == parameters_set
-    for case in project.cases:
+    for case in project.cases.values():
         assert case.path.exists()
 
 
@@ -31,7 +31,7 @@ def test_project_discover_cases_into_existing_project(tmp_path):
 
     existing_case = CAECase.create_new(base_path=tmp_path)
     existing_case.parameters.a = initial_case_parameter
-    project.cases.append(existing_case)
+    project.add_case(existing_case)
 
     parameters_set = {0, 1, 2}
     expected_parameters = [0, 1, 2, 100]
@@ -43,7 +43,7 @@ def test_project_discover_cases_into_existing_project(tmp_path):
 
     project.discover_cases()
 
-    actual_parameters = [case.parameters.a.value for case in project.cases]
+    actual_parameters = [case.parameters.a.value for case in project.cases.values()]
 
     assert len(actual_parameters) == len(expected_parameters)
     assert sorted(actual_parameters) == (expected_parameters)
@@ -64,7 +64,7 @@ def test_project_rediscover_cases(tmp_path):
     project.discover_cases()  # first discovering
     project.discover_cases()  # re-discovering
 
-    actual_parameters = [case.parameters.a.value for case in project.cases]
+    actual_parameters = [case.parameters.a.value for case in project.cases.values()]
 
     assert len(actual_parameters) == len(expected_parameters)
     assert sorted(actual_parameters) == (expected_parameters)
@@ -77,7 +77,7 @@ def test_project_save_config(tmp_path):
     for a in parameters_set:
         case = CAECase.create_new(base_path=tmp_path)
         case.parameters.a = a
-        project.cases.append(case)
+        project.add_case(case)
 
     project.save_config(tmp_path)
 
@@ -99,7 +99,7 @@ def test_project_add_case(tmp_path):
     project.add_case(case)
 
     assert len(project.cases) == 1
-    added_case = project.cases[0]
+    added_case = project.cases.popitem()[1]
     assert added_case.parameters["a"].value == 42
     assert added_case.path.exists()
 
