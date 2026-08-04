@@ -75,7 +75,6 @@ class CAECase(Serializable):
     ) -> CAETask:
 
         task = task_class.create_new(name, self.path)
-        task._case = self
 
         self.add_task(task)
 
@@ -196,9 +195,6 @@ class CAECase(Serializable):
             path=self.path,
             filename=filename
         )
-
-    def add_task(self, task: CAETask):
-        self.tasks.append(task)
 
     @property
     def project(self):
