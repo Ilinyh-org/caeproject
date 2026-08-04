@@ -54,7 +54,8 @@ class CAEProject(Serializable):
             if CAECase.is_case_directory(path):
                 case = CAECase.load_config(path)
 
-                self.cases.append(case)
+                if case not in self.cases:
+                    self.cases.append(case)
 
     def to_dict(self):
         """Prepare data for serialization."""

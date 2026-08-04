@@ -223,3 +223,11 @@ class CAECase(Serializable):
         config_path = path / cls.CONFIG_DEFAULT_NAME
 
         return config_path.exists()
+
+    def __eq__(self, other):
+        if not isinstance(other, CAECase):
+            return NotImplemented
+        return self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)

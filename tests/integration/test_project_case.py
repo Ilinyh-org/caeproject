@@ -50,6 +50,26 @@ def test_project_discover_cases_into_existing_project(tmp_path):
     assert initial_case_parameter in actual_parameters
 
 
+def test_project_rediscover_cases(tmp_path):
+    project = CAEProject.from_existing_dir(tmp_path)
+
+    parameters_set = {0, 1, 2}
+    expected_parameters = [0, 1, 2]
+
+    for a in parameters_set:
+        case = CAECase.create_new(base_path=tmp_path)
+        case.parameters.a = a
+        case.save_config(case.path)
+
+    project.discover_cases()  # first discovering
+    project.discover_cases()  # re-discovering
+
+    actual_parameters = [case.parameters.a.value for case in project.cases]
+
+    assert len(actual_parameters) == len(expected_parameters)
+    assert sorted(actual_parameters) == (expected_parameters)
+
+
 def test_project_save_config(tmp_path):
     parameters_set = {0, 1, 2}
 
