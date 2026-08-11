@@ -1,6 +1,7 @@
 import pandas as pd
 
 from caecase import CAECase
+from caetask import run_threads
 
 from core.serialization import Serializable
 from core.file_manager import FileManager
@@ -35,6 +36,23 @@ class CAEProject(Serializable):
         self.add_case(case)
 
         return case
+
+    def create_cases(
+            self,
+            rows,
+            factory,
+            max_workers: int = 1,
+    ):
+        cases = run_threads(
+            factory,
+            rows,
+            max_workers=max_workers,
+        )
+
+        for case in cases:
+            self.add_case(case)
+
+        return cases
 
     def add_case(self, case: CAECase):
         if case.project is not None:
