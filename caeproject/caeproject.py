@@ -1,3 +1,4 @@
+import pandas as pd
 
 from caecase import CAECase
 
@@ -77,6 +78,17 @@ class CAEProject(Serializable):
             for name in list(self.cases):
                 if name not in disk_cases:
                     self.remove_case(name)
+
+    def get_results(self) -> pd.DataFrame:
+        dataframes = [
+            case.get_results()
+            for case in self.cases.values()
+        ]
+
+        if not dataframes:
+            return pd.DataFrame()
+
+        return pd.concat(dataframes, ignore_index=True)
 
     def to_dict(self):
         """Prepare data for serialization."""
