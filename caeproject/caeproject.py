@@ -30,7 +30,6 @@ class CAEProject(Serializable):
     ) -> CAECase:
 
         case = CAECase.create_new(self.path, name)
-        case._project = self
 
         self.add_case(case)
 
@@ -38,23 +37,46 @@ class CAEProject(Serializable):
 
     def add_case(self, case: CAECase):
         if case.project is not None:
-            raise ValueError(
-                "Case already belongs to a project"
-            )
+            raise ValueError("Case already belongs to a project")
+
+        if case.name in self.cases:
+            raise ValueError(f"Case '{case.name}' already exists")
+
         case._project = self
 
         self.cases.setdefault(case.name, case)
+
+    def update_case(self, case: CAECase):
+        case._project = self
+        self.cases[case.name] = case
+
+    def remove_case(self, name: str):
+        self.cases.pop(name)
 
     def solve(self, max_workers: int = 2):
         for case in self.cases:
             case.solve()
 
     def discover_cases(self):
+        disk_cases = {}
         for path in self.path.iterdir():
-            if CAECase.is_case_directory(path):
-                case = CAECase.load_config(path)
+            if not CAECase.is_case_directory(path):
+                continue
 
-                self.cases.setdefault(case.name, case)
+            case = CAECase.load_config(path)
+            disk_cases.setdefault(case.name, case)
+
+        for name, case in disk_cases.items():
+            # Add and update
+            if case.name in self.cases:
+                self.update_case(case)
+            else:
+                self.add_case(case)
+
+            # Remove
+            for name in list(self.cases):
+                if name not in disk_cases:
+                    self.remove_case(name)
 
     def to_dict(self):
         """Prepare data for serialization."""
