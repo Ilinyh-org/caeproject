@@ -204,6 +204,10 @@ class CAECase(Serializable):
         )
 
     @property
+    def needs_solving(self) -> bool:
+        return self.status != CaseStatus.DONE
+
+    @property
     def project(self):
         return self._project
 

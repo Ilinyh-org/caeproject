@@ -73,8 +73,17 @@ class CAEProject(Serializable):
         self.cases.pop(name)
 
     def solve(self, max_workers: int = 2):
-        for case in self.cases:
-            case.solve()
+        cases = [
+            case
+            for case in self.cases.values()
+            if case.needs_solving
+        ]
+
+        run_threads(
+            CAECase.solve,
+            cases,
+            max_workers=max_workers,
+        )
 
     def discover_cases(self):
         disk_cases = {}
