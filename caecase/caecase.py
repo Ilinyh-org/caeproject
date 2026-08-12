@@ -1,5 +1,5 @@
 import pandas as pd
-
+from enum import Enum
 import data_converter
 from caetask import CAETask
 from caetask.default_registry import create_default_task_registry
@@ -27,6 +27,13 @@ def get_csv_results(file: Path | str):
     return df
 
 
+class CaseStatus(Enum):
+    NEW = "NEW"
+    RUNNING = "RUNNING"
+    DONE = "DONE"
+    FAILED = "FAILED"
+
+
 class CAECase(Serializable):
     CONFIG_DEFAULT_NAME = "case_config.json"
 
@@ -42,7 +49,7 @@ class CAECase(Serializable):
         self._files = []
         self.parameters = Node()
         self.tasks: List[CAETask] = []
-        self.status = {}
+        self.status = CaseStatus.NEW
 
     @classmethod
     def create_new(
@@ -131,7 +138,7 @@ class CAECase(Serializable):
             "parameters": self.parameters.to_dict(),
             "files": [self.serialize(file) for file in self.files],
             "tasks": [t.to_dict() for t in self.tasks],
-            "status": self.status
+            "status": self.status.value
         }
 
         return data
@@ -149,7 +156,7 @@ class CAECase(Serializable):
         obj = cls(base_path=base_path, name=name)
 
         obj.parameters.from_dict(data.get("parameters", {}))
-        obj.status = data.get("status", {})
+        obj.status = CaseStatus(data.get("status", CaseStatus.NEW.value))
         obj.files = [Path(file) for file in data.get("files", [])]
 
         obj.tasks = []

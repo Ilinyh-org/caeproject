@@ -4,6 +4,7 @@ import re
 import pytest
 from pathlib import Path
 from caecase import CAECase
+from caecase.caecase import CaseStatus
 
 
 @pytest.fixture
@@ -82,7 +83,7 @@ def test_case_safe_config_files(tmp_path, apdl_file):
         "parameters": {},
         "files": ["test.inp"],
         "tasks": [],
-        "status": {}
+        "status": 'NEW'
     }
     case = CAECase.create_new(tmp_path)
     case.add_files_to_case([
@@ -105,7 +106,7 @@ def test_case_load_config_files(tmp_path, apdl_file):
             "plots/figure.png"
         ],
         "tasks": [],
-        "status": {}
+        "status": 'NEW'
     }
     expected_files = [
         Path("results.csv"),
@@ -126,10 +127,10 @@ def test_case_load_config_files(tmp_path, apdl_file):
 
 
 def test_case_safe_config_status(tmp_path):
-    expected_status = {"state": "DONE"}
+    expected_status = 'DONE'
 
     case = CAECase.create_new(tmp_path)
-    case.status = {"state": "DONE"}
+    case.status = CaseStatus.DONE
 
     case.save_config()
 
@@ -144,9 +145,9 @@ def test_case_load_config_status(tmp_path, apdl_file):
         "parameters": {},
         "files": [],
         "tasks": [],
-        "status": {"state": "DONE"}
+        "status": "DONE"
     }
-    expected_status = {"state": "DONE"}
+    expected_status = CaseStatus("DONE")
     expected_name = case_name
     expected_base_path = tmp_path
     case_dir_path = tmp_path / case_name

@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from caecase import CAECase
+from caecase.caecase import CaseStatus
 from core.parameter import Parameter
 
 
@@ -60,7 +61,7 @@ def test_case_to_dict(case_obj):
         },
         "files": input_files,
         "tasks": [],
-        "status": {}
+        "status": "NEW"
     }
 
     actual_dict = case_obj.to_dict()
@@ -75,15 +76,13 @@ def test_case_from_dict(tmp_path):
                 "value": 500,
             }
         },
-        "status": {
-            "state": "RUNNING"
-        },
+        "status": "RUNNING",
         "files": [
             "results.csv"
         ],
     }
     expected_parameter_temperature = 500
-    expected_status = {"state": "RUNNING"}
+    expected_status = CaseStatus("RUNNING")
     expected_files = [Path("results.csv")]
 
     case = CAECase.from_dict(input_data, base_path=tmp_path)
@@ -96,7 +95,7 @@ def test_case_from_dict(tmp_path):
 def test_case_serialization_roundtrip(tmp_path):
     case = CAECase.create_new(tmp_path)
     case.parameters.alpha = 500
-    case.status = {"state": "DONE"}
+    case.status = CaseStatus("DONE")
     case.files = [Path("results.csv")]
 
     data = case.to_dict()
@@ -113,9 +112,7 @@ def test_save_config(tmp_path):
         "parameters": {
             "temperature": {'value': 300}
         },
-        "status": {
-            "state": "DONE"
-        },
+        "status": "DONE",
         "files": [
             "results.csv"
         ],
@@ -123,7 +120,7 @@ def test_save_config(tmp_path):
     }
     case = CAECase.create_new(base_path=tmp_path)
     case.parameters.temperature = 300
-    case.status = {"state": "DONE"}
+    case.status = CaseStatus("DONE")
     case.files = ["results.csv"]
 
     case.save_config()
@@ -137,15 +134,13 @@ def test_save_config(tmp_path):
 
 def test_load_config(tmp_path):
     expected_parameter_pressure = 42
-    expected_status = {"state": "RUNNING"}
+    expected_status = CaseStatus("RUNNING")
     expected_files = [Path("output.dat")]
     config_data = {
         "parameters": {
             "pressure": {'value': 42}
         },
-        "status": {
-            "state": "RUNNING"
-        },
+        "status": "RUNNING",
         "files": [
             "output.dat"
         ],

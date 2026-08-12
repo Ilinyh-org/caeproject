@@ -198,7 +198,7 @@ def test_case_safe_config_task(tmp_path, apdl_file):
             'input_file': apdl_file.name,
             'log_file_name': 'test.log',
             'status': None}],
-        "status": {}
+        "status": "NEW"
     }
 
     case = CAECase.create_new(tmp_path)
@@ -246,7 +246,7 @@ def config_file(tmp_path_factory):
             'input_file': 'test.inp',
             'log_file_name': 'test.log',
             'status': None}],
-        "status": {}
+        "status": "NEW"
     }
 
     with open(fn, "w") as file:
