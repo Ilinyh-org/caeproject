@@ -34,16 +34,21 @@ class APDLTask(CAETask):
     def __init__(
             self,
             name: str = 'task',
-            base_path: Path | None = None
+            base_path: Path | None = None,
+            input_file: Path | str | None = None,  #нужно пустить через геттер
+            parameters_file: Path | None = None,
+            results_files_names: list[str] | None = None
     ):
         super().__init__(name, base_path)
-        self._input_file = ''
+        self._input_file = input_file
         self._input_file_code = ''
         self._log_file_name = None
-        self._parameters_file = None
+        self._parameters_file = parameters_file
         self._parameters_file_code = ''
         self._results_file_name = ''
-        self._results_files_names = []
+        if results_files_names is None:
+            results_files_names = []
+        self._results_files_names = results_files_names
         self._additional_text_files = []
         self._additional_text_files_codes = []
         self._additional_link_files = []

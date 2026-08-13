@@ -77,13 +77,17 @@ class CAECase(Serializable):
 
     def create_task(
             self,
-            task_class: CAETask,
+            task_class: type[CAETask],
             name: str,
+            **attributes,
     ) -> CAETask:
 
         task = task_class.create_new(name, self.path)
 
         self.add_task(task)
+
+        for name, value in attributes.items():
+            setattr(task, name, value)
 
         return task
 

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 from caecase import CAECase
-from caetask import APDLTask
+from caetask import APDLTask, FluentTask
 import json
 import os
 
@@ -12,6 +12,100 @@ def test_case_check_directory(tmp_path):
     case = CAECase.create_new(base_path=tmp_path)
 
     assert case.path.exists()
+
+
+def test_create_case_apdltask(tmp_path):
+    case = CAECase.create_new(tmp_path)
+
+    task = case.create_task(APDLTask, "square_compression")
+    task.input_file = "square_compression.inp"
+    task.parameters_file = "square_compression.parm"
+    task.log_file_name = "log_square_compression.log"
+    task.results_files_names = [
+        "square_compression0.err",
+        "square_compression1.err",
+        "RESULTS.csv",
+    ]
+
+    assert task.name == "square_compression"
+    assert task.base_path == case.path
+    assert task.input_file.name == "square_compression.inp"
+    assert task.parameters_file.name == "square_compression.parm"
+    assert task.log_file_name == "log_square_compression.log"
+    assert task.results_files_names == [
+        "square_compression0.err",
+        "square_compression1.err",
+        "RESULTS.csv",
+    ]
+
+    assert task.case is case
+    assert task in case.tasks
+
+
+def test_create_case_with_attributes_apdltask(tmp_path):
+    case = CAECase.create_new(tmp_path)
+
+    task = case.create_task(
+        APDLTask,
+        "square_compression",
+        input_file="square_compression.inp",
+        parameters_file="square_compression.parm",
+        results_files_names=["RESULTS.csv"],
+    )
+
+    assert task.name == "square_compression"
+    assert task.base_path == case.path
+    assert task.input_file.name == "square_compression.inp"
+    assert task.parameters_file.name == "square_compression.parm"
+    assert task.results_files_names == ["RESULTS.csv"]
+
+    assert task.case is case
+    assert task in case.tasks
+
+
+def test_create_case_fluenttask(tmp_path):
+    case = CAECase.create_new(tmp_path)
+
+    task = case.create_task(APDLTask, "pump")
+    task.input_file = "pump.scm"
+    task.parameters_file = "pump_parm.scm"
+    task.log_file_name = "log_pump.log"
+    task.results_files_names = [
+        "RESULTS.csv",
+    ]
+
+    assert task.name == "pump"
+    assert task.base_path == case.path
+    assert task.input_file.name == "pump.scm"
+    assert task.parameters_file.name == "pump_parm.scm"
+    assert task.log_file_name == "log_pump.log"
+    assert task.results_files_names == [
+        "RESULTS.csv",
+    ]
+
+    assert task.case is case
+    assert task in case.tasks
+
+
+def test_create_case_with_attributes_fluenttask(tmp_path):
+    case = CAECase.create_new(tmp_path)
+
+    task = case.create_task(
+        FluentTask,
+        "pump",
+        input_file="pump.scm",
+        parameters_file="pump_parm.scm",
+        results_files_names=["RESULTS.csv"],
+    )
+
+    assert task.name == "pump"
+    assert task.base_path == case.path
+    assert task.input_file.name == "pump.scm"
+    assert task.parameters_file.name == "pump_parm.scm"
+    assert task.results_files_names == ["RESULTS.csv"]
+
+    assert task.case is case
+    assert task in case.tasks
 
 
 def test_case_parameters(tmp_path):
