@@ -287,7 +287,7 @@ def test_case_safe_config_task(tmp_path, apdl_file):
             'new_parameter_value': None,
             'parameters_file': 'test.parm',
             'results_directory': '.',
-            'results_file_name': '',
+            'results_file_name': None,
             'results_files_names': ['text_file_from_ansys.dat'],
             'input_file': apdl_file.name,
             'log_file_name': 'test.log',

@@ -16,7 +16,7 @@ def check_attribute(class_object):
     private_name = f'_{attr_name}'
     if not hasattr(class_object, private_name):
         raise AttributeError(
-            f"Объект {type(class_object).__name__} не поддерживает атрибут {attr_name}"
+            f"The {type(class_object).__name__} doesn't support {attr_name} attribute"
         )
 
 
@@ -26,7 +26,10 @@ class CAETask(ABC, Serializable):
     def __init__(
             self,
             name: str = 'task',
-            base_path: Path | None = None
+            base_path: Path | None = None,
+            input_file: Path | str | None = None,
+            parameters_file: Path | str | None = None,
+            results_files_names: list[str] | None = None
     ):
         super().__init__(base_path, name)
         self._name = name
@@ -38,10 +41,21 @@ class CAETask(ABC, Serializable):
         self._results_directory = None
 
         self._log_file_name = None
-        self._input_file: Path | None = None
-        self._input_file_code = None
-        self._parameters_file: Path | None = None
-        self._parameters_file_code = None
+
+        self._results_file_name = None
+
+        # User-provided file references
+        self.input_file = input_file
+        self.parameters_file = parameters_file
+        self.results_files_names = results_files_names
+
+        # Actual files prepared for execution
+        self._input_file_path: Path | None = None
+        self._parameters_file_path: Path | None = None
+
+        # Loaded file contents
+        self._input_file_code: list[str] | None = None
+        self._parameters_file_code: list[str] | None = None
 
         self._additional_text_files = None
         self._copy_link_files = None
@@ -96,36 +110,65 @@ class CAETask(ABC, Serializable):
         output += 'версия приложения: ' + self._application_version + '\n'
         return output
 
+    def _prepare_file(
+            self,
+            file: Path | None,
+    ) -> tuple[Path | None, list[str] | None]:
+
+        if file is None:
+            return None, None
+
+        file = file.expanduser()
+
+        # Resolve relative paths.
+        if not file.is_absolute():
+            if self.case is not None:
+                source = self.case.path / file
+            else:
+                source = Path.cwd() / file
+        else:
+            source = file
+
+        source = source.resolve()
+
+        if not source.is_file():
+            raise FileNotFoundError(
+                f"{source} is not found"
+            )
+
+        # No case: the source itself is the prepared file.
+        if self.case is None:
+            with open(source, encoding="utf-8") as f:
+                code = f.readlines()
+
+            return source, code
+
+        case_path = self.case.path.resolve()
+
+        # File is already inside the case directory.
+        try:
+            source.relative_to(case_path)
+            destination = source
+        except ValueError:
+            # External file -> copy it into the case directory.
+            destination = case_path / source.name
+
+            import shutil
+            shutil.copy2(source, destination)
+
+        with open(destination, encoding="utf-8") as f:
+            code = f.readlines()
+
+        return destination, code
+
     def load_inputs(self):
-        #it has to be checked for the self.case case that path is in the case dir, if it's not, then the file has to be copied to the dir
+        self._input_file, self._input_file_code = (
+            self._prepare_file(self._input_file)
+        )
 
-        if self._input_file:
-            try:
-                with open(self._input_file, encoding="utf-8") as f:
-                    self._input_file_code = f.readlines()
-            except FileNotFoundError:
-                raise FileNotFoundError(str(self._input_file.absolute()) + " is not found")
-            if self.case and self._input_file.parent != self.case.path:  # copy file to the case dir
-                input_file = self.case.path / self._input_file.name
-                with open(input_file, "w", encoding="utf-8") as f:
-                    f.writelines(self._input_file_code)
-                self._input_file = input_file.relative_to(self.case.path)
-
-        if self._parameters_file:
-            try:
-                with open(self._parameters_file, encoding="utf-8") as f:
-                    self._parameters_file_code = f.readlines()
-            except FileNotFoundError:
-                raise FileNotFoundError(str(self._parameters_file.absolute()) + " is not found")
-            if self.case:
-                if self._parameters_file.parent != self.case.path:  # copy file to the case dir
-                    parameters_file = self.case.path / self._parameters_file.name
-                    with open(parameters_file, "w", encoding="utf-8") as f:
-                        f.writelines(self._parameters_file_code)
-                else:
-                    parameters_file = self._parameters_file
-                self._parameters_file = parameters_file.relative_to(self.case.path)
-
+        self._parameters_file, self._parameters_file_code = (
+            self._prepare_file(self._parameters_file)
+        )
 
     @classmethod
     def _increment_counter(cls):
@@ -165,18 +208,27 @@ class CAETask(ABC, Serializable):
         self._name = str(name)
 
     @property
-    def input_file(self):
+    def input_file(self) -> Path | None:
         return self._input_file
 
     @input_file.setter
-    def input_file(self, file: Path | str):
-        if isinstance(file, str):
-            if self.case:
-                file = self.case.path / file
-            else:
-                file = Path.cwd() / file
+    def input_file(self, file: Path | str | None):
+        if file is None:
+            self._input_file = None
+            return
+        # if isinstance(file, str):
+        #     if self.case:
+        #         file = self.case.path / file
+        #     else:
+        #         file = Path.cwd() / file
 
-        self._input_file = file
+        self._input_file = Path(file)
+        self._input_file_path = None
+        self._input_file_code = None
+
+    @property
+    def input_file_path(self) -> Path | None:
+        return self._input_file_path
 
     @property
     def log_file_name(self) -> str:
@@ -189,18 +241,28 @@ class CAETask(ABC, Serializable):
         self._log_file_name = name
 
     @property
-    def parameters_file(self):
+    def parameters_file(self) -> Path | None:
         return self._parameters_file
 
     @parameters_file.setter
-    def parameters_file(self, file: Path | str):
-        if isinstance(file, str):
-            if self.case:
-                file = self.case.path / file
-            else:
-                file = Path.cwd() / file
+    def parameters_file(self, file: Path | str | None):
+        if file is None:
+            self._parameters_file = None
+            return
 
-        self._parameters_file = file
+        # if isinstance(file, str):
+        #     if self.case:
+        #         file = self.case.path / file
+        #     else:
+        #         file = Path.cwd() / file
+
+        self._parameters_file = Path(file)
+        self._parameters_file_path = None
+        self._parameters_file_code = None
+
+    @property
+    def parameters_file_path(self) -> Path | None:
+        return self._parameters_file_path
 
     @property
     def additional_text_files(self):
@@ -257,12 +319,12 @@ class CAETask(ABC, Serializable):
 
     @property
     def results_files_names(self):
-        check_attribute(self)
         return self._results_files_names
 
     @results_files_names.setter
-    def results_files_names(self, flist: list[Path] | Path):
-        check_attribute(self)
+    def results_files_names(self, flist: list[Path] | Path | None):
+        if flist is None:
+            flist = []
         if type(flist) is list:
             self._results_files_names = flist
         else:

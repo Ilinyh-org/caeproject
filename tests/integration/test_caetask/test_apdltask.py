@@ -324,7 +324,8 @@ def test_apdl_print(tmpdir, apdl_file, capsys):
 
 
 @pytest.mark.positive
-def test_task_to_dict(apdl_file):
+def test_task_to_dict(tmpdir, apdl_file):
+    os.chdir(tmpdir)
     expected_result = {'type': 'apdl',
                        'additional_link_files': [],
                        'additional_text_files': [],
@@ -340,7 +341,7 @@ def test_task_to_dict(apdl_file):
                        'new_parameter_value': None,
                        'parameters_file': None,
                        'results_directory': '.',
-                       'results_file_name': '',
+                       'results_file_name': None,
                        'results_files_names': ['text_file_from_apdl_file.dat'],
                        'input_file': str(apdl_file),
                        'log_file_name': 'test.log',
@@ -356,7 +357,8 @@ def test_task_to_dict(apdl_file):
 
 
 @pytest.mark.positive
-def test_task_to_dict_after_solve(apdl_file):
+def test_task_to_dict_after_solve(tmpdir, apdl_file):
+    os.chdir(tmpdir)
     expected_result = {'type': 'apdl',
                        'additional_link_files': [],
                        'additional_text_files': [],
@@ -372,7 +374,7 @@ def test_task_to_dict_after_solve(apdl_file):
                        'new_parameter_value': None,
                        'parameters_file': None,
                        'results_directory': '.',
-                       'results_file_name': '',
+                       'results_file_name': None,
                        'results_files_names': ['text_file_from_apdl_file.dat'],
                        'input_file': str(apdl_file),
                        'log_file_name': 'test.log',
@@ -388,30 +390,40 @@ def test_task_to_dict_after_solve(apdl_file):
     assert actual_result == expected_result
 
 
-def test_task_from_dict():
-    input_data = {'additional_link_files': [],
-                  'additional_text_files': [],
-                  'additional_text_files_codes': [],
-                  'application_version': '212',
-                  'copy_link_files': False,
-                  'cores': '2',
-                  'database_size': '1024',
-                  'geometry_file_name': '',
-                  'memory_size': '2048',
-                  'name': 'test',
-                  'new_parameter_name': None,
-                  'new_parameter_value': None,
-                  'parameters_file_name': '',
-                  'results_directory_path': '.',
-                  'results_file_name': '',
-                  'results_files_names': ['text_file_from_apdl_file.dat'],
-                  'input_file': 'test.inp',
-                  'log_file': 'test.log',
-                  'process': None,
-                  'status': None}
-
-    #task1 = APDLTask.from_dict(input_data)
+@pytest.fixture(scope="session")
+def apdl_parameters_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test.parm"
+    with open(fn, "w") as file:
+        file.write("a=5\n")
+    return fn
 
 
+@pytest.fixture(scope="session")
+def apdl_parametrized_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "test.inp"
+    with open(fn, "w") as file:
+        file.write("/batch\n")
+        file.write("parres,new,test,parm\n")
+        file.write("*cfopen,text_file_from_ansys,dat\n")
+        file.write("*vwrite,a\n")
+        file.write("%G\n")
+        file.write("*cfclos\n")
+    return fn
 
-    pass
+
+@pytest.mark.positive
+@pytest.mark.solve
+def test_apdl_parameters_file(tmpdir, apdl_parametrized_file, apdl_parameters_file):
+    os.chdir(tmpdir)
+
+    expected_result = "5\n"
+
+    task = APDLTask.create_new('test')
+    task.parameters_file = apdl_parameters_file
+    task.input_file = apdl_parametrized_file
+    task.results_files_names = ["text_file_from_ansys.dat"]
+    task.solve()
+
+    with open("text_file_from_ansys.dat", "r") as file:
+        line_from_test_file = file.readline()
+    assert line_from_test_file == expected_result
