@@ -1,10 +1,12 @@
 
 import pytest
 from caecase import CAECase
+from caecase.utils import is_case_dir_name
 from caetask import APDLTask, run_threads
 from caeproject import CAEProject
 
 import pandas as pd
+import plotly.express as px
 
 from core.series_merger import series_merger
 
@@ -14,17 +16,27 @@ def apdl_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "square_compression.inp"
     with open(fn, "w") as file:
         file.write("/batch\n")
+        file.write("parres,new,square_compression,parm\n")
         file.write("*dim,text,string,32,1\n")
         file.write("text(1)=\'test text from ansys\'\n")
         file.write("*cfopen,results,csv\n")
+        file.write("*vwrite\n")
+        file.write("H1,NES_H1\n")
         file.write("*vwrite,H1,NES_H1\n")
-        file.write("%G %I\n")
+        file.write("%G, %I\n")
         file.write("*cfclos\n")
     return fn
 
 
 def test_project_apdl_create_solve_get_results(tmp_path, apdl_file):
-    # создание проекта
+    expected_results_dataframe = pd.DataFrame(
+        {
+            "H1": [0.01, 0.02],
+            "NES_H1": [2, 2],
+        }
+    )
+
+    # Project creation
     tmp_project_path = tmp_path / "project"
     tmp_project_path.mkdir()
     tmp_wd_path = tmp_path / "wd"
@@ -41,101 +53,143 @@ def test_project_apdl_create_solve_get_results(tmp_path, apdl_file):
 
     df = series_merger(ds_H1, ds_B1, ds_L1, ds_NES_H1, ds_NES_B1, ds_NES_L1)
 
-    def create_task(df):
+    def create_case(row):
         case = CAECase.create_new(tmp_project_path)
-        case.parameters.geometry.H1 = df["H1"]
-        case.parameters.geometry.H1.units = 'cm'
-        case.parameters.geometry.B1 = df["B1"]
-        case.parameters.geometry.B1.units = 'cm'
-        case.parameters.mesh.NES_H1 = df["NES_H1"]
-        case.parameters.mesh.NES_B1 = df["NES_B1"]
 
-        case.add_files_to_case([
-            apdl_file,
-         # "macroslibrary.mac",
-        ])
-        case.parameters_save(format_type='APDL', new_system="SI") #TODO прописать имя
+        case.parameters.geometry.H1 = row["H1"]
+        case.parameters.geometry.H1.units = 'cm'
+        case.parameters.geometry.B1 = row["B1"]
+        case.parameters.geometry.B1.units = 'cm'
+        case.parameters.mesh.NES_H1 = row["NES_H1"]
+        case.parameters.mesh.NES_B1 = row["NES_B1"]
+
+        case.add_files_to_case([apdl_file])
+
+        case.parameters_save(filename='square_compression.parm' , format_type='APDL', new_system="SI")
+
         task = case.create_task(APDLTask, 'square_compression')
         task.input_file = 'square_compression.inp'
-        task.parameters_file = 'case_data.parm' # 'square_compression.parm'
-        #task.results_directory_path = case.path
-        task.temporary_directory_path = tmp_wd_path
-        task.log_file = 'log_square_compression.log'
-        # task.cores = 2
+        task.parameters_file = 'square_compression.parm'
+        task.log_file_name = 'log_square_compression.log'
         task.results_files_names = [
-            "log_square_compression.log",
             "square_compression0.err",
             "square_compression1.err",
             "RESULTS.csv",
-        #     "RESULT_MODEL_INFO.CSV"
+            # "RESULT_MODEL_INFO.CSV"
         ]
 
-        # запуск решения проекта
-        # project.solve()
-        #case.add_task(task)
         case.save_config()
 
-        return task
+        return case
 
-    def solving(tasks):
-        from collections.abc import Iterable  # TODO костыль
-        if not isinstance(tasks, Iterable):
-            tasks = [tasks]
-        for task in tasks:
-            task.solve()
+    project.create_cases(
+        df.to_dict(orient="records"),
+        create_case,
+        max_workers=1,
+    )
 
-    ## TODO запихнуть эти команды в проект?
-    tasks = run_threads(create_task, df.to_dict(orient="records"), max_workers=1)
-    run_threads(solving, tasks, max_workers=2)
+    project.solve(max_workers=2)
 
-    # подтянуть результаты
+    # Get results from file system
     project.discover_cases()
 
-    for case in project.cases:
-        print("1: ", case)
-        case.get_results()
+    df_res = project.get_results()
 
-    #обработать результаты
-    #нарисовать график(?)
-    #
+    # Plot results chart
+    #fig = px.bar(df_res, x='ID', y='H1', title='Bar Plot Example')
+    #fig.show()
 
-    # в отдельном тест прочекать конфигурации
+    # Compare all deterministic columns
+    pd.testing.assert_frame_equal(
+        df_res[["H1", "NES_H1"]].reset_index(drop=True),
+        expected_results_dataframe,
+    )
 
-    pass
-    # initial_case_parameter = 100
-    # project = CAEProject.from_existing_dir(tmp_path)
-    # existing_case = CAECase.create_new(base_path=tmp_path)
-    # existing_case.parameters.a = initial_case_parameter
-    # project.cases.append(existing_case)
-    # parameters_set = {0, 1, 2}
-    # expected_parameters = {0, 1, 2, 100}
-    #
-    # for a in parameters_set:
-    #     case = CAECase.create_new(base_path=tmp_path)
-    #     case.parameters.a = a
-    #     case.save_config(case.path)
-    #
-    # project.discover_cases()
-    #
-    # actual_parameters = {case.parameters.a.value for case in project.cases}
-    #
-    # assert len(actual_parameters) == len(expected_parameters)
-    # assert actual_parameters == expected_parameters
-    # assert initial_case_parameter in actual_parameters
+    # Check the ID column
+    assert len(df_res) == 2
+    assert all(is_case_dir_name(case_id) for case_id in df_res["ID"])
+    assert df_res["ID"].is_unique
 
 
-def test_project_create_solve_get_results3(tmp_path):
-    ##создать проект
-    # добавить исходные данные
-    # запустить кейсы
-    # решить
+def test_project_create_solve_get_results_short_task(tmp_path, apdl_file):
+    expected_results_dataframe = pd.DataFrame(
+        {
+            "H1": [0.01, 0.02],
+            "NES_H1": [2, 2],
+        }
+    )
 
-    # создать новый проект на основе директории
-    # подтянуть результаты
-    # обработать результаты
-    # нарисовать график(?)
-    #
-    pass
+    # Project creation
+    tmp_project_path = tmp_path / "project"
+    tmp_project_path.mkdir()
+    tmp_wd_path = tmp_path / "wd"
+    tmp_wd_path.mkdir()
+
+    project = CAEProject.from_existing_dir(tmp_project_path)
+
+    ds_H1 = pd.Series([1, 2], dtype='float64', name="H1")  # [cm]
+    ds_B1 = pd.Series([1], dtype='float64', name="B1")  # [cm]
+    ds_L1 = pd.Series([10], dtype='float64', name="L1")  # [cm]
+    ds_NES_H1 = pd.Series([2], dtype='int64', name="NES_H1")
+    ds_NES_B1 = pd.Series([2], dtype='int64', name="NES_B1")
+    ds_NES_L1 = pd.Series([20], dtype='int64', name="NES_L1")
+
+    df = series_merger(ds_H1, ds_B1, ds_L1, ds_NES_H1, ds_NES_B1, ds_NES_L1)
+
+    def create_case(row):
+        case = CAECase.create_new(tmp_project_path)
+
+        case.parameters.geometry.H1 = row["H1"]
+        case.parameters.geometry.H1.units = 'cm'
+        case.parameters.geometry.B1 = row["B1"]
+        case.parameters.geometry.B1.units = 'cm'
+        case.parameters.mesh.NES_H1 = row["NES_H1"]
+        case.parameters.mesh.NES_B1 = row["NES_B1"]
+
+        case.add_files_to_case([apdl_file])
+
+        case.parameters_save(filename='square_compression.parm', format_type='APDL', new_system="SI")
+
+        task = case.create_task(
+            APDLTask,
+            "square_compression",
+            input_file="square_compression.inp",
+            parameters_file="square_compression.parm",
+            log_file_name='log_square_compression.log',
+            results_files_names=["RESULTS.csv"],
+        )
+
+        case.save_config()
+
+        return case
+
+    project.create_cases(
+        df.to_dict(orient="records"),
+        create_case,
+        max_workers=1,
+    )
+
+    project.solve(max_workers=2)
+
+    # Get results from file system
+    project.discover_cases()
+
+    df_res = project.get_results()
+
+    # Plot results chart
+    # fig = px.bar(df_res, x='ID', y='H1', title='Bar Plot Example')
+    # fig.show()
+
+    # Compare all deterministic columns
+    pd.testing.assert_frame_equal(
+        df_res[["H1", "NES_H1"]].reset_index(drop=True),
+        expected_results_dataframe,
+    )
+
+    # Check the ID column
+    assert len(df_res) == 2
+    assert all(is_case_dir_name(case_id) for case_id in df_res["ID"])
+    assert df_res["ID"].is_unique
 
 
 def test_project_create_solve_get_results2(tmp_path):
