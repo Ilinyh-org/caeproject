@@ -41,5 +41,7 @@ where = ["."]
 include = ["project", "caecase", "core"]
 
 [build-system]
-requires = ["setuptools>=80", "wheel"]
+requires = [
+    "setuptools>=80",
+    "setuptools-scm[simple]>=9.2"]
 build-backend = "setuptools.build_meta"
