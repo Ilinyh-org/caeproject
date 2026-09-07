@@ -1,8 +1,7 @@
 [project]
 
 name = "caeproject"
-
-version = "0.2.0"
+dynamic = ["version"]
 
 description = "A module for running CAE applications from python script"
 
@@ -42,5 +41,5 @@ where = ["."]
 include = ["project", "caecase", "core"]
 
 [build-system]
-requires = ["setuptools>=43.0.0", "wheel"]
+requires = ["setuptools>=80", "wheel"]
 build-backend = "setuptools.build_meta"
