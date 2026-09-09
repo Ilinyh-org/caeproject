@@ -7,7 +7,7 @@ from caetask import APDLTask, FluentTask, CFDPostTask
 
 
 @pytest.fixture(scope="session")
-def cse_fluentpost_file(tmp_path_factory):
+def cse_cfdpost_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "test.cse"
     with open(fn, "w") as file:
         file.write(">load filename=results.cas.h5, force_reload=true\n")
@@ -30,7 +30,7 @@ def cse_fluentpost_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_fluentpost_file):
+def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_cfdpost_file):
     tmpdir.chdir()
     expected_result = 6
 
@@ -47,7 +47,7 @@ def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_
     task2.solve()
 
     task3 = CFDPostTask.create_new('cfdpost')
-    task3.input_file = cse_fluentpost_file
+    task3.input_file = cse_cfdpost_file
     task3.results_files_names = ["export.csv"]
     task3.solve()
 
@@ -59,7 +59,7 @@ def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_
 @pytest.mark.positive
 @pytest.mark.solve
 def test_cfdposttask_not_in_current_directory(tmp_path: Path,
-                                              inp_mesh_file, scm_solve_file, cse_fluentpost_file):
+                                              inp_mesh_file, scm_solve_file, cse_cfdpost_file):
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
     tmpdir2 = tmp_path / "tmpdir2"
@@ -83,7 +83,7 @@ def test_cfdposttask_not_in_current_directory(tmp_path: Path,
     task2.solve()
 
     task3 = CFDPostTask.create_new('cfdpost')
-    task3.input_file = cse_fluentpost_file
+    task3.input_file = cse_cfdpost_file
     task3.working_directory = os.path.abspath(tmpdir2)
     task3.results_files_names = ["export.csv"]
     task3.solve()
