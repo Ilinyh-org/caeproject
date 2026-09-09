@@ -22,7 +22,6 @@ maintainers = [
 ]
 
 dependencies = [
-    "caetask @ git+ssh://git@github.com/IlinyhGleb/caetask.git",
     "pint",
     "pandas"
 ]
