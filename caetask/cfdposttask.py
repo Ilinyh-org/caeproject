@@ -6,6 +6,7 @@ import os
 
 
 class CFDPostTask(CAETask):
+    TYPE = "cfdpost"
     def __init__(
             self,
             name='task',
@@ -61,3 +62,33 @@ class CFDPostTask(CAETask):
                               shell=True,
                               cwd=self._working_directory).wait()
         print(f"закончена обработка результатов {os.path.basename(self._input_file)}")
+
+
+
+    def to_dict(self):
+        data = super().to_dict()
+
+        data["type"] = self.TYPE
+
+        data.update({
+            "results_files_names": self._results_files_names,
+            "application_version": self._application_version,
+            "working_directory": str(self._working_directory),
+        })
+
+        data["parameters_file"] = self.serialize(
+            self._parameters_file,
+            relative_to=self.base_path,
+        )
+
+        data["input_file"] = self.serialize(
+            self._input_file,
+            relative_to=self.base_path,
+        )
+
+        data["results_directory"] = self.serialize(
+            self._results_directory,
+            relative_to=self.base_path,
+        )
+
+        return data

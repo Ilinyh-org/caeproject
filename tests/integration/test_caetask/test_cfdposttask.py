@@ -80,3 +80,27 @@ def test_cfdpost_print(tmpdir, cse_cfdpost_file, capsys):
     actual_result = captured.out
 
     assert actual_result == expected_result_base
+
+
+
+@pytest.mark.positive
+def test_task_to_dict(tmpdir, cse_cfdpost_file):
+    os.chdir(tmpdir)
+    expected_result = {'type': 'cfdpost',
+                       'application_version': '212',
+                       'name': 'test',
+                       'working_directory': tmpdir,
+                       'parameters_file': None,
+                       'results_directory': None,
+                       'results_files_names': ['text_file_from_fluent.dat'],
+                       'input_file': str(cse_cfdpost_file),
+                       'log_file_name': 'test.log',
+                       }
+
+    task1 = CFDPostTask.create_new('test')
+    task1.input_file = cse_cfdpost_file
+    task1.results_files_names = ["text_file_from_fluent.dat"]
+
+    actual_result = task1.to_dict()
+
+    assert actual_result == expected_result

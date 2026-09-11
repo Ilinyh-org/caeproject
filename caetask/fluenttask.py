@@ -9,6 +9,7 @@ from caetask import CAETask, log_execution_time
 
 
 class FluentTask(CAETask):
+    TYPE = "fluent"
     def __init__(
             self,
             name: str = 'task',
@@ -178,3 +179,37 @@ class FluentTask(CAETask):
     def threads(self, threads):
         self._threads = str(threads)
 
+
+    def to_dict(self):
+        data = super().to_dict()
+
+        data["type"] = self.TYPE
+
+        data.update({
+            "results_file_name": self._results_file_name,
+            "results_files_names": self._results_files_names,
+            "additional_text_files": self._additional_text_files,
+            "additional_text_files_codes": self._additional_text_files_codes,
+            "additional_link_files": self._additional_link_files,
+            "copy_link_files": self._copy_link_files,
+            "application_version": self._application_version,
+            "dimension": self._dimension,
+            "threads": self._threads,
+        })
+
+        data["parameters_file"] = self.serialize(
+            self._parameters_file,
+            relative_to=self.base_path,
+        )
+
+        data["input_file"] = self.serialize(
+            self._input_file,
+            relative_to=self.base_path,
+        )
+
+        data["results_directory"] = self.serialize(
+            self._results_directory,
+            relative_to=self.base_path,
+        )
+
+        return data

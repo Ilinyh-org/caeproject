@@ -265,6 +265,65 @@ def test_fluent__str__(tmpdir, scm_simple_file, capsys):
     assert actual_result == expected_result
 
 
+@pytest.mark.positive
+def test_task_to_dict(tmpdir, scm_simple_file):
+    os.chdir(tmpdir)
+    expected_result = {'type': 'fluent',
+                       'additional_link_files': [],
+                       'additional_text_files': [],
+                       'additional_text_files_codes': [],
+                       'application_version': '212',
+                       'copy_link_files': False,
+                       'name': 'test',
+                       'parameters_file': None,
+                       'results_directory': '.',
+                       'results_file_name': None,
+                       'results_files_names': ['text_file_from_fluent.dat'],
+                       'input_file': str(scm_simple_file),
+                       'dimension': '2d',
+                       'threads': '2',
+                       'log_file_name': 'test.log',
+                       }
+
+    task1 = FluentTask.create_new('test')
+    task1.input_file = scm_simple_file
+    task1.results_files_names = ["text_file_from_fluent.dat"]
+
+    actual_result = task1.to_dict()
+
+    assert actual_result == expected_result
+
+
+@pytest.mark.positive
+def test_task_to_dict_after_solve(tmpdir, scm_simple_file):
+    os.chdir(tmpdir)
+    expected_result = {'type': 'fluent',
+                       'additional_link_files': [],
+                       'additional_text_files': [],
+                       'additional_text_files_codes': [],
+                       'application_version': '212',
+                       'copy_link_files': False,
+                       'name': 'test',
+                       'parameters_file': None,
+                       'results_directory': '.',
+                       'results_file_name': None,
+                       'results_files_names': ['text_file_from_fluent.dat'],
+                       'input_file': str(scm_simple_file),
+                       'dimension': '2d',
+                       'threads': '2',
+                       'log_file_name': 'test.log',
+                       }
+
+    task1 = FluentTask.create_new('test')
+    task1.input_file = scm_simple_file
+    task1.results_files_names = ["text_file_from_fluent.dat"]
+    task1.solve()
+
+    actual_result = task1.to_dict()
+
+    assert actual_result == expected_result
+
+
 def tearDown() -> None:
     pass
 
