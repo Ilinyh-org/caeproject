@@ -38,7 +38,7 @@ def test_cfdposttask_start(tmpdir, cse_file, capsys):
 
 
 @pytest.fixture(scope="session")
-def cse_fluentpost_file(tmp_path_factory):
+def cse_cfdpost_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "test.cse"
     with open(fn, "w") as file:
         file.write(">load filename=results.cas.h5, force_reload=true\n")
@@ -61,7 +61,7 @@ def cse_fluentpost_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_cfdpost_print(tmpdir, cse_fluentpost_file, capsys):
+def test_cfdpost_print(tmpdir, cse_cfdpost_file, capsys):
     os.chdir(tmpdir)
 
     expected_result_base = (
@@ -72,7 +72,7 @@ def test_cfdpost_print(tmpdir, cse_fluentpost_file, capsys):
             'путь рабочей директории: ' + str(tmpdir) + '\n\n')
 
     task1 = CFDPostTask.create_new('test')
-    task1.input_file = cse_fluentpost_file
+    task1.input_file = cse_cfdpost_file
 
     print(task1)
 
