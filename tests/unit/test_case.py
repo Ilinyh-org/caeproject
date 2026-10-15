@@ -4,7 +4,7 @@ import re
 import pytest
 from pathlib import Path
 from caecase import CAECase
-from caecase.caecase import CaseStatus
+from caecase.caecase import CaseStatus, get_csv_results
 
 
 @pytest.fixture
@@ -161,3 +161,128 @@ def test_case_load_config_status(tmp_path, apdl_file):
     assert case.name == expected_name
     assert case.base_path == expected_base_path
 
+
+def test_get_csv_results_plain_numbers_no_header(tmp_path):
+    f = tmp_path / "plain.csv"
+    f.write_text(
+        "2.22e+01\n"
+        "2.22e+01\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+    )
+    expected_shape = (6, 1)
+    expected_values = [22.2, 22.2, 0.0, 0.0, 0.0, 0.0]
+
+    df = get_csv_results(f)
+
+    assert df.shape == expected_shape
+    assert df.iloc[:, 0].tolist() == expected_values
+
+
+def test_get_csv_results_cfx_name_data_block(tmp_path):
+    f = tmp_path / "cfx_block.csv"
+    f.write_text(
+        "\n"
+        "[Name]\n"
+        "inlet\n"
+        "\n"
+        "[Data]\n"
+        "Velocity u [ m s^-1 ]\n"
+        "2.22e+01\n"
+        "2.22e+01\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+    )
+    expected_shape = (6, 1)
+    expected_values = [22.2, 22.2, 0.0, 0.0, 0.0, 0.0]
+    expected_header = "Velocity u [ m s^-1 ]"
+
+    df = get_csv_results(f)
+
+    assert df.shape == expected_shape
+    assert df.columns[0] == expected_header
+    assert df.iloc[:, 0].tolist() == expected_values
+
+
+def test_get_csv_results_header_then_values(tmp_path):
+    f = tmp_path / "header.csv"
+    f.write_text(
+        "Velocity u\n"
+        "2.22e+01\n"
+        "2.22e+01\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+    )
+    expected_shape = (6, 1)
+    expected_values = [22.2, 22.2, 0.0, 0.0, 0.0, 0.0]
+    expected_header = "Velocity u"
+
+    df = get_csv_results(f)
+
+    assert df.shape == expected_shape
+    assert df.columns[0] == expected_header
+    assert df.iloc[:, 0].tolist() == expected_values
+
+
+def test_get_csv_results_cfd_post_full_export(tmp_path):
+    f = tmp_path / "cfdpost.csv"
+    f.write_text(
+        "##\n"
+        "## CFD-Post Generic Export\n"
+        "##\n"
+        "## CFX-21.2\n"
+        "##\n"
+        "## Generated on:  2026/09/21 14:37:56\n"
+        "##\n"
+        "## Generated from case(s): Case results.cas\n"
+        "##\n"
+        "\n"
+        "[Name]\n"
+        "inlet\n"
+        "\n"
+        "[Data]\n"
+        "Velocity u [ m s^-1 ]\n"
+        "2.22e+01\n"
+        "2.22e+01\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+        "0.00e+00\n"
+    )
+    expected_shape = (6, 1)
+    expected_values = [22.2, 22.2, 0.0, 0.0, 0.0, 0.0]
+    expected_header = "Velocity u [ m s^-1 ]"
+
+    df = get_csv_results(f)
+
+    assert df.shape == expected_shape
+    assert df.columns[0] == expected_header
+    assert df.iloc[:, 0].tolist() == expected_values
+
+
+def test_get_csv_results_multi_column_csv(tmp_path):
+    f = tmp_path / "multi.csv"
+    f.write_text(
+        "U,V,W\n"
+        "2.22e+01,0.00e+00,1.00e+00\n"
+        "2.22e+01,0.00e+00,1.00e+00\n"
+    )
+    expected_shape = (2, 3)
+    expected_values_u = [22.2, 22.2]
+    expected_values_v = [0.0, 0.0]
+    expected_values_w = [1.0, 1.0]
+    expected_headers = ["U", "V", "W"]
+
+    df = get_csv_results(f)
+
+    assert list(df.columns) == expected_headers
+    assert df.shape == expected_shape
+    assert df["U"].tolist() == expected_values_u
+    assert df["V"].tolist() == expected_values_v
+    assert df["W"].tolist() == expected_values_w

@@ -11,6 +11,7 @@ from core.file_manager import create_case_dir, add_files, save
 from core.serialization import Serializable
 from typing import List, Iterable
 
+import io, re
 
 def append_df(df_main: pd.DataFrame, df_new: pd.DataFrame):
     if df_new is None or df_new.empty:
@@ -20,11 +21,52 @@ def append_df(df_main: pd.DataFrame, df_new: pd.DataFrame):
     return pd.concat([df_main, df_new])
 
 
-def get_csv_results(file: Path | str):
+def get_csv_results(file: Path | str) -> pd.DataFrame:
+    text = Path(file).read_text()
 
-    df = pd.read_csv(file)
+    lines = []
+    for ln in text.splitlines():
+        s = ln.strip()
+        if not s or s.startswith("#") or re.match(r"^\[.*\]$", s):
+            continue
+        lines.append(s)
 
+    # Find the first line that is purely numeric(-ish) → start of data
+    first_data = next((i for i, ln in enumerate(lines)
+                       if all(_is_num(p) for p in re.split(r"[,\s]+", ln))), len(lines))
+
+    # Last text line before the data = column name (if any)
+    header_lines = lines[:first_data]
+    name = header_lines[-1] if header_lines else None
+    data_lines = lines[first_data:]
+
+    if not data_lines:
+        return pd.DataFrame()
+
+    # Try to see if the header is actually a real CSV header (multi-col names)
+    # e.g. "U,V,W" -> all tokens non-numeric
+    header_is_csv = (
+        name is not None
+        and "," in name
+        and not any(_is_num(tok) for tok in name.split(","))
+    )
+
+    if header_is_csv:
+        buf = io.StringIO(name + "\n" + "\n".join(data_lines))
+        return pd.read_csv(buf)
+
+    # Otherwise: no CSV header, values only, optional single column name
+    df = pd.read_csv(io.StringIO("\n".join(data_lines)), header=None)
+    if name is not None and df.shape[1] == 1:
+        df.columns = [name]
     return df
+
+
+def _is_num(s: str) -> bool:
+    try:
+        float(s); return True
+    except ValueError:
+        return False
 
 
 class CaseStatus(Enum):
