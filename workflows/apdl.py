@@ -37,7 +37,7 @@ class APDLWorkflow:
         case.create_task(
             APDLTask,
             self.task_name,
-            input_file=f"{self.task_name}.inp",
+            input_file=self.apdl_file.name,
             parameters_file=parameters_filename,
             log_file_name=f"log_{self.task_name}.log",
             results_files_names=["RESULTS.csv"],
