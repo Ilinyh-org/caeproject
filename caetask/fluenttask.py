@@ -10,6 +10,20 @@ from caetask import CAETask, log_execution_time
 
 class FluentTask(CAETask):
     TYPE = "fluent"
+    SERIALIZABLE_FIELDS = (
+        "additional_link_files",
+        "additional_text_files",
+        # "additional_text_files_codes",
+        "application_version",
+        "copy_link_files",
+        "threads",
+        "name",
+        "results_directory",
+        "input_file",
+        "log_file_name",
+    )
+
+
     def __init__(
             self,
             name: str = 'task',

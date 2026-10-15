@@ -90,6 +90,24 @@ class CAETask(ABC, Serializable):
 
         return data
 
+    @classmethod
+    def from_dict(
+            cls,
+            data: dict,
+            *,
+            base_path: Path | None = None,
+            name: str | None = None
+    ):
+        base_path = cls.normalize_path(base_path)
+
+        obj = cls(base_path=base_path, name=name)
+
+        for field in cls.SERIALIZABLE_FIELDS:
+            if field in data:
+                setattr(obj, field, data[field])
+
+        return obj
+
     @property
     def path(self) -> Path:
         return self.base_path

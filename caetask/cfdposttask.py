@@ -9,6 +9,15 @@ from importlib.resources import files
 
 class CFDPostTask(CAETask):
     TYPE = "cfdpost"
+    SERIALIZABLE_FIELDS = (
+        "additional_link_files",
+        "application_version",
+        "name",
+        "results_files_names",
+        "input_file",
+        "log_file_name",
+    )
+
     def __init__(
             self,
             name='task',
