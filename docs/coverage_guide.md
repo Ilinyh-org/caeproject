@@ -5,7 +5,7 @@ We use **pytest** together with **pytest-cov**.
 
 Run this command from the project root:
 
-```
+```bash
 pytest --cov=caetask --cov-report=term-missing --cov-report=html
 ```
 
