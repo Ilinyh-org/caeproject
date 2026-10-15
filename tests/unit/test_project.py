@@ -21,17 +21,26 @@ def test_project_get_results():
     expected_result = pd.DataFrame({
         "H1": [0.01, 0.02],
         "NES_H1": [2, 2],
+        "U": [1E-3, 2E-3],
     })
     case1 = MagicMock()
     case2 = MagicMock()
-    case1.get_results.return_value = pd.DataFrame({
+
+    case1.parameters.to_dataframe.return_value = pd.DataFrame({
         "H1": [0.01],
         "NES_H1": [2],
     })
-    case2.get_results.return_value = pd.DataFrame({
+    case2.parameters.to_dataframe.return_value = pd.DataFrame({
         "H1": [0.02],
         "NES_H1": [2],
     })
+    case1.get_results.return_value = pd.DataFrame({
+        "U": [1E-3],
+    })
+    case2.get_results.return_value = pd.DataFrame({
+        "U": [2E-3],
+    })
+
     project = MagicMock(spec=CAEProject)
     project.cases = {
         "case1": case1,
