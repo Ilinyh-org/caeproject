@@ -221,7 +221,7 @@ class CAECase(Serializable):
     def parameters_save(self,
                         format_type: str = 'json',
                         filename: str = None,
-                        **filter_kwargs):
+                        **filter_kwargs) -> str:
         """Save parameters with optional filtering and format.
 
         Args:
@@ -248,6 +248,8 @@ class CAECase(Serializable):
             path=self.path,
             filename=filename
         )
+
+        return filename
 
     @property
     def needs_solving(self) -> bool:
