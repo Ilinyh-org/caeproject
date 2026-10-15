@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from caetask import CAETask
+from caetask import CAETask, log_execution_time
 from subprocess import Popen
 import os
 
@@ -46,6 +46,7 @@ class CFDPostTask(CAETask):
             output += 'файл результатов (входных): ' + self._results_file_name + '\n'
         return output
 
+    @log_execution_time()
     def solve(self):
         self.load_inputs()
 
@@ -72,12 +73,12 @@ class CFDPostTask(CAETask):
             application.append(self._results_file_name)
 
         # создание процесса по сконфигурированному application
-        self._process = Popen(' '.join(application),
-                              shell=True,
-                              cwd=self._working_directory).wait()
+        with open(self._working_directory / self.log_file_name, 'w') as f:
+            self._process = Popen(' '.join(application),
+                                  shell=True,
+                                  stdout=f,
+                                  cwd=self._working_directory).wait()
         print(f"закончена обработка результатов {os.path.basename(self._input_file)}")
-
-
 
     def to_dict(self):
         data = super().to_dict()
