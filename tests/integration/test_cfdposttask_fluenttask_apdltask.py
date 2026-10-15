@@ -43,7 +43,7 @@ def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_
     task2.input_file = scm_solve_file
     task2.log_file_name = 'log_fluent.log'
     task2.additional_link_files = ['mesh.cdb']
-    task2.results_files_names = ["log_fluent.log", "results.cas.h5", "results.dat.h5"]
+    task2.results_files_names = ["results.cas.h5", "results.dat.h5"]
     task2.solve()
 
     task3 = CFDPostTask.create_new('cfdpost')
