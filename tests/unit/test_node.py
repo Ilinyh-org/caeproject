@@ -1,3 +1,4 @@
+import pandas as pd
 
 # from core import Node, Parameter
 from core.parameter import Parameter
@@ -147,3 +148,23 @@ def test_node_no_recursion(input_attr):
         getattr(node, input_attr)
 
 
+def test_node_to_dataframe_simple():
+    node = Node()
+    node.x = 1e4
+    node.y = 12.5
+    expected = pd.DataFrame([[1e4, 12.5]], columns=['x','y'])
+
+    actual = node.to_dataframe()
+
+    pd.testing.assert_frame_equal(actual, expected)
+
+
+def test_node_to_dataframe_nested_node():
+    node = Node()
+    node.a = 10
+    node.b.c = "hello"
+    expected = pd.DataFrame([[10,'hello']], columns=['a','c'])
+
+    actual = node.to_dataframe()
+
+    pd.testing.assert_frame_equal(actual, expected)

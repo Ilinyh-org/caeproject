@@ -1,6 +1,7 @@
 #core/node.py
 from core.parameter import Parameter
 import weakref
+import pandas as pd
 
 
 class Node:
@@ -95,6 +96,38 @@ class Node:
                 # Просто значение → оборачиваем в Parameter
                 self._children[key] = Parameter(value)
         return self
+
+    def to_dataframe(self, **filters) -> pd.DataFrame:
+        """Convert the node tree to a single-row DataFrame.
+
+        Column names are the leaf keys (e.g. 'A1', 'NES_A1'),
+        values are the leaf values (Parameter.value or raw value).
+
+        Accepts the same **filters as to_dict: 'include' and/or 'exclude'.
+        """
+        include = filters.get('include')
+        exclude = filters.get('exclude')
+        include_set = set(include) if include else None
+        exclude_set = set(exclude) if exclude else None
+
+        row = {}
+
+        def walk(node):
+            for key, value in node._children.items():
+                if include_set is not None and key not in include_set:
+                    continue
+                if exclude_set is not None and key in exclude_set:
+                    continue
+
+                if isinstance(value, Node):
+                    walk(value)
+                elif isinstance(value, Parameter):
+                    row[key] = value.value
+                else:
+                    row[key] = value
+
+        walk(self)
+        return pd.DataFrame([row])
 
     def to_dict(self, **filters):
         """Преобразует узел в обычный словарь.
