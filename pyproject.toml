@@ -39,6 +39,9 @@ test = ["pytest", "plotly"]
 where = ["."]
 include = ["project", "caecase", "core"]
 
+[tool.setuptools.package-data]
+caeproject = ["data/*.pm"]
+
 [build-system]
 requires = [
     "setuptools>=80",

@@ -4,6 +4,8 @@ from caetask import CAETask
 from subprocess import Popen
 import os
 
+import shutil
+from importlib.resources import files
 
 class CFDPostTask(CAETask):
     TYPE = "cfdpost"
@@ -37,6 +39,9 @@ class CFDPostTask(CAETask):
 
     def solve(self):
         self.load_inputs()
+
+        src = files("data") / "JsonConfig.pm"
+        shutil.copy2(Path(src), self._working_directory)
 
         if self._parameters_file:
             with open(os.path.join(os.path.abspath(self._working_directory),
