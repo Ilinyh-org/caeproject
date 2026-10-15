@@ -366,7 +366,9 @@ class CAETask(ABC, Serializable):
     @working_directory.setter
     def working_directory(self, path: Path):
         check_attribute(self)
-        self._working_directory = os.path.abspath(path)
+        if isinstance(path, str):
+            path = Path(path)
+        self._working_directory = path
 
     @property
     def temporary_directory(self):
