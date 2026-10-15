@@ -21,7 +21,7 @@ class CFDPostTask(CAETask):
     def __init__(
             self,
             name='task',
-            base_path: str | None = None,
+            base_path: Path | None = None,
             input_file: Path | str | None = None,
             parameters_file: Path | str | None = None,
             results_files_names: list[str] | None = None
@@ -33,7 +33,8 @@ class CFDPostTask(CAETask):
             parameters_file=parameters_file,
             results_files_names=results_files_names
         )
-        self._working_directory = Path.cwd()
+        self._working_directory = self.base_path
+        self._results_directory = self.base_path
         self._application_version = "212"
 
     def __repr__(self):
