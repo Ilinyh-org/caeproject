@@ -252,7 +252,7 @@ def test_fluent__str__(tmpdir, scm_simple_file, capsys):
                       'исполняемый файл: test.scm\n'\
                       'файл логов: test.log\n'\
                       'версия приложения: 212\n'\
-                      'количество потоков в задаче: 2\n'\
+                      'количество потоков в задаче: 4\n'\
                       '\n'
 
     task1 = FluentTask.create_new('test')
@@ -281,7 +281,7 @@ def test_task_to_dict(tmpdir, scm_simple_file):
                        'results_files_names': ['text_file_from_fluent.dat'],
                        'input_file': str(scm_simple_file),
                        'dimension': '2d',
-                       'threads': '2',
+                       'threads': '4',
                        'log_file_name': 'test.log',
                        }
 
@@ -310,7 +310,7 @@ def test_task_to_dict_after_solve(tmpdir, scm_simple_file):
                        'results_files_names': ['text_file_from_fluent.dat'],
                        'input_file': str(scm_simple_file),
                        'dimension': '2d',
-                       'threads': '2',
+                       'threads': '4',
                        'log_file_name': 'test.log',
                        }
 

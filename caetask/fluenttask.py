@@ -35,7 +35,7 @@ class FluentTask(CAETask):
         self._application_version = "212"
         self._dimension = "2d"
         self._graphics_regime = 'g'
-        self._threads = '2'
+        self._threads = '4'
 
     def __repr__(self):
         return self.name
