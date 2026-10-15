@@ -27,8 +27,9 @@ class Serializable:
     def from_dict(
             cls,
             data: dict,
-            base_path: Path | str | None,
-            name: str | None
+            *,
+            base_path: Path | None = None,
+            name: str | None = None
     ):
         raise NotImplementedError
 
