@@ -107,10 +107,14 @@ class CAEProject(Serializable):
                     self.remove_case(name)
 
     def get_results(self) -> pd.DataFrame:
-        dataframes = [
-            case.get_results()
-            for case in self.cases.values()
-        ]
+        dataframes = []
+        for case in self.cases.values():
+            parameters = case.parameters.to_dataframe()
+            results = case.get_results()
+
+            parameters_results = parameters.merge(results, how="cross")
+
+            dataframes.append(parameters_results)
 
         if not dataframes:
             return pd.DataFrame()
