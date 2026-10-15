@@ -204,6 +204,14 @@ def apdl_file(tmp_path_factory):
     return fn
 
 
+@pytest.fixture(scope="session")
+def text_file(tmp_path_factory):
+    fn = tmp_path_factory.mktemp("data") / "text.txt"
+    with open(fn, "w") as file:
+        file.write("simple text\n")
+    return fn
+
+
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve(tmp_path, apdl_file):
@@ -306,6 +314,54 @@ def test_case_safe_config_task(tmp_path, apdl_file):
     task.parameters_file = "test.parm"
     task.results_files_names = ["text_file_from_ansys.dat"]
     task.solve()
+    case.save_config()
+
+    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
+        actual_config = json.load(f)
+    assert actual_config == expected_config
+
+
+def test_case_safe_config_task_link_files(tmp_path, apdl_file, text_file):
+    expected_config = {
+        "parameters": {'A1': {'value': 2}, 'B1': {'value': 3}},
+        "files": ["test.inp"],
+        'tasks': [{
+            'type': 'apdl',
+            'additional_link_files': ['text.txt'],
+            'additional_text_files': [],
+            'additional_text_files_codes': [],
+            'application_version': '212',
+            'copy_link_files': False,
+            'cores': '2',
+            'database_size': '1024',
+            'geometry_file': '',
+            'memory_size': '2048',
+            'name': 'test',
+            'new_parameter_name': None,
+            'new_parameter_value': None,
+            'parameters_file': 'test.parm',
+            'results_directory': '.',
+            'results_file_name': None,
+            'results_files_names': ['text_file_from_ansys.dat'],
+            'input_file': apdl_file.name,
+            'log_file_name': 'test.log',
+            'status': None}],
+        "status": "NEW"
+    }
+
+    case = CAECase.create_new(tmp_path)
+    case.add_files_to_case(apdl_file)
+    case.add_files_to_case(text_file)
+    case.parameters.A1 = 2
+    case.parameters.B1 = 3
+    case.parameters_save(filename='test.parm', format_type='APDL')
+
+    task = case.create_task(APDLTask, 'test')
+    task.input_file = apdl_file
+    task.additional_link_files = ['text.txt']
+    task.parameters_file = "test.parm"
+    task.results_files_names = ["text_file_from_ansys.dat"]
+    # task.solve()
     case.save_config()
 
     with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
