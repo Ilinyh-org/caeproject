@@ -2,7 +2,6 @@ from pathlib import Path
 
 from caetask import CAETask, log_execution_time
 from subprocess import Popen
-import os
 
 import shutil
 from importlib.resources import files
@@ -55,20 +54,16 @@ class CFDPostTask(CAETask):
         shutil.copy2(Path(src), self._working_directory)
 
         if self._parameters_file:
-            with open(os.path.join(os.path.abspath(self._working_directory),
-                                   os.path.basename(self._parameters_file)), 'w') as f:
+            with open(self._working_directory.absolute() / self._parameters_file.name, 'w') as f:
                 f.writelines(self._parameters_file_code)
         if self._input_file:
-            with open(os.path.join(os.path.abspath(self._working_directory),
-                                   os.path.basename(self._input_file)), 'w') as f:
+            with open(self._working_directory.absolute() / self._input_file.name, 'w') as f:
                 f.writelines(self._input_file_code)
-        print(f"запущен расчёт cfdpost задачи {os.path.basename(self._input_file)}")
+        print(f"запущен расчёт cfdpost задачи {self._input_file.name}")
         # составляем список команд и аттрибутов для запуска
-        application = [f'{os.path.join('"%AWP_ROOT' + self._application_version + '%"',
-                                       'CFD-Post',
-                                       'bin',
-                                       'cfdpost.exe')}',
-                       '-batch', os.path.basename(self._input_file)]
+        application = [f'"{str(Path('%AWP_ROOT' + self._application_version + '%') / 'CFD-Post' / 'bin' / 'cfdpost.exe')}"',
+                       '-batch', self._input_file.name]
+
         if self._results_file_name:
             application.append('-results')
             application.append(self._results_file_name)
@@ -79,7 +74,7 @@ class CFDPostTask(CAETask):
                                   shell=True,
                                   stdout=f,
                                   cwd=self._working_directory).wait()
-        print(f"закончена обработка результатов {os.path.basename(self._input_file)}")
+        print(f"закончена обработка результатов {self._input_file.name}")
 
     def to_dict(self):
         data = super().to_dict()

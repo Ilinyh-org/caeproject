@@ -127,7 +127,7 @@ class APDLTask(CAETask):
         # добавление ссылок на дополнительные файлы
         for file in self._additional_link_files:
             src = file
-            dst = os.path.join(tempdir.name, os.path.basename(file))
+            dst = Path(tempdir.name) / Path(file).name
             if self._copy_link_files:
                 shutil.copy2(src, tempdir.name)
                 continue
@@ -175,24 +175,21 @@ class APDLTask(CAETask):
 
         # составляем список команд и аттрибутов для запуска
         # для запуска используется переменная среды типа ansys180_dir
-        application = [f'"{os.path.join('%ansys' + self._application_version + '_dir%',
-                                        'bin',
-                                        'winx64',
-                                        'ansys' + self._application_version)}"',
+        application = [f'"{str(Path('%ansys' + self._application_version + '_dir%') / 'bin' / 'winx64' / ('ansys' + self._application_version))}"',
                        '-b',
                        '-m', self._memory_size,
                        '-db', self._database_size,
                        '-dir', tempdir.name,
                        '-np', self._cores,
                        '-j', self._name,
-                       '-i', os.path.basename(self._input_file),
-                       '-o', os.path.join(tempdir.name, self.log_file_name)]
+                       '-i', self._input_file.name,
+                       '-o', str(Path(tempdir.name) / self.log_file_name)]
         if self._geometry_file:
             application += ['-gtmfile', self._geometry_file]
         if self._results_file_name:
             application += ['-resfile', self._results_file_name]
         if self._parameters_file:
-            application += ['-parfile', os.path.basename(self._parameters_file)]
+            application += ['-parfile', self._parameters_file.name]
         if self._new_parameter_name:  # no new parameters
             if type(self._new_parameter_name) == list:  # list of  new parameter
                 for a, b in zip(self._new_parameter_name, self._new_parameter_value):
@@ -210,24 +207,24 @@ class APDLTask(CAETask):
         print("закончен расчёт ансис задачи " +
               self._name +
               " во временной директории " +
-              os.path.basename(tempdir.name))
+              Path(tempdir.name).name)
 
         # переносим результаты в папку результатов
         for file in self._results_files_names:
             try:
-                shutil.copy2(os.path.join(tempdir.name, file), self._results_directory)
+                shutil.copy2(Path(tempdir.name) / file, self._results_directory)
                 print(
                     f"Файл {file} ансис задачи {self._name} скопирован из "
-                    f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory)}")
+                    f"{Path(tempdir.name).name} в {self._results_directory.name}")
             except OSError:
                 print(f"Файл {file} не найден для копирования в {self._results_directory}")
 
         # переносим файл лога в папку результатов
         try:
-            shutil.copy2(os.path.join(tempdir.name, self._log_file_name), self._results_directory)
+            shutil.copy2(Path(tempdir.name) / self._log_file_name, self._results_directory)
             print(
                 f"Файл лога {self._log_file_name} ансис задачи {self._name} скопирован из "
-                f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory)}")
+                f"{Path(tempdir.name).name} в {self._results_directory.name}")
         except OSError:
             print(f"Файл лога {self._log_file_name} не найден для копирования в {self._results_directory}")
 

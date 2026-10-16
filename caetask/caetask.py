@@ -1,4 +1,4 @@
-import os
+
 from abc import ABC, abstractmethod
 import time
 import datetime
@@ -121,7 +121,7 @@ class CAETask(ABC, Serializable):
 
     def __str__(self):
         output = 'имя задачи: ' + self.name + '\n'
-        output += 'исполняемый файл: ' + str(os.path.basename(self._input_file)) + '\n'
+        output += 'исполняемый файл: ' + str(self._input_file.name) + '\n'
         if self._parameters_file:
             output += 'файл параметров: ' + self._parameters_file + '\n'
         output += 'файл логов: ' + self.log_file_name + '\n'
@@ -288,7 +288,7 @@ class CAETask(ABC, Serializable):
         return self._additional_text_files
 
     @additional_text_files.setter
-    def additional_text_files(self, flist):
+    def additional_text_files(self, flist: Path | list[Path] | None):
         check_attribute(self)
         if type(flist) is not list:
             flist = [flist]
@@ -297,9 +297,9 @@ class CAETask(ABC, Serializable):
                 with open(file, encoding="utf-8") as f:
                     self._additional_text_files.append((file.name, f.readlines()))
             except FileNotFoundError:
-                raise FileNotFoundError(os.path.abspath(file) + " не найден")
+                raise FileNotFoundError(file.name + " не найден")
             except UnicodeDecodeError:
-                raise UnicodeDecodeError(f"Ошибка в кодировке файла {os.path.abspath(file)}")
+                raise UnicodeDecodeError(f"Ошибка в кодировке файла {file.absolute()}")
 
     @property
     def additional_link_files(self):

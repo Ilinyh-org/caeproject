@@ -67,7 +67,7 @@ class FluentTask(CAETask):
         # добавление ссылок на дополнительные файлы
         for file in self._additional_link_files:
             src = file
-            dst = os.path.join(tempdir.name, os.path.basename(file))
+            dst = Path(tempdir.name) / Path(file).name
             if self._copy_link_files:
                 shutil.copy2(src, tempdir.name)
                 continue
@@ -98,36 +98,32 @@ class FluentTask(CAETask):
 
         # чтение исходных файлов и запись их в рабочей директории
         if self._parameters_file:
-            with open(os.path.join(tempdir.name, os.path.basename(self._parameters_file)), 'w') as f:
+            with open(Path(tempdir.name) / self._parameters_file.name, 'w') as f:
                 f.writelines(self._parameters_file_code)
         if self._input_file:
-            with open(os.path.join(tempdir.name, os.path.basename(self._input_file)), 'w') as f:
+            with open(Path(tempdir.name) / self._input_file.name, 'w') as f:
                 f.writelines(self._input_file_code)
 
         for file in self._additional_text_files:
-            with open(os.path.join(tempdir.name, os.path.basename(file[0])), 'w') as f:
+            with open(Path(tempdir.name) / file[0].name, 'w') as f:
                 f.writelines(file[1])
 
         print("запущен расчёт Fluent задачи \"" +
-              os.path.basename(self._input_file) + "\"" +
+              self._input_file.name + "\"" +
               " во временной директории " +
-              os.path.basename(tempdir.name))
+              tempdir.name)
 
-        application = [f'"{os.path.join('%AWP_ROOT' + self._application_version + '%',
-                                        'fluent',
-                                        'ntbin',
-                                        'win64',
-                                        'fluent.exe')}"',
+        application = [f'"{str(Path('%AWP_ROOT' + self._application_version + '%') / 'fluent' / 'ntbin' / 'win64' / 'fluent.exe')}"',
                        self._dimension,
                        # '-r', self.__application_version[0:2] + '.' + self.__application_version[2:3] + '.0',
                        *(['-' + self._graphics_regime] if self._graphics_regime is not None else []),  # run without graphics
-                       '-i', os.path.basename(self._input_file)]
+                       '-i', self._input_file.name]
 
         # создание ссылок или копирование дополнительных нетекстовых файлов
         self.__organize_additional_link_files(tempdir)
 
         # создание процесса по сконфигурированному application
-        with open(os.path.join(tempdir.name, self.log_file_name), 'w') as f:
+        with open(Path(tempdir.name) / self.log_file_name, 'w') as f:
             self._process = Popen(' '.join(application),
                                   shell=True,
                                   stdout=f,
@@ -135,7 +131,7 @@ class FluentTask(CAETask):
         print("закончен расчёт ансис задачи " +
               self.name +
               " во временной директории " +
-              os.path.basename(tempdir.name))
+              Path(tempdir.name).name)
 
         # делаем проверку на регулярные выражения и расширяем список файлов с их учётом
         results_files_names_to_add = []
@@ -156,18 +152,18 @@ class FluentTask(CAETask):
         # переносим результаты в папку результатов
         for file in self._results_files_names:
             try:
-                shutil.copy2(os.path.join(tempdir.name, file), self._results_directory)
+                shutil.copy2(Path(tempdir.name) / file, self._results_directory)
                 print(f"Файл {file} fluent задачи {self.name} скопирован из "
-                      f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory)}")
+                      f"{tempdir.name} в {self._results_directory.name}")
             except OSError:
                 print(f"Файл {file} не найден для копирования в {self._results_directory}")
 
         # переносим файл лога в папку результатов
         try:
-            shutil.copy2(os.path.join(tempdir.name, self._log_file_name), self._results_directory)
+            shutil.copy2(Path(tempdir.name) / self._log_file_name, self._results_directory)
             print(
                 f"Файл лога {self._log_file_name} fluent задачи {self._name} скопирован из "
-                f"{os.path.basename(tempdir.name)} в {os.path.basename(self._results_directory)}")
+                f"{tempdir.name} в {self._results_directory.name}")
         except OSError:
             print(f"Файл лога {self._log_file_name} не найден для копирования в {self._results_directory}")
 
@@ -210,6 +206,8 @@ class FluentTask(CAETask):
             "dimension": self._dimension,
             "threads": self._threads,
         })
+
+        #data.update({"paths": [self.serialize(p, relative_to=self.base_path) for p in self._additional_text_files]})
 
         data["parameters_file"] = self.serialize(
             self._parameters_file,
