@@ -39,9 +39,6 @@ class FluentTask(CAETask):
             parameters_file=parameters_file,
             results_files_names=results_files_names
         )
-        self._additional_text_files = []
-        self._additional_text_files_codes = []
-        self._additional_link_files = []
         self._copy_link_files = False
         self._results_directory = self.base_path
         # self.__working_directory_path = os.path.abspath(os.curdir)
@@ -63,50 +60,13 @@ class FluentTask(CAETask):
         output += 'количество потоков в задаче: ' + str(self._threads) + '\n'
         return output
 
-    def __organize_additional_link_files(self, tempdir):
-        # добавление ссылок на дополнительные файлы
-        for file in self._additional_link_files:
-            src = file
-            dst = Path(tempdir.name) / Path(file).name
-            if self._copy_link_files:
-                shutil.copy2(src, tempdir.name)
-                continue
-            try:  # создание символьной ссылки
-                os.symlink(src, dst, target_is_directory=False, dir_fd=None)
-            except OSError as e:
-                if e.winerror == 1314:
-                    print("Ошибка 1314: Недостаточно прав для создания символьной ссылки. \n"
-                          "Рекомендуем включить Режим Разрботчика. Сейчас будет создана жёсткая ссылка")
-                    try:  # создание жёсткой ссылки
-                        os.link(src, dst)
-                    except OSError as e:
-                        if e.winerror == 17:
-                            raise OSError(
-                                "Ошибка 1314: Не удалось создать жёсткую ссылку, т.к. файл на другом разделе.\n"
-                                "Для прямого копирования файлов вместо создания ссылок, "
-                                "укажите параметр copy_link_files=True в конструкторе\n")
-                        else:
-                            raise OSError(f"Произошла ошибка OSError: {e}")
-                else:
-                    raise OSError(f"Произошла ошибка OSError: {e}")
-
     @log_execution_time()
     def solve(self, cleanup=True):
         tempdir = tempfile.TemporaryDirectory(dir=self._temporary_directory)
 
-        self.load_inputs()
+        self.load_files()
 
-        # чтение исходных файлов и запись их в рабочей директории
-        if self._parameters_file:
-            with open(Path(tempdir.name) / self._parameters_file.name, 'w') as f:
-                f.writelines(self._parameters_file_code)
-        if self._input_file:
-            with open(Path(tempdir.name) / self._input_file.name, 'w') as f:
-                f.writelines(self._input_file_code)
-
-        for file in self._additional_text_files:
-            with open(Path(tempdir.name) / file[0].name, 'w') as f:
-                f.writelines(file[1])
+        self._create_files_in_running_dir(tempdir)
 
         print("запущен расчёт Fluent задачи \"" +
               self._input_file.name + "\"" +
@@ -120,7 +80,7 @@ class FluentTask(CAETask):
                        '-i', self._input_file.name]
 
         # создание ссылок или копирование дополнительных нетекстовых файлов
-        self.__organize_additional_link_files(tempdir)
+        self._organize_additional_link_files(tempdir)  #move above
 
         # создание процесса по сконфигурированному application
         with open(Path(tempdir.name) / self.log_file_name, 'w') as f:
@@ -200,7 +160,6 @@ class FluentTask(CAETask):
             "results_files_names": self._results_files_names,
             "additional_text_files": self._additional_text_files,
             "additional_text_files_codes": self._additional_text_files_codes,
-            "additional_link_files": self._additional_link_files,
             "copy_link_files": self._copy_link_files,
             "application_version": self._application_version,
             "dimension": self._dimension,

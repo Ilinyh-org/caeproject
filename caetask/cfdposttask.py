@@ -46,19 +46,20 @@ class CFDPostTask(CAETask):
             output += 'файл результатов (входных): ' + self._results_file_name + '\n'
         return output
 
-    @log_execution_time()
-    def solve(self):
-        self.load_inputs()
+    def _create_files_in_running_dir(
+            self,
+            dst_path: Path | str | None):
+        dst_path = super()._create_files_in_running_dir(dst_path)
 
         src = files("data") / "JsonConfig.pm"
-        shutil.copy2(Path(src), self._working_directory)
+        shutil.copy2(src, dst_path)
 
-        if self._parameters_file:
-            with open(self._working_directory.absolute() / self._parameters_file.name, 'w') as f:
-                f.writelines(self._parameters_file_code)
-        if self._input_file:
-            with open(self._working_directory.absolute() / self._input_file.name, 'w') as f:
-                f.writelines(self._input_file_code)
+    @log_execution_time()
+    def solve(self):
+        self.load_files()
+
+        self._create_files_in_running_dir(self._working_directory.absolute())
+
         print(f"запущен расчёт cfdpost задачи {self._input_file.name}")
         # составляем список команд и аттрибутов для запуска
         application = [f'"{str(Path('%AWP_ROOT' + self._application_version + '%') / 'CFD-Post' / 'bin' / 'cfdpost.exe')}"',

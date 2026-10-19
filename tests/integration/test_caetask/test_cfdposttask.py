@@ -86,7 +86,8 @@ def test_cfdpost_print(tmpdir, cse_cfdpost_file, capsys):
 @pytest.mark.positive
 def test_task_to_dict(tmpdir, cse_cfdpost_file):
     os.chdir(tmpdir)
-    expected_result = {'type': 'cfdpost',
+    expected_result = {'additional_link_files': None,
+                       'type': 'cfdpost',
                        'application_version': '212',
                        'name': 'test',
                        'working_directory': str(tmpdir),

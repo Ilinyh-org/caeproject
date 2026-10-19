@@ -1,4 +1,6 @@
-
+import os
+import shutil
+import tempfile
 from abc import ABC, abstractmethod
 import time
 import datetime
@@ -58,6 +60,8 @@ class CAETask(ABC, Serializable):
         self._parameters_file_code: list[str] | None = None
 
         self._additional_text_files = None
+        self._additional_text_files_codes = None
+        self._additional_link_files = None
         self._copy_link_files = None
 
         self._process = None
@@ -84,9 +88,26 @@ class CAETask(ABC, Serializable):
         """Prepare data for serialization."""
         data = super().to_dict()
 
-        data.update({"log_file_name": self.log_file_name})
+        # input file
+        if self.case:
+            data.update({"input_file": str(self.input_file.relative_to(self.case.path))})
+        else:
+            data.update({"input_file": str(self.input_file)})
 
-        data.update({"input_file": str(self.input_file)})
+        # additional link files
+        if self.additional_link_files:
+            additional_link_files = []
+            for additional_link_file in self.additional_link_files:
+                if self.case:
+                    additional_link_files.append(str(additional_link_file.relative_to(self.case.path)))
+                else:
+                    additional_link_files.append(str(additional_link_file))
+            data.update({"additional_link_files": additional_link_files})
+        else:
+            data.update({"additional_link_files": self.additional_link_files})
+
+        # log file
+        data.update({"log_file_name": self.log_file_name})
 
         return data
 
@@ -179,7 +200,7 @@ class CAETask(ABC, Serializable):
 
         return destination, code
 
-    def load_inputs(self):
+    def load_files(self):
         self._input_file, self._input_file_code = (
             self._prepare_file(self._input_file)
         )
@@ -187,6 +208,58 @@ class CAETask(ABC, Serializable):
         self._parameters_file, self._parameters_file_code = (
             self._prepare_file(self._parameters_file)
         )
+
+    def _create_files_in_running_dir(
+            self,
+            dst_path: Path | str | tempfile.TemporaryDirectory | None) -> Path:
+
+        if isinstance(dst_path, str):
+            dst_path = Path(dst_path)
+        elif isinstance(dst_path, tempfile.TemporaryDirectory):
+            dst_path = Path(dst_path.name)
+
+        if self._parameters_file:
+            with open(dst_path / self._parameters_file.name, 'w') as f:
+                f.writelines(self._parameters_file_code)
+        if self._input_file:
+            with open(dst_path / self._input_file.name, 'w') as f:
+                f.writelines(self._input_file_code)
+        if self._additional_text_files:
+            for file in self._additional_text_files:
+                with open(dst_path / file[0], 'w') as f:
+                    f.writelines(file[1])
+
+        return dst_path
+
+    def _organize_additional_link_files(self, tempdir):
+        # добавление ссылок на дополнительные файлы
+        if self.additional_link_files is None:
+            return
+
+        for file in self._additional_link_files:
+            src = file
+            dst = Path(tempdir.name) / Path(file).name
+            if self._copy_link_files:
+                shutil.copy2(src, tempdir.name)
+                continue
+            try:  # создание символьной ссылки
+                os.symlink(src, dst, target_is_directory=False, dir_fd=None)
+            except OSError as e:
+                if e.winerror == 1314:
+                    print("Ошибка 1314: Недостаточно прав для создания символьной ссылки. \n"
+                          "Рекомендуем включить Режим Разработчика. Сейчас будет создана жёсткая ссылка")
+                    try:  # создание жёсткой ссылки
+                        os.link(src, dst)
+                    except OSError as e:
+                        if e.winerror == 17:
+                            raise OSError(
+                                "Ошибка 1314: Не удалось создать жёсткую ссылку, т.к. файл на другом разделе.\n"
+                                "Для прямого копирования файлов вместо создания ссылок, "
+                                "укажите параметр copy_link_files=True в конструкторе\n")
+                        else:
+                            raise OSError(f"Произошла ошибка OSError: {e}")
+                else:
+                    raise OSError(f"Произошла ошибка OSError: {e}")
 
     @classmethod
     def _increment_counter(cls):
@@ -290,6 +363,13 @@ class CAETask(ABC, Serializable):
     @additional_text_files.setter
     def additional_text_files(self, flist: Path | list[Path] | None):
         check_attribute(self)
+
+        if flist is None:
+            return
+
+        if self._additional_text_files is None:
+            self._additional_text_files = []
+
         if type(flist) is not list:
             flist = [flist]
         for file in flist:
@@ -307,12 +387,26 @@ class CAETask(ABC, Serializable):
         return self._additional_link_files
 
     @additional_link_files.setter
-    def additional_link_files(self, flist: list[Path] | Path):
+    def additional_link_files(self, flist: list[Path] |  list[str] | Path):
         check_attribute(self)
+
+        if flist is None:
+            return
+
         if type(flist) is not list:
             flist = [flist]
+
+        if self._additional_link_files is None:
+            self._additional_link_files = []
+
+
+
         for file in flist:
-            self._additional_link_files.append(file)
+            file_path = Path(file)
+            if not file_path.is_absolute():
+                if self.case:
+                    file_path = self.case.path / file_path
+            self._additional_link_files.append(file_path)
 
     @property
     def copy_link_files(self):

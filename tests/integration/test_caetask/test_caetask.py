@@ -312,7 +312,7 @@ def test_load_inputs_input_file(tmpdir, apdl_file):
 
     task = APDLTask.create_new('test')
     task.input_file = apdl_file
-    task.load_inputs()
+    task.load_files()
 
     actual_input_file_code = task._input_file_code
 
@@ -325,7 +325,7 @@ def test_load_inputs_parameters_file(tmpdir, apdl_parameters_file):
 
     task = APDLTask.create_new('test')
     task.parameters_file = apdl_parameters_file
-    task.load_inputs()
+    task.load_files()
 
     actual_parameters_file_code = task._parameters_file_code
 
@@ -341,7 +341,7 @@ def test_load_inputs_input_file_FileNotFoundError(tmpdir):
     task.input_file = "test.inp"
 
     with pytest.raises(expected_error) as exc:
-        task.load_inputs()
+        task.load_files()
 
     assert expected_error_message in str(exc.value)
 
@@ -355,6 +355,6 @@ def test_load_inputs_parameters_file_FileNotFoundError(tmpdir):
     task.parameters_file = "test.parm"
 
     with pytest.raises(expected_error) as exc:
-        task.load_inputs()
+        task.load_files()
 
     assert expected_error_message in str(exc.value)

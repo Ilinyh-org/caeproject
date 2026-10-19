@@ -269,9 +269,9 @@ def test_fluent__str__(tmpdir, scm_simple_file, capsys):
 def test_task_to_dict(tmpdir, scm_simple_file):
     os.chdir(tmpdir)
     expected_result = {'type': 'fluent',
-                       'additional_link_files': [],
-                       'additional_text_files': [],
-                       'additional_text_files_codes': [],
+                       'additional_link_files': None,
+                       'additional_text_files': None,
+                       'additional_text_files_codes': None,
                        'application_version': '212',
                        'copy_link_files': False,
                        'name': 'test',
@@ -298,9 +298,9 @@ def test_task_to_dict(tmpdir, scm_simple_file):
 def test_task_to_dict_after_solve(tmpdir, scm_simple_file):
     os.chdir(tmpdir)
     expected_result = {'type': 'fluent',
-                       'additional_link_files': [],
-                       'additional_text_files': [],
-                       'additional_text_files_codes': [],
+                       'additional_link_files': None,
+                       'additional_text_files': None,
+                       'additional_text_files_codes': None,
                        'application_version': '212',
                        'copy_link_files': False,
                        'name': 'test',

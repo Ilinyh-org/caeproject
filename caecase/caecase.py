@@ -251,6 +251,12 @@ class CAECase(Serializable):
 
         return filename
 
+    def save_config(self, directory: Path | None = None):
+        for task in self.tasks:
+            task.load_files()
+
+        super().save_config()
+
     @property
     def needs_solving(self) -> bool:
         return self.status != CaseStatus.DONE

@@ -281,9 +281,9 @@ def test_case_safe_config_task(tmp_path, apdl_file):
         "files": ["test.inp"],
         'tasks': [{
             'type': 'apdl',
-            'additional_link_files': [],
-            'additional_text_files': [],
-            'additional_text_files_codes': [],
+            'additional_link_files': None,
+            'additional_text_files': None,
+            'additional_text_files_codes': None,
             'application_version': '212',
             'copy_link_files': False,
             'cores': '2',
@@ -324,12 +324,12 @@ def test_case_safe_config_task(tmp_path, apdl_file):
 def test_case_safe_config_task_link_files(tmp_path, apdl_file, text_file):
     expected_config = {
         "parameters": {'A1': {'value': 2}, 'B1': {'value': 3}},
-        "files": ["test.inp"],
+        "files": ["test.inp", 'text.txt'],
         'tasks': [{
             'type': 'apdl',
             'additional_link_files': ['text.txt'],
-            'additional_text_files': [],
-            'additional_text_files_codes': [],
+            'additional_text_files': None,
+            'additional_text_files_codes': None,
             'application_version': '212',
             'copy_link_files': False,
             'cores': '2',
@@ -378,9 +378,9 @@ def config_file(tmp_path_factory):
         'tasks': [{
             'type':'apdl',
             'name': 'test',
-            'additional_link_files': [],
-            'additional_text_files': [],
-            'additional_text_files_codes': [],
+            'additional_link_files': None,
+            'additional_text_files': None,
+            'additional_text_files_codes': None,
             'application_version': '212',
             'copy_link_files': False,
             'cores': '2',
