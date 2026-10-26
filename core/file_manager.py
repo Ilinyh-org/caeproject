@@ -1,4 +1,9 @@
+"""Filesystem helpers for CAE cases and projects.
 
+Provides functions to create case directories and copy or write
+files, plus :class:`FileManager` for project directories with
+converter-based serialization and debounced async saving.
+"""
 import asyncio
 import json
 import shutil
@@ -45,6 +50,7 @@ def save(
     path: Path,
     filename: str = None,
 ):
+    """Write string ``data`` to ``path/filename`` on disk."""
 
     _write_to_disk(
         data,
@@ -75,6 +81,13 @@ def load_from_disk(path: Path) -> Dict[str, Any]:
 
 
 class FileManager:
+    """File manager for a project directory.
+
+    Tracks the files belonging to the project, resolves converters
+    through a :class:`~data_converter.registry.ConverterRegistry`, and
+    supports debounced asynchronous saving of dictionary data.
+    """
+
     def __init__(self,
                  base_path: Path = None,
                  converter_registry: ConverterRegistry = None):
@@ -94,6 +107,7 @@ class FileManager:
             base_path: Path,
             name: str,
     ) -> Path:
+        """Create (if needed) and return the project directory ``base_path/name``."""
 
         dir_name = name
         dir_path = base_path / dir_name
@@ -128,6 +142,7 @@ class FileManager:
 
     @property
     def files(self) -> list[str]:
+        """Names of the files currently tracked by the manager."""
         return self._files
 
     @files.setter

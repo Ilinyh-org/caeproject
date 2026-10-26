@@ -1,3 +1,9 @@
+"""ANSYS Mechanical APDL solver task.
+
+Provides :class:`APDLTask`, a :class:`~caetask.caetask.CAETask` that
+runs an APDL input file in batch mode from a temporary directory and
+copies the results and log back into the results directory.
+"""
 import os
 import shutil
 import tempfile
@@ -8,6 +14,14 @@ from caetask import CAETask, log_execution_time
 
 
 class APDLTask(CAETask):
+    """Task that runs an ANSYS Mechanical APDL calculation.
+
+    Configures solver resources (cores, memory, database size),
+    optional extra command-line parameters, and launches the APDL
+    executable registered for the configured application version in
+    batch mode.
+    """
+
     TYPE = "apdl"
     SERIALIZABLE_FIELDS = (
         "additional_link_files",
@@ -196,6 +210,7 @@ class APDLTask(CAETask):
 
     @property
     def geometry_file(self):
+        """Path to the geometry (.gtm) file passed via ``-gtmfile``."""
         return self._geometry_file
 
     @geometry_file.setter
@@ -204,6 +219,7 @@ class APDLTask(CAETask):
 
     @property
     def cores(self):
+        """Number of CPU cores for the solver (stored as a string)."""
         return self._cores
 
     @cores.setter
@@ -212,6 +228,7 @@ class APDLTask(CAETask):
 
     @property
     def new_parameter_name(self):
+        """Name (or list of names) of extra command-line parameter(s)."""
         return self._new_parameter_name
 
     @new_parameter_name.setter
@@ -220,6 +237,7 @@ class APDLTask(CAETask):
 
     @property
     def new_parameter_value(self):
+        """Value (or list of values) matching ``new_parameter_name``."""
         return self._new_parameter_value
 
     @new_parameter_value.setter
@@ -228,6 +246,7 @@ class APDLTask(CAETask):
 
     @property
     def memory_size(self):
+        """Total solver workspace memory in MB (stored as a string)."""
         return self._memory_size
 
     @memory_size.setter
@@ -236,6 +255,7 @@ class APDLTask(CAETask):
 
     @property
     def database_size(self):
+        """Solver database memory in MB (stored as a string)."""
         return self._database_size
 
     @database_size.setter
@@ -244,4 +264,5 @@ class APDLTask(CAETask):
 
     @property
     def status(self):
+        """Solver process status: ``None`` while running, else the exit code."""
         return self._process.poll()

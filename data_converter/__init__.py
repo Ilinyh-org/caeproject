@@ -1,4 +1,11 @@
 # data_converter/__init__.py
+"""Data format converters package.
+
+Exposes the :class:`~data_converter.base.DataConverter` interface, the
+:class:`~data_converter.registry.ConverterRegistry`, a factory for a
+default registry, and the built-in JSON, APDL, and indented-scheme
+converters.
+"""
 
 from .base import DataConverter
 from .registry import ConverterRegistry

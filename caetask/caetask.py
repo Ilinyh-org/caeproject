@@ -1,3 +1,12 @@
+"""Abstract base class for CAE solver tasks.
+
+Provides :class:`CAETask`, which wraps a main input file with an
+optional parameters file and additional text/link files, prepares
+them into a run directory, tracks per-class instance counts, and
+serializes itself via ``SERIALIZABLE_FIELDS``. Also provides the
+:func:`log_execution_time` decorator used by concrete ``solve``
+implementations.
+"""
 import os
 import shutil
 import tempfile
@@ -13,6 +22,12 @@ from core.serialization import Serializable
 
 
 def check_attribute(class_object):
+    """Raise AttributeError unless the caller's property is backed by a private attribute.
+
+    Uses the calling function's name (via ``sys._getframe``) and checks
+    that ``class_object`` has the corresponding ``_<name>`` attribute,
+    guarding properties that only concrete subclasses define.
+    """
     attr_name = sys._getframe(1).f_code.co_name
 
     private_name = f'_{attr_name}'
@@ -23,6 +38,15 @@ def check_attribute(class_object):
 
 
 class CAETask(ABC, Serializable):
+    """Abstract base class for all CAE solver tasks.
+
+    A task references its main input file, optional parameters file,
+    and additional text/link files; loads and prepares them into the
+    run directory; and exposes configurable properties (name, log
+    file, application version, directories). Subclasses implement
+    :meth:`solve` to launch the actual solver.
+    """
+
     _class_counts = {}  # Словарик для хранения счётчиков по классам
 
     def __init__(
@@ -69,6 +93,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def case(self):
+        """The case this task belongs to, or None if unattached."""
         return self._case
 
     @classmethod
@@ -77,6 +102,7 @@ class CAETask(ABC, Serializable):
             name: str | None = None,
             base_path: Path | None = None,
     ):
+        """Create a task instance with the given name under ``base_path``."""
         base_path = cls.normalize_path(base_path)
 
         return cls(
@@ -201,6 +227,11 @@ class CAETask(ABC, Serializable):
         return destination, code
 
     def load_files(self):
+        """Resolve and read the input and parameters files.
+
+        External files are copied into the case directory; each file's
+        resolved path and text contents are cached for the run.
+        """
         self._input_file, self._input_file_code = (
             self._prepare_file(self._input_file)
         )
@@ -276,6 +307,7 @@ class CAETask(ABC, Serializable):
 
     @classmethod
     def reset(cls):
+        """Zero the instance counters: all classes when called on CAETask, else only this class."""
         if cls is CAETask:
             for key in cls._class_counts:
                 cls._class_counts[key] = 0
@@ -284,14 +316,17 @@ class CAETask(ABC, Serializable):
 
     @abstractmethod
     def solve(self):
+        """Run the task; implemented by concrete task subclasses."""
         ...
 
     @classmethod
     def count(cls):
+        """Number of currently living instances of this task class."""
         return CAETask._class_counts.get(cls, 0)
 
     @property
     def name(self):
+        """Task name (the setter coerces the value to ``str``)."""
         return self._name
 
     @name.setter
@@ -300,6 +335,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def input_file(self) -> Path | None:
+        """Path to the task's main input file, or None."""
         return self._input_file
 
     @input_file.setter
@@ -319,10 +355,12 @@ class CAETask(ABC, Serializable):
 
     @property
     def input_file_path(self) -> Path | None:
+        """Resolved path of the prepared input file, set by :meth:`load_files`."""
         return self._input_file_path
 
     @property
     def log_file_name(self) -> str:
+        """Log file name, defaulting to ``<task name>.log``."""
         if self._log_file_name is None:
             self._log_file_name = f"{self.name}.log"
         return self._log_file_name
@@ -333,6 +371,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def parameters_file(self) -> Path | None:
+        """Path to the task's parameters file, or None."""
         return self._parameters_file
 
     @parameters_file.setter
@@ -353,10 +392,12 @@ class CAETask(ABC, Serializable):
 
     @property
     def parameters_file_path(self) -> Path | None:
+        """Resolved path of the prepared parameters file, set by :meth:`load_files`."""
         return self._parameters_file_path
 
     @property
     def additional_text_files(self):
+        """Text files inlined into the run directory as ``(name, lines)`` tuples."""
         check_attribute(self)
         return self._additional_text_files
 
@@ -383,6 +424,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def additional_link_files(self):
+        """Extra files linked (or copied) into the run directory at solve time."""
         check_attribute(self)
         return self._additional_link_files
 
@@ -410,6 +452,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def copy_link_files(self):
+        """If True, copy additional link files instead of symlinking them."""
         check_attribute(self)
         return self._copy_link_files
 
@@ -421,6 +464,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def results_file_name(self):
+        """Optional explicit single result file name."""
         check_attribute(self)
         return self._results_file_name
 
@@ -431,6 +475,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def results_files_names(self):
+        """Names of the result files produced by the task (always a list)."""
         return self._results_files_names
 
     @results_files_names.setter
@@ -444,6 +489,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def application_version(self):
+        """Target application version string (e.g. ``"212"``)."""
         check_attribute(self)
         return self._application_version
 
@@ -454,6 +500,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def working_directory(self) -> Path:
+        """Directory the task runs in, or None if unset."""
         check_attribute(self)
         return self._working_directory
 
@@ -466,6 +513,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def temporary_directory(self):
+        """Parent directory for the task's temporary run directories, or None."""
         check_attribute(self)
         return self._temporary_directory
 
@@ -476,6 +524,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def results_directory(self):
+        """Directory result files are copied into after the run, or None."""
         check_attribute(self)
         return self._results_directory
 

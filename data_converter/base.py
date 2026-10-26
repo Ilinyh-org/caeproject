@@ -1,3 +1,9 @@
+"""Data converter interface and shared helpers.
+
+Defines the :class:`DataConverter` abstract base class every format
+converter implements and the :func:`is_parameter` predicate used to
+recognize unit-aware parameter dictionaries.
+"""
 from typing import Dict, Any
 from abc import ABC, abstractmethod
 
@@ -17,4 +23,5 @@ class DataConverter(ABC):
 
 
 def is_parameter(data: dict):
+    """Return True if the dict looks like a parameter (has a 'value' key)."""
     return 'value' in data

@@ -1,4 +1,11 @@
 #core/node.py
+"""Hierarchical parameter tree node.
+
+Provides :class:`Node`, a tree of named children holding
+:class:`~core.parameter.Parameter` values, supporting attribute and
+item access with auto-creation of nested nodes, and conversion to
+dicts, DataFrames, or converted unit systems.
+"""
 from core.parameter import Parameter
 import weakref
 import pandas as pd
@@ -158,6 +165,13 @@ class Node:
         return result
 
     def to_units_system(self, **filters):
+        """Recursively convert parameter units to a new unit system.
+
+        Keyword args:
+            new_system: target unit system passed to each
+                :meth:`Parameter.to_units_system` call.
+            include/exclude: optional key filters, as in :meth:`to_dict`.
+        """
         new_system = filters.get('new_system')
 
         include = filters.get('include')
@@ -181,4 +195,5 @@ class Node:
 
     @property
     def parent(self):
+        """Parent node, or None for a root node."""
         return self._parent() if self._parent else None

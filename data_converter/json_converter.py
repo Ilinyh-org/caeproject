@@ -1,3 +1,8 @@
+"""JSON data converter.
+
+Provides :class:`JSONConverter`, which serializes a parameter
+dictionary to a pretty-printed JSON string.
+"""
 import json
 from typing import Dict, Any
 
