@@ -1,3 +1,4 @@
+"""Integration tests for caetask runners executing user task functions."""
 import os
 import pytest
 from caetask import run_processes, run_threads
@@ -8,6 +9,7 @@ lock = Lock()
 
 
 def create_task_chdir(index):  # задаётся пользователем
+    """Create a unique timestamped subdirectory, chdir into it and return the parent directory name."""
     import datetime
     import time
     import random
@@ -38,6 +40,7 @@ def create_task_chdir(index):  # задаётся пользователем
                           ([1, 2, 3, 4, 5, 6, 7, 8, 9], 9),
                           ([1, 2, 3, 4], 8)])
 def test_multitask_chdir(tmpdir, input_data, capsys):
+    """Verify run_processes workers each land in a subdirectory of the expected parent path."""
     tasks_input_data = input_data[0]
     max_workers = input_data[1]
     expected_path = os.path.basename(os.path.abspath(tmpdir))
