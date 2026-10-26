@@ -1,9 +1,11 @@
+"""Unit tests for CAEProject: project creation and results aggregation."""
 from caeproject import CAEProject
 import pandas as pd
 from unittest.mock import MagicMock
 
 
 def test_project_initialization(tmp_path):
+    """Verify CAEProject.create_new creates the project directory under the given base path."""
     CAEProject.create_new(base_path=tmp_path)
     expected_project_dir = tmp_path / "project"
 
@@ -11,6 +13,7 @@ def test_project_initialization(tmp_path):
 
 
 def test_project_initialization_custom_name(tmp_path):
+    """Verify create_new honours a custom project name for the project directory."""
     CAEProject.create_new(base_path=tmp_path, name="myproject")
     expected_project_dir = tmp_path / "myproject"
 
@@ -18,6 +21,7 @@ def test_project_initialization_custom_name(tmp_path):
 
 
 def test_project_get_results():
+    """Verify get_results merges each case's parameters and results into one DataFrame."""
     expected_result = pd.DataFrame({
         "H1": [0.01, 0.02],
         "NES_H1": [2, 2],
