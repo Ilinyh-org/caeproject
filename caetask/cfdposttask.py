@@ -1,3 +1,9 @@
+"""CFD-Post post-processing task.
+
+Provides :class:`CFDPostTask`, a :class:`~caetask.caetask.CAETask`
+that runs ANSYS CFD-Post in batch mode on a results file using a
+CSE session input file.
+"""
 from pathlib import Path
 
 from caetask import CAETask, log_execution_time
@@ -7,6 +13,13 @@ import shutil
 from importlib.resources import files
 
 class CFDPostTask(CAETask):
+    """Task that post-processes solver results with ANSYS CFD-Post.
+
+    Copies the batch session file and helper scripts into the run
+    directory, then launches the CFD-Post executable registered for
+    the configured application version in batch mode.
+    """
+
     TYPE = "cfdpost"
     SERIALIZABLE_FIELDS = (
         "additional_link_files",
