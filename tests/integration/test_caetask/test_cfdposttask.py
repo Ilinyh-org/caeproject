@@ -17,7 +17,7 @@ def setup_method():
 def cse_file(tmp_path_factory):
     """Write a CFD-Post session file writing text into a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.cse"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("!my $str = <<END;\n!test text from cfdpost\n!END\n")
         file.write("!open(FH, '>', 'text_file_from_cfdpost.dat') or die $!;\n")
         file.write("!print FH $str;\n")
@@ -36,7 +36,7 @@ def test_cfdposttask_start(tmpdir, cse_file, capsys):
     task.input_file = cse_file
     task.solve()
 
-    with open("text_file_from_cfdpost.dat", "r") as file:
+    with open("text_file_from_cfdpost.dat", "r", encoding="utf-8") as file:
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result
 
@@ -45,7 +45,7 @@ def test_cfdposttask_start(tmpdir, cse_file, capsys):
 def cse_cfdpost_file(tmp_path_factory):
     """Write a CFD-Post session file exporting inlet velocity to CSV; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.cse"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write(">load filename=results.cas.h5, force_reload=true\n")
         file.write("EXPORT:\n")
         file.write("  CSV Type = CSV\n")

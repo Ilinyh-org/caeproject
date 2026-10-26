@@ -15,7 +15,7 @@ def setup_method():
 def scm_simple_file(tmp_path_factory):
     """Write a Fluent journal writing text into a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(define out (open-output-file \"text_file_from_fluent.dat\"))\n")
         file.write("(display \"test text from fluent\" out)\n")
         file.write("(newline out)\n")
@@ -37,7 +37,7 @@ def test_fluent_task_start(tmpdir, scm_simple_file):
     task1.results_files_names = ["text_file_from_fluent.dat"]
     task1.solve()
 
-    with open("text_file_from_fluent.dat", "r") as file:
+    with open("text_file_from_fluent.dat", "r", encoding="utf-8") as file:
         actual_result = file.readline()
     assert actual_result == expected_result
 
@@ -46,7 +46,7 @@ def test_fluent_task_start(tmpdir, scm_simple_file):
 def scm_parm_file(tmp_path_factory):
     """Write a Fluent journal defining A1, B1 and C1 parameters; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test_parm.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(define A1 0.01)\n")
         file.write("(define B1 2)\n")
         file.write("(define C1 \"text\")\n")
@@ -57,7 +57,7 @@ def scm_parm_file(tmp_path_factory):
 def scm_use_parm_file(tmp_path_factory):
     """Write a Fluent journal loading test_parm.scm and writing A1/B1/C1 to a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(define out (open-output-file \"text_file_from_fluent.dat\"))\n")
         file.write("(if (file-exists? \"test_parm.scm\")\n")
         file.write("    (load \"test_parm.scm\")\n")
@@ -87,7 +87,7 @@ def test_fluent_task_parameters_file(tmpdir, scm_use_parm_file, scm_parm_file):
     task1.results_files_names = ["text_file_from_fluent.dat"]
     task1.solve()
 
-    with open("text_file_from_fluent.dat", "r") as file:
+    with open("text_file_from_fluent.dat", "r", encoding="utf-8") as file:
         actual_result = file.readlines()
     assert actual_result == expected_result
 
@@ -108,7 +108,7 @@ def test_fluent_task_logs(tmpdir, scm_simple_file):
     ]
     task1.solve()
 
-    with open("log_test.log", "r") as file:
+    with open("log_test.log", "r", encoding="utf-8") as file:
         assert any(expected_result in line for line in file.readlines())
 
 
@@ -116,7 +116,7 @@ def test_fluent_task_logs(tmpdir, scm_simple_file):
 def inp_mesh_file(tmp_path_factory):
     """Write an APDL script meshing a square with inlet/outlet/wall components; return its path."""
     fn = tmp_path_factory.mktemp("data") / "mesh.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/prep7\n")
         file.write("et,1,200,6\n")
         file.write("a1=0.2\n")
@@ -140,7 +140,7 @@ def inp_mesh_file(tmp_path_factory):
 def scm_solve_file(tmp_path_factory):
     """Write a Fluent journal importing the mesh and running one iteration; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(ti-menu-load-string \"/file/import/mechanical-apdl/input mesh.cdb\")\n")
         file.write("(ti-menu-load-string \"/solve/iterate 1\")\n")
         file.write("(ti-menu-load-string \"exit y\")\n")
@@ -166,7 +166,7 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
     task2.additional_link_files = ['mesh.cdb']
     task2.solve()
 
-    with open("log_fluent.log", "r") as file:
+    with open("log_fluent.log", "r", encoding="utf-8") as file:
         assert any(expected_result in line for line in file.readlines())
 
 
@@ -197,7 +197,7 @@ def test_fluent_task_solve_wrong_dimension(tmpdir, inp_mesh_file, scm_solve_file
 def scm_transient_solve_file(tmp_path_factory):
     """Write a Fluent journal running a transient solve with auto-save; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(ti-menu-load-string \"/file/import/mechanical-apdl/input mesh.cdb\")\n")
         file.write("(ti-menu-load-string \"/define/models/unsteady-1st-order? yes\")\n")
         file.write("(ti-menu-load-string \"/file/auto-save/data-frequency 1\")\n")
@@ -253,7 +253,7 @@ def test_fluent_task_return_files_regular_expression(tmpdir, scm_simple_file):
     task1.results_files_names = ["text_file_*.dat"]
     task1.solve()
 
-    with open("text_file_from_fluent.dat", "r") as file:
+    with open("text_file_from_fluent.dat", "r", encoding="utf-8") as file:
         actual_result = file.readline()
     assert actual_result == expected_result
 

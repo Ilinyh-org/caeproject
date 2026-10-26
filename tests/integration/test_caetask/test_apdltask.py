@@ -18,7 +18,7 @@ def setup_method():
 def apdl_file(tmp_path_factory):
     """Write an APDL journal writing text into a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("*dim,text,string,32,1\n")
         file.write("text(1)=\'test text from ansys\'\n")
@@ -42,7 +42,7 @@ def test_apdl_solve(tmpdir, apdl_file):
     task.results_files_names = ["text_file_from_ansys.dat"]
     task.solve()
 
-    with open("text_file_from_ansys.dat", "r") as file:
+    with open("text_file_from_ansys.dat", "r", encoding="utf-8") as file:
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result
 
@@ -65,7 +65,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
     task.results_files_names = ["text_file_from_ansys.dat"]
     task.solve()
 
-    with open(tmpdir2 / "text_file_from_ansys.dat", "r") as file:
+    with open(tmpdir2 / "text_file_from_ansys.dat", "r", encoding="utf-8") as file:
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result
 
@@ -90,7 +90,7 @@ def test_apdl_log(tmpdir, apdl_file, capsys):
     task.results_files_names = ['test_log_file.log']
     task.solve()
 
-    with open("test_log_file.log", "r") as file:
+    with open("test_log_file.log", "r", encoding="utf-8") as file:
         log_text = file.read()
         for expected_log_text_part in expected_log_text_parts:
             assert expected_log_text_part in log_text
@@ -100,7 +100,7 @@ def test_apdl_log(tmpdir, apdl_file, capsys):
 def apdl_file_using_additional_file(tmp_path_factory):
     """Write an APDL journal reading three numbers from a text file and writing their sum; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("*DIM,A,,3\n")
         file.write("*VREAD,A(1),additional_text_file,txt\n")
@@ -116,7 +116,7 @@ def apdl_file_using_additional_file(tmp_path_factory):
 def additional_text_file(tmp_path_factory):
     """Write a text file with three numbers; return its path."""
     fn = tmp_path_factory.mktemp("data") / "additional_text_file.txt"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("3\n7\n4\n")
     return fn
 
@@ -137,7 +137,7 @@ def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_fil
     ]
     task.solve()
 
-    with open("text_file_from_ansys.dat", "r") as file:
+    with open("text_file_from_ansys.dat", "r", encoding="utf-8") as file:
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result
 
@@ -146,7 +146,7 @@ def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_fil
 def apdl_file_saving_database(tmp_path_factory):
     """Write an APDL journal saving the database; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test1.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("/prep7\n")
         file.write("a=5\n")
@@ -158,7 +158,7 @@ def apdl_file_saving_database(tmp_path_factory):
 def apdl_file_resuming_database(tmp_path_factory):
     """Write an APDL journal resuming the database and writing parameter a; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test2.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("/prep7\n")
         file.write("resume,database,db\n")
@@ -195,7 +195,7 @@ def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apd
     ]
     task.solve()
 
-    with open("text_file_from_ansys.dat", "r") as file:
+    with open("text_file_from_ansys.dat", "r", encoding="utf-8") as file:
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result
 
@@ -222,7 +222,7 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
         if os.path.isdir(os.path.join(manual_temp_dir_abspath, d))
     )
 
-    with open(os.path.join(tempdir, "text_file_from_ansys.dat"), "r") as file:
+    with open(os.path.join(tempdir, "text_file_from_ansys.dat"), "r", encoding="utf-8") as file:
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result
 
@@ -246,13 +246,13 @@ def test_apdl_two_tasks_sum(tmpdir, capsys):
     os.chdir(tmpdir)
 
     expected_results = (3, 6)
-    with open("test1.inp", "w") as file:
+    with open("test1.inp", "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("*cfopen,task1_text_file,dat\n")
         file.write("*vwrite,1+2\n")
         file.write("%I\n")
         file.write("*cfclos\n")
-    with open("test2.inp", "w") as file:
+    with open("test2.inp", "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("*cfopen,task2_text_file,dat\n")
         file.write("*vwrite,3+3\n")
@@ -269,10 +269,10 @@ def test_apdl_two_tasks_sum(tmpdir, capsys):
     task1.solve()
     task2.solve()
 
-    with open("task1_text_file.dat", "r") as f:
+    with open("task1_text_file.dat", "r", encoding="utf-8") as f:
         actual_result = int(f.readline())
         assert actual_result == expected_results[0]
-    with open("task2_text_file.dat", "r") as f:
+    with open("task2_text_file.dat", "r", encoding="utf-8") as f:
         actual_result = int(f.readline())
         assert actual_result == expected_results[1]
 
@@ -414,7 +414,7 @@ def test_task_to_dict_after_solve(tmpdir, apdl_file):
 def apdl_parameters_file(tmp_path_factory):
     """Write an APDL parameters file defining a=5; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.parm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("a=5\n")
     return fn
 
@@ -423,7 +423,7 @@ def apdl_parameters_file(tmp_path_factory):
 def apdl_parametrized_file(tmp_path_factory):
     """Write an APDL journal reading the parameters file and writing parameter a; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("parres,new,test,parm\n")
         file.write("*cfopen,text_file_from_ansys,dat\n")
@@ -447,6 +447,6 @@ def test_apdl_parameters_file(tmpdir, apdl_parametrized_file, apdl_parameters_fi
     task.results_files_names = ["text_file_from_ansys.dat"]
     task.solve()
 
-    with open("text_file_from_ansys.dat", "r") as file:
+    with open("text_file_from_ansys.dat", "r", encoding="utf-8") as file:
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result

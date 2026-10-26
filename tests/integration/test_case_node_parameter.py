@@ -136,7 +136,7 @@ def test_save_config(tmp_path):
 
     config_path = case.path / CAECase.CONFIG_DEFAULT_NAME
     assert config_path.exists()
-    with open(config_path, "r") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         actual_config = json.load(f)
     assert actual_config == expected_config
 
@@ -156,7 +156,7 @@ def test_load_config(tmp_path):
         ],
     }
     config_path = tmp_path / CAECase.CONFIG_DEFAULT_NAME
-    with open(config_path, "w") as f:
+    with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config_data, f)
 
     case = CAECase.load_config(tmp_path)
