@@ -1,3 +1,4 @@
+"""Tests for the APDLConverter data converter."""
 import pytest
 
 from data_converter import APDLConverter
@@ -11,6 +12,7 @@ from data_converter import APDLConverter
                           ({'A':{"value": 5,"units": "cm",},'B':7},'A=5 ![cm]\nB=7\n'),
                           ])
 def test_convert(input_data, expected_result):
+    """Verify flat, nested and unit-annotated dicts render as APDL parameter text."""
     data_converter = APDLConverter()
 
     actual_result = data_converter.convert(input_data)
