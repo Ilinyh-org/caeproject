@@ -1,3 +1,9 @@
+"""Name-based registry for data converters.
+
+Provides :class:`ConverterRegistry`, which stores converters under
+unique format names, raises :class:`ValueError` for unknown names,
+and can list the registered formats.
+"""
 from typing import Dict
 
 from . import DataConverter

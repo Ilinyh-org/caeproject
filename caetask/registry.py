@@ -1,3 +1,9 @@
+"""Generic key-based registry for task classes.
+
+Provides :class:`TaskRegistry`, which stores objects under unique keys,
+raises :class:`ValueError` on duplicate registration or unknown lookup,
+and can list the registered keys.
+"""
 from typing import Dict
 
 class TaskRegistry[Key, Value]:

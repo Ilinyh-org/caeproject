@@ -1,3 +1,11 @@
+"""CAE task package.
+
+Exposes the task base class :class:`~caetask.caetask.CAETask`, the
+solver-specific tasks :class:`~caetask.apdltask.APDLTask`,
+:class:`~caetask.fluenttask.FluentTask`, and
+:class:`~caetask.cfdposttask.CFDPostTask`, plus helpers for running
+multiple tasks concurrently.
+"""
 
 from .caetask import CAETask, log_execution_time
 from .apdltask import APDLTask

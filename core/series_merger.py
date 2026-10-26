@@ -1,3 +1,4 @@
+"""Helper for cross-merging named pandas Series into a DataFrame."""
 import pandas as pd
 import itertools
 
