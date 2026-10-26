@@ -1,3 +1,4 @@
+"""Integration tests for CAEProject case discovery, configuration saving and case management."""
 import json
 
 from caecase import CAECase
@@ -5,6 +6,7 @@ from caeproject import CAEProject
 
 
 def test_project_discovers_cases(tmp_path):
+    """Verify discover_cases finds all saved CAECase configs and loads their parameters."""
     created_cases = []
     parameters_set = {0, 1, 2}
     for parameter_a in parameters_set:
@@ -26,6 +28,7 @@ def test_project_discovers_cases(tmp_path):
 
 
 def test_project_discover_cases_into_existing_project(tmp_path):
+    """Verify discover_cases adds directory cases without dropping the project's existing case."""
     initial_case_parameter = 100
     project = CAEProject.from_existing_dir(tmp_path)
 
@@ -51,6 +54,7 @@ def test_project_discover_cases_into_existing_project(tmp_path):
 
 
 def test_project_rediscover_cases(tmp_path):
+    """Verify repeated discover_cases calls do not duplicate cases."""
     project = CAEProject.from_existing_dir(tmp_path)
 
     parameters_set = {0, 1, 2}
@@ -71,6 +75,7 @@ def test_project_rediscover_cases(tmp_path):
 
 
 def test_project_save_config(tmp_path):
+    """Verify save_config writes project JSON containing the name and case list."""
     parameters_set = {0, 1, 2}
 
     project = CAEProject(base_path=tmp_path, name="test_project")
@@ -91,6 +96,7 @@ def test_project_save_config(tmp_path):
 
 
 def test_project_add_case(tmp_path):
+    """Verify add_case registers the case and its saved config remains on disk."""
     project = CAEProject(base_path=tmp_path)
     case = CAECase.create_new(tmp_path)#base_path=tmp_path)
     case.parameters.a = 42
