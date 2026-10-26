@@ -241,6 +241,7 @@ def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expec
             pass
 
         def wait(self):  # прервёт выполнение функции solve
+            """Raise the parametrized exception to interrupt solve."""
             raise raising_exception
 
     monkeypatch.setattr("caetask.apdltask.Popen", FakePopen)  # подменяем FakePopen вместо Popen
@@ -296,6 +297,7 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exceptio
             pass
 
         def wait(self):  # прервёт выполнение функции solve
+            """Raise the parametrized exception to interrupt solve."""
             raise raising_exception
 
     monkeypatch.setattr("caetask.apdltask.Popen", FakePopen)  # подменяем FakePopen вместо Popen
