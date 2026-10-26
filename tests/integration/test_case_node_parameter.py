@@ -1,3 +1,4 @@
+"""Integration tests for CAECase parameters (set, grouped, item access), serialization and config persistence."""
 import json
 import re
 from pathlib import Path
@@ -11,10 +12,12 @@ from core.parameter import Parameter
 
 @pytest.fixture
 def case_obj(tmp_path):
+    """Create a fresh CAECase in a temporary directory."""
     return CAECase.create_new(base_path=tmp_path)
 
 
 def test_case_set_parameter(case_obj):
+    """Verify setting a top-level case parameter stores the given value."""
     input_value = 0
     expected_value = input_value
 
@@ -25,6 +28,7 @@ def test_case_set_parameter(case_obj):
 
 
 def test_case_set_group_parameter(case_obj):
+    """Verify setting a nested (grouped) parameter stores the given value."""
     input_value = 0.01
     expected_value = input_value
 
@@ -35,6 +39,7 @@ def test_case_set_group_parameter(case_obj):
 
 
 def test_case_set_parameter_via_item(case_obj):
+    """Verify setting a parameter via item access updates the same attribute."""
     input_value = True
     expected_value = input_value
 
@@ -45,6 +50,7 @@ def test_case_set_parameter_via_item(case_obj):
 
 
 def test_case_to_dict(case_obj):
+    """Verify to_dict serializes parameters with units, files, tasks and status."""
     input_gravity = 9.8066
     input_units = "m/s²"
     input_files = ["input.txt", "output.txt"]
@@ -70,6 +76,7 @@ def test_case_to_dict(case_obj):
 
 
 def test_case_from_dict(tmp_path):
+    """Verify from_dict restores parameters, status and files."""
     input_data = {
         "parameters": {
             "temperature": {
@@ -93,6 +100,7 @@ def test_case_from_dict(tmp_path):
 
 
 def test_case_serialization_roundtrip(tmp_path):
+    """Verify to_dict/from_dict roundtrip preserves parameters, status and files."""
     case = CAECase.create_new(tmp_path)
     case.parameters.alpha = 500
     case.status = CaseStatus("DONE")
@@ -108,6 +116,7 @@ def test_case_serialization_roundtrip(tmp_path):
 
 
 def test_save_config(tmp_path):
+    """Verify save_config writes the expected JSON config file."""
     expected_config = {
         "parameters": {
             "temperature": {'value': 300}
@@ -133,6 +142,7 @@ def test_save_config(tmp_path):
 
 
 def test_load_config(tmp_path):
+    """Verify load_config reads a config file into parameters, status and files."""
     expected_parameter_pressure = 42
     expected_status = CaseStatus("RUNNING")
     expected_files = [Path("output.dat")]
