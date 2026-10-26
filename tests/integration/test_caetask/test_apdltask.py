@@ -1,3 +1,4 @@
+"""Integration tests for APDLTask: solving, logs, auxiliary files, temporary directories, error handling and serialization."""
 import os
 from pathlib import Path
 
@@ -9,11 +10,13 @@ lock = Lock()
 
 
 def setup_method():
+    """No per-test setup required."""
     pass
 
 
 @pytest.fixture(scope="session")
 def apdl_file(tmp_path_factory):
+    """Write an APDL journal writing text into a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
     with open(fn, "w") as file:
         file.write("/batch\n")
@@ -29,6 +32,7 @@ def apdl_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve(tmpdir, apdl_file):
+    """Verify APDLTask.solve runs the journal and produces the expected text output file."""
     tmpdir.chdir()
 
     expected_result = "test text from ansys\n"
@@ -46,6 +50,7 @@ def test_apdl_solve(tmpdir, apdl_file):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
+    """Verify solve places results in the configured results_directory outside the current directory."""
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
     tmpdir2 = tmp_path / "tmpdir2"
@@ -69,6 +74,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
 @pytest.mark.solve
 @pytest.mark.log
 def test_apdl_log(tmpdir, apdl_file, capsys):
+    """Verify solve writes a log file containing the expected APDL banner sections."""
     os.chdir(tmpdir)
 
     expected_log_text_parts = [
@@ -92,6 +98,7 @@ def test_apdl_log(tmpdir, apdl_file, capsys):
 
 @pytest.fixture(scope="session")
 def apdl_file_using_additional_file(tmp_path_factory):
+    """Write an APDL journal reading three numbers from a text file and writing their sum; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
     with open(fn, "w") as file:
         file.write("/batch\n")
@@ -107,6 +114,7 @@ def apdl_file_using_additional_file(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def additional_text_file(tmp_path_factory):
+    """Write a text file with three numbers; return its path."""
     fn = tmp_path_factory.mktemp("data") / "additional_text_file.txt"
     with open(fn, "w") as file:
         file.write("3\n7\n4\n")
@@ -116,6 +124,7 @@ def additional_text_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_file, additional_text_file, capsys):
+    """Verify solve reads the additional text file and writes the computed sum."""
     os.chdir(tmpdir)
 
     expected_result = "14\n"
@@ -135,6 +144,7 @@ def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_fil
 
 @pytest.fixture(scope="session")
 def apdl_file_saving_database(tmp_path_factory):
+    """Write an APDL journal saving the database; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test1.inp"
     with open(fn, "w") as file:
         file.write("/batch\n")
@@ -146,6 +156,7 @@ def apdl_file_saving_database(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def apdl_file_resuming_database(tmp_path_factory):
+    """Write an APDL journal resuming the database and writing parameter a; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test2.inp"
     with open(fn, "w") as file:
         file.write("/batch\n")
@@ -161,6 +172,7 @@ def apdl_file_resuming_database(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apdl_file_resuming_database, capsys):
+    """Verify a second task can resume the database produced by the first via link files."""
     os.chdir(tmpdir)
 
     expected_result = "5\n"
@@ -191,6 +203,7 @@ def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apd
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
+    """Verify solve(cleanup=False, delete=False) runs in the given temporary directory and keeps results there."""
     os.chdir(tmpdir)
     manual_temp_dir_name = 'solve_dir'
     os.mkdir(manual_temp_dir_name)
@@ -221,6 +234,7 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
                          [(1, 3.14),
                           (10, 31.4)])
 def test_apdl_calc_geom_vol(input_data, expected_result, capsys):
+    """Placeholder: geometry volume calculation is not yet covered."""
     pass
 
 
@@ -228,6 +242,7 @@ def test_apdl_calc_geom_vol(input_data, expected_result, capsys):
 @pytest.mark.solve
 @pytest.mark.input_parameters
 def test_apdl_two_tasks_sum(tmpdir, capsys):
+    """Verify two sequential APDLTask solves each write their computed sum."""
     os.chdir(tmpdir)
 
     expected_results = (3, 6)
@@ -267,6 +282,7 @@ def test_apdl_two_tasks_sum(tmpdir, capsys):
 @pytest.mark.error
 @pytest.mark.FileNotFoundError
 def test_apdl_FileNotFoundError(tmpdir, capsys):
+    """Verify solving with a missing input file raises FileNotFoundError with the expected message."""
     os.chdir(tmpdir)
 
     expected_error = FileNotFoundError
@@ -286,6 +302,7 @@ def test_apdl_FileNotFoundError(tmpdir, capsys):
 @pytest.mark.error
 @pytest.mark.FileNotFoundError
 def test_apdl_results_file_FileNotFoundError(tmpdir, apdl_file, capsys):
+    """Verify a missing results file is reported via the expected message on stdout."""
     os.chdir(tmpdir)
 
     expected_error_message = "wrong_file_from_ansys.dat не найден для копирования в "
@@ -304,6 +321,7 @@ def test_apdl_results_file_FileNotFoundError(tmpdir, apdl_file, capsys):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_print(tmpdir, apdl_file, capsys):
+    """Verify print(APDLTask) outputs the task summary in the expected format."""
     os.chdir(tmpdir)
 
     expected_result = 'имя задачи: test\n'\
@@ -325,6 +343,7 @@ def test_apdl_print(tmpdir, apdl_file, capsys):
 
 @pytest.mark.positive
 def test_task_to_dict(tmpdir, apdl_file):
+    """Verify APDLTask.to_dict serializes all task fields with default values."""
     os.chdir(tmpdir)
     expected_result = {'type': 'apdl',
                        'additional_link_files': None,
@@ -358,6 +377,7 @@ def test_task_to_dict(tmpdir, apdl_file):
 
 @pytest.mark.positive
 def test_task_to_dict_after_solve(tmpdir, apdl_file):
+    """Verify to_dict output is unchanged by solving the task."""
     os.chdir(tmpdir)
     expected_result = {'type': 'apdl',
                        'additional_link_files': None,
@@ -392,6 +412,7 @@ def test_task_to_dict_after_solve(tmpdir, apdl_file):
 
 @pytest.fixture(scope="session")
 def apdl_parameters_file(tmp_path_factory):
+    """Write an APDL parameters file defining a=5; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.parm"
     with open(fn, "w") as file:
         file.write("a=5\n")
@@ -400,6 +421,7 @@ def apdl_parameters_file(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def apdl_parametrized_file(tmp_path_factory):
+    """Write an APDL journal reading the parameters file and writing parameter a; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
     with open(fn, "w") as file:
         file.write("/batch\n")
@@ -414,6 +436,7 @@ def apdl_parametrized_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_parameters_file(tmpdir, apdl_parametrized_file, apdl_parameters_file):
+    """Verify solve loads the parameters file and the journal reads the parameter value."""
     os.chdir(tmpdir)
 
     expected_result = "5\n"
