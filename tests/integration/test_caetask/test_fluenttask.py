@@ -1,9 +1,11 @@
 
 """Integration tests for FluentTask: journal execution, parameters, logs, solving and serialization."""
-import pytest
-from caetask import FluentTask, APDLTask
-import os
 import glob
+import os
+
+import pytest
+
+from caetask import FluentTask, APDLTask
 
 
 def setup_method():

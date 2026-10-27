@@ -1,13 +1,14 @@
 """Integration tests for CAETask logging, per-class task counters and file loading."""
+from datetime import datetime
+import json
 import os
 from pathlib import Path
+from threading import Lock
 
 import pytest
+
 from caetask import APDLTask, FluentTask, CFDPostTask
 from caetask import CAETask
-from threading import Lock
-import json
-from datetime import datetime
 
 lock = Lock()
 

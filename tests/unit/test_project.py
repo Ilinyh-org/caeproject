@@ -1,7 +1,9 @@
 """Unit tests for CAEProject: project creation and results aggregation."""
-from caeproject import CAEProject
-import pandas as pd
 from unittest.mock import MagicMock
+
+import pandas as pd
+
+from caeproject import CAEProject
 
 
 def test_project_initialization(tmp_path):

@@ -1,9 +1,11 @@
 """Integration tests for caetask runners executing user task functions."""
 import os
-import pytest
-from caetask import run_processes, run_threads
-from caetask import APDLTask
 from threading import Lock
+
+import pytest
+
+from caetask import APDLTask
+from caetask import run_processes, run_threads
 
 lock = Lock()
 

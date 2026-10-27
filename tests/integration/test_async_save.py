@@ -1,10 +1,12 @@
 
 """Tests for CAECase delayed (asynchronous) saving."""
-import pytest
-from pathlib import Path
-from caecase import CAECase
-import json
 import asyncio
+import json
+from pathlib import Path
+
+import pytest
+
+from caecase import CAECase
 #
 # @pytest.fixture
 # def temp_caecase_obj_path():

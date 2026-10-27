@@ -1,9 +1,10 @@
 """Integration tests for CFDPostTask: execution, string representation and serialization."""
 import os
+from threading import Lock
 
 import pytest
+
 from caetask import CFDPostTask
-from threading import Lock
 
 lock = Lock()
 

@@ -1,8 +1,9 @@
 
 """Unit tests for core.parameter.Parameter: initialization, unit conversion, metadata, serialization, arithmetic and comparisons."""
-import pytest
-from core.parameter import Parameter
 from pint import UnitRegistry
+import pytest
+
+from core.parameter import Parameter
 
 EPS = 1e-3
 

@@ -1,12 +1,12 @@
 
+import pandas as pd
+import plotly.express as px
 import pytest
+
 from caecase import CAECase
 from caecase.utils import is_case_dir_name
 from caetask import APDLTask, run_threads
 from caeproject import CAEProject
-
-import pandas as pd
-import plotly.express as px
 
 from core.series_merger import series_merger
 from workflows.apdl import APDLWorkflow
