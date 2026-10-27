@@ -54,7 +54,7 @@ def apdl_parameters_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
-def test_apdl_solve_log(tmpdir, apdl_file, capsys):
+def test_apdl_solve_log(tmpdir, apdl_file):
     """Verify APDLTask.solve writes a JSON log with the expected fields, status and consistent duration."""
     os.chdir(tmpdir)
 
@@ -85,7 +85,7 @@ def test_apdl_solve_log(tmpdir, apdl_file, capsys):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
-def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
+def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file):
     """Verify the solve log is written to the configured results_directory."""
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
@@ -120,7 +120,7 @@ def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file, caps
 
 @pytest.mark.positive
 @pytest.mark.counter
-def test_counter_increment(tmpdir, apdl_file, capsys):
+def test_counter_increment(tmpdir):
     """Verify per-class counters increment independently for APDLTask and FluentTask."""
     os.chdir(tmpdir)
 
@@ -142,7 +142,7 @@ def test_counter_increment(tmpdir, apdl_file, capsys):
 
 @pytest.mark.positive
 @pytest.mark.counter
-def test_counter_decrement(tmpdir, apdl_file, capsys):
+def test_counter_decrement(tmpdir):
     """Verify deleting a task decrements its class counter."""
     os.chdir(tmpdir)
 
@@ -162,7 +162,7 @@ def test_counter_decrement(tmpdir, apdl_file, capsys):
 
 @pytest.mark.positive
 @pytest.mark.counter
-def test_counter_reset_certain_classes(tmpdir, apdl_file, capsys):
+def test_counter_reset_certain_classes(tmpdir):
     """Verify reset() zeroes only the target class counter, leaving others intact."""
     os.chdir(tmpdir)
 
@@ -331,7 +331,7 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exceptio
 
 
 @pytest.mark.positive
-def test_load_inputs_input_file(tmpdir, apdl_file):
+def test_load_inputs_input_file(apdl_file):
     """Verify load_files reads the input file code into _input_file_code."""
     expected_input_file_code = ["/batch\n"]
 
@@ -345,7 +345,7 @@ def test_load_inputs_input_file(tmpdir, apdl_file):
 
 
 @pytest.mark.positive
-def test_load_inputs_parameters_file(tmpdir, apdl_parameters_file):
+def test_load_inputs_parameters_file(apdl_parameters_file):
     """Verify load_files reads the parameters file code into _parameters_file_code."""
     expected_parameters_file_code = ["a=1\n", "b=-2.4\n"]
 
@@ -359,7 +359,7 @@ def test_load_inputs_parameters_file(tmpdir, apdl_parameters_file):
 
 
 @pytest.mark.negative
-def test_load_inputs_input_file_FileNotFoundError(tmpdir):
+def test_load_inputs_input_file_FileNotFoundError():
     """Verify load_files raises FileNotFoundError with the full path for a missing input file."""
     expected_error = FileNotFoundError
     expected_error_message = str(Path.cwd() / "test.inp") + " is not found"
@@ -374,7 +374,7 @@ def test_load_inputs_input_file_FileNotFoundError(tmpdir):
 
 
 @pytest.mark.negative
-def test_load_inputs_parameters_file_FileNotFoundError(tmpdir):
+def test_load_inputs_parameters_file_FileNotFoundError():
     """Verify load_files raises FileNotFoundError with the full path for a missing parameters file."""
     expected_error = FileNotFoundError
     expected_error_message = str(Path.cwd() / "test.parm") + " is not found"

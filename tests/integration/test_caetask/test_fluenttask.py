@@ -214,7 +214,7 @@ def scm_transient_solve_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transient_solve_file, capsys):
+def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transient_solve_file):
     """Verify a transient Fluent run auto-saves the expected number of dat/cas/flprj files."""
     os.chdir(tmpdir)
     expected_results = {"dat_files_number": 5,
