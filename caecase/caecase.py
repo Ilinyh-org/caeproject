@@ -5,7 +5,8 @@ parameter tree, input files, and a list of CAE tasks, plus helpers
 for parsing solver CSV results.
 """
 from enum import Enum
-import io, re
+import io
+import re
 from pathlib import Path
 from typing import List, Iterable
 
