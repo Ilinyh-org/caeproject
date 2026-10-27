@@ -136,6 +136,10 @@ class APDLTask(CAETask):
 
     @log_execution_time()
     def solve(self, cleanup=True, delete=True):
+        # Cleanup is conditional: solve(cleanup=False) keeps the run
+        # directory, and delete=False must be honored at cleanup time.
+        # A with-block would force cleanup at scope exit.
+        # pylint: disable=consider-using-with
         tempdir = tempfile.TemporaryDirectory(
             dir=self._temporary_directory,
             delete=delete
@@ -180,7 +184,8 @@ class APDLTask(CAETask):
         self._organize_additional_link_files(tempdir)
 
         # создание процесса по сконфигурированному application
-        self._process = Popen(' '.join(application), shell=True).wait()
+        with Popen(' '.join(application), shell=True) as process:
+            self._process = process.wait()
         print("закончен расчёт ансис задачи " +
               self._name +
               " во временной директории " +
