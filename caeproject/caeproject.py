@@ -6,15 +6,15 @@ that owns a project directory with multiple
 creation and discovery, concurrent solving of pending cases, and
 collection of per-case results into a single DataFrame.
 """
+from pathlib import Path
+from typing import List
+
 import pandas as pd
 
 from caecase import CAECase
 from caetask import run_threads
-
-from core.serialization import Serializable
 from core.file_manager import FileManager
-from pathlib import Path
-from typing import List
+from core.serialization import Serializable
 
 
 class CAEProject(Serializable):

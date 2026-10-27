@@ -6,9 +6,11 @@ Provides :class:`Node`, a tree of named children holding
 item access with auto-creation of nested nodes, and conversion to
 dicts, DataFrames, or converted unit systems.
 """
-from core.parameter import Parameter
 import weakref
+
 import pandas as pd
+
+from core.parameter import Parameter
 
 
 class Node:
