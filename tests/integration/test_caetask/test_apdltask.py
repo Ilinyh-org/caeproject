@@ -50,7 +50,7 @@ def test_apdl_solve(tmpdir, apdl_file):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
+def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file):
     """Verify solve places results in the configured results_directory outside the current directory."""
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
@@ -74,7 +74,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
-def test_apdl_log(tmpdir, apdl_file, capsys):
+def test_apdl_log(tmpdir, apdl_file):
     """Verify solve writes a log file containing the expected APDL banner sections."""
     os.chdir(tmpdir)
 
@@ -124,7 +124,7 @@ def additional_text_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_file, additional_text_file, capsys):
+def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_file, additional_text_file):
     """Verify solve reads the additional text file and writes the computed sum."""
     os.chdir(tmpdir)
 
@@ -172,7 +172,7 @@ def apdl_file_resuming_database(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apdl_file_resuming_database, capsys):
+def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apdl_file_resuming_database):
     """Verify a second task can resume the database produced by the first via link files."""
     os.chdir(tmpdir)
 
@@ -203,7 +203,7 @@ def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apd
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
+def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file):
     """Verify solve(cleanup=False, delete=False) runs in the given temporary directory and keeps results there."""
     os.chdir(tmpdir)
     manual_temp_dir_name = 'solve_dir'
@@ -231,10 +231,10 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file, capsys):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.input_parameters
-@pytest.mark.parametrize("input_data,expected_result",
+@pytest.mark.parametrize("_input_data,_expected_result",
                          [(1, 3.14),
                           (10, 31.4)])
-def test_apdl_calc_geom_vol(input_data, expected_result, capsys):
+def test_apdl_calc_geom_vol(_input_data, _expected_result):
     """Placeholder: geometry volume calculation is not yet covered."""
     pass
 
@@ -242,7 +242,7 @@ def test_apdl_calc_geom_vol(input_data, expected_result, capsys):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.input_parameters
-def test_apdl_two_tasks_sum(tmpdir, capsys):
+def test_apdl_two_tasks_sum(tmpdir):
     """Verify two sequential APDLTask solves each write their computed sum."""
     os.chdir(tmpdir)
 
@@ -282,7 +282,7 @@ def test_apdl_two_tasks_sum(tmpdir, capsys):
 @pytest.mark.solve
 @pytest.mark.error
 @pytest.mark.FileNotFoundError
-def test_apdl_FileNotFoundError(tmpdir, capsys):
+def test_apdl_FileNotFoundError(tmpdir):
     """Verify solving with a missing input file raises FileNotFoundError with the expected message."""
     os.chdir(tmpdir)
 

@@ -109,7 +109,7 @@ def test_case_safe_config_files(tmp_path, apdl_file):
     assert actual_config == expected_config
 
 
-def test_case_load_config_files(tmp_path, apdl_file):
+def test_case_load_config_files(tmp_path):
     """Verify load_config restores the file list, case name and base path."""
     case_name = "case_dir"
     data = {
@@ -153,7 +153,7 @@ def test_case_safe_config_status(tmp_path):
     assert data["status"] == expected_status
 
 
-def test_case_load_config_status(tmp_path, apdl_file):
+def test_case_load_config_status(tmp_path):
     """Verify load_config restores the status, name and base path."""
     case_name = "case_dir"
     data = {

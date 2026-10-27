@@ -198,7 +198,7 @@ def test_case_parameters_conversion_apdl(tmp_path):
     assert actual_file_content == expected_file_content
 
 
-def test_case_parameters_conversion_apdl_partial(tmp_path):
+def test_case_parameters_conversion_apdl_partial():
     """Placeholder: partial APDL conversion is not yet covered."""
     pass
 
