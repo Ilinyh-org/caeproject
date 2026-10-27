@@ -128,7 +128,8 @@ class APDLTask(CAETask):
                 output += 'дополнительный параметр: ' + str(self._new_parameter_name) + '\n'
             elif isinstance(self._new_parameter_name, list):
                 output += 'дополнительные параметры: ' + '\n'
-                for parameter_name, parameter_value in zip(self._new_parameter_name, self._new_parameter_value):
+                for parameter_name, parameter_value in zip(self._new_parameter_name,
+                                                           self._new_parameter_value):
                     output += str(parameter_name) + ' ' + str(parameter_value)
                 output += '\n'
         return output
@@ -151,7 +152,7 @@ class APDLTask(CAETask):
 
         # составляем список команд и аттрибутов для запуска
         # для запуска используется переменная среды типа ansys180_dir
-        application = [f'"{str(Path('%ansys' + self._application_version + '_dir%') / 'bin' / 'winx64' / ('ansys' + self._application_version))}"',
+        application = [f'"{str(Path('%ansys' + self._application_version + '_dir%') / 'bin' / 'winx64' / ('ansys' + self._application_version))}"',  # pylint: disable=line-too-long
                        '-b',
                        '-m', self._memory_size,
                        '-db', self._database_size,
@@ -202,7 +203,8 @@ class APDLTask(CAETask):
                 f"Файл лога {self._log_file_name} ансис задачи {self._name} скопирован из "
                 f"{Path(tempdir.name).name} в {self._results_directory.name}")
         except OSError:
-            print(f"Файл лога {self._log_file_name} не найден для копирования в {self._results_directory}")
+            print(f"Файл лога {self._log_file_name} не найден "
+                  f"для копирования в {self._results_directory}")
 
         if cleanup:
             tempdir.cleanup()

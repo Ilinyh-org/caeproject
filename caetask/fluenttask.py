@@ -87,10 +87,11 @@ class FluentTask(CAETask):
               " во временной директории " +
               tempdir.name)
 
-        application = [f'"{str(Path('%AWP_ROOT' + self._application_version + '%') / 'fluent' / 'ntbin' / 'win64' / 'fluent.exe')}"',
+        application = [f'"{str(Path('%AWP_ROOT' + self._application_version + '%') / 'fluent' / 'ntbin' / 'win64' / 'fluent.exe')}"',  # pylint: disable=line-too-long
                        self._dimension,
-                       # '-r', self.__application_version[0:2] + '.' + self.__application_version[2:3] + '.0',
-                       *(['-' + self._graphics_regime] if self._graphics_regime is not None else []),  # run without graphics
+                       # '-r', self.__application_version[0:2] + '.' + self.__application_version[2:3] + '.0',  # pylint: disable=line-too-long
+                       *(['-' + self._graphics_regime]
+                         if self._graphics_regime is not None else []),  # run without graphics
                        '-i', self._input_file.name]
 
         # создание ссылок или копирование дополнительных нетекстовых файлов
@@ -139,7 +140,8 @@ class FluentTask(CAETask):
                 f"Файл лога {self._log_file_name} fluent задачи {self._name} скопирован из "
                 f"{tempdir.name} в {self._results_directory.name}")
         except OSError:
-            print(f"Файл лога {self._log_file_name} не найден для копирования в {self._results_directory}")
+            print(f"Файл лога {self._log_file_name} не найден "
+                  f"для копирования в {self._results_directory}")
 
         if cleanup:
             tempdir.cleanup()
@@ -182,7 +184,7 @@ class FluentTask(CAETask):
             "threads": self._threads,
         })
 
-        #data.update({"paths": [self.serialize(p, relative_to=self.base_path) for p in self._additional_text_files]})
+        #data.update({"paths": [self.serialize(p, relative_to=self.base_path) for p in self._additional_text_files]})  # pylint: disable=line-too-long
 
         data["parameters_file"] = self.serialize(
             self._parameters_file,
