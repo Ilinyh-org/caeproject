@@ -1,4 +1,5 @@
-"""Integration tests for APDLTask: solving, logs, auxiliary files, temporary directories, error handling and serialization."""
+"""Integration tests for APDLTask: solving, logs, auxiliary files, temporary
+directories, error handling and serialization."""
 import os
 from pathlib import Path
 from threading import Lock
@@ -51,7 +52,8 @@ def test_apdl_solve(tmpdir, apdl_file):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file):
-    """Verify solve places results in the configured results_directory outside the current directory."""
+    """Verify solve places results in the configured results_directory
+    outside the current directory."""
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
     tmpdir2 = tmp_path / "tmpdir2"
@@ -99,7 +101,8 @@ def test_apdl_log(tmpdir, apdl_file):
 
 @pytest.fixture(scope="session")
 def apdl_file_using_additional_file(tmp_path_factory):
-    """Write an APDL journal reading three numbers from a text file and writing their sum; return its path."""
+    """Write an APDL journal reading three numbers from a text file
+    and writing their sum; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
     with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
@@ -124,7 +127,8 @@ def additional_text_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_file, additional_text_file):
+def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_file,
+                                          additional_text_file):
     """Verify solve reads the additional text file and writes the computed sum."""
     os.chdir(tmpdir)
 
@@ -172,7 +176,8 @@ def apdl_file_resuming_database(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apdl_file_resuming_database):
+def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database,
+                                          apdl_file_resuming_database):
     """Verify a second task can resume the database produced by the first via link files."""
     os.chdir(tmpdir)
 
@@ -204,7 +209,8 @@ def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database, apd
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file):
-    """Verify solve(cleanup=False, delete=False) runs in the given temporary directory and keeps results there."""
+    """Verify solve(cleanup=False, delete=False) runs in the given temporary
+    directory and keeps results there."""
     os.chdir(tmpdir)
     manual_temp_dir_name = 'solve_dir'
     os.mkdir(manual_temp_dir_name)
@@ -283,7 +289,8 @@ def test_apdl_two_tasks_sum(tmpdir):
 @pytest.mark.error
 @pytest.mark.FileNotFoundError
 def test_apdl_FileNotFoundError(tmpdir):
-    """Verify solving with a missing input file raises FileNotFoundError with the expected message."""
+    """Verify solving with a missing input file raises FileNotFoundError
+    with the expected message."""
     os.chdir(tmpdir)
 
     expected_error = FileNotFoundError
@@ -422,7 +429,8 @@ def apdl_parameters_file(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def apdl_parametrized_file(tmp_path_factory):
-    """Write an APDL journal reading the parameters file and writing parameter a; return its path."""
+    """Write an APDL journal reading the parameters file
+    and writing parameter a; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
     with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")

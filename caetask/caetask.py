@@ -125,7 +125,8 @@ class CAETask(ABC, Serializable):
             additional_link_files = []
             for additional_link_file in self.additional_link_files:
                 if self.case:
-                    additional_link_files.append(str(additional_link_file.relative_to(self.case.path)))
+                    additional_link_files.append(
+                        str(additional_link_file.relative_to(self.case.path)))
                 else:
                     additional_link_files.append(str(additional_link_file))
             data.update({"additional_link_files": additional_link_files})
@@ -278,13 +279,15 @@ class CAETask(ABC, Serializable):
             except OSError as e:
                 if e.winerror == 1314:
                     print("Ошибка 1314: Недостаточно прав для создания символьной ссылки. \n"
-                          "Рекомендуем включить Режим Разработчика. Сейчас будет создана жёсткая ссылка")
+                          "Рекомендуем включить Режим Разработчика. "
+                          "Сейчас будет создана жёсткая ссылка")
                     try:  # создание жёсткой ссылки
                         os.link(src, dst)
                     except OSError as e:
                         if e.winerror == 17:
                             raise OSError(
-                                "Ошибка 1314: Не удалось создать жёсткую ссылку, т.к. файл на другом разделе.\n"
+                                "Ошибка 1314: Не удалось создать жёсткую ссылку, "
+                                "т.к. файл на другом разделе.\n"
                                 "Для прямого копирования файлов вместо создания ссылок, "
                                 "укажите параметр copy_link_files=True в конструкторе\n")
                         else:
@@ -548,7 +551,8 @@ def log_execution_time():
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             # Формируем имя лог‑файла
-            # Предполагаем, что первый аргумент (args[0]) — это экземпляр класса с атрибутом task_name
+            # Предполагаем, что первый аргумент (args[0]) — это экземпляр класса
+            # с атрибутом task_name
             task_name = args[0].name
             results_directory_path = args[0].results_directory
 

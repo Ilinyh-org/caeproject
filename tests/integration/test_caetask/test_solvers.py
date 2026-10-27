@@ -11,7 +11,8 @@ lock = Lock()
 
 
 def create_task_chdir(_index):  # задаётся пользователем
-    """Create a unique timestamped subdirectory, chdir into it and return the parent directory name."""
+    """Create a unique timestamped subdirectory, chdir into it
+    and return the parent directory name."""
     import datetime
     import time
     import random
@@ -19,7 +20,8 @@ def create_task_chdir(_index):  # задаётся пользователем
     res_dir = None
     while True:
         try:
-            res_dir = datetime.datetime.now().isoformat().replace(':', '').replace('-', '_').replace('.', '_')
+            res_dir = (datetime.datetime.now().isoformat().replace(':', '')
+                       .replace('-', '_').replace('.', '_'))
             os.mkdir("./" + res_dir)
             break
         except FileExistsError:

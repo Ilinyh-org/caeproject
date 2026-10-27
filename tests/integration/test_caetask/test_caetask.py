@@ -55,7 +55,8 @@ def apdl_parameters_file(tmp_path_factory):
 @pytest.mark.solve
 @pytest.mark.log
 def test_apdl_solve_log(tmpdir, apdl_file):
-    """Verify APDLTask.solve writes a JSON log with the expected fields, status and consistent duration."""
+    """Verify APDLTask.solve writes a JSON log with the expected fields,
+    status and consistent duration."""
     os.chdir(tmpdir)
 
     log_file_name = "test_APDLTask_solve.log"
@@ -230,7 +231,8 @@ def test_fluent_solve_log(tmpdir, scm_simple_file):
                           (RuntimeError, 'error', not None)])
 def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expected_end_time,
                                    monkeypatch, tmpdir, apdl_file):
-    """Verify interrupts during solve log status 'running' (no end time) or 'error' (with end time)."""
+    """Verify interrupts during solve log status 'running' (no end time)
+    or 'error' (with end time)."""
     os.chdir(tmpdir)
 
     # Создаём класс для подмены объекта Popen объектом с заменённым методом wait
@@ -280,8 +282,9 @@ def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expec
 @pytest.mark.parametrize("raising_exception, expected_status, expected_end_time",
                          [(KeyboardInterrupt, 'running', None),
                           (RuntimeError, 'error', not None)])
-def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exception, expected_status, expected_end_time,
-                                   monkeypatch, tmp_path: Path, apdl_file):
+def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exception, expected_status,
+                                                                expected_end_time, monkeypatch,
+                                                                tmp_path: Path, apdl_file):
     """Verify interrupt logging also works with results_directory outside the current directory."""
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
@@ -375,7 +378,8 @@ def test_load_inputs_input_file_FileNotFoundError():
 
 @pytest.mark.negative
 def test_load_inputs_parameters_file_FileNotFoundError():
-    """Verify load_files raises FileNotFoundError with the full path for a missing parameters file."""
+    """Verify load_files raises FileNotFoundError with the full path
+    for a missing parameters file."""
     expected_error = FileNotFoundError
     expected_error_message = str(Path.cwd() / "test.parm") + " is not found"
 

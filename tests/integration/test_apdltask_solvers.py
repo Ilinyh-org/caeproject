@@ -8,7 +8,8 @@ from caetask import run_threads, APDLTask
 
 
 def create_task(index, tempdir=None):  # задаётся пользователем
-    """Build an APDLTask from a (task_num, num_par) index with its own workdir and parameters file."""
+    """Build an APDLTask from a (task_num, num_par) index
+    with its own workdir and parameters file."""
     task_num = index[0]
     num_par = index[1]
 
@@ -41,7 +42,8 @@ def solve_task(task: APDLTask):
 @pytest.mark.solve
 @pytest.mark.input_parameters
 def test_apdl_multitask_callback(tmpdir):
-    """Verify threaded tasks each compute num*3 from their parameters file into the expected results file."""
+    """Verify threaded tasks each compute num*3 from their parameters file
+    into the expected results file."""
     input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5), ('6', 6), ('7', 7))
 
     expected_results = (3, 6, 9, 12, 15, 18, 21)

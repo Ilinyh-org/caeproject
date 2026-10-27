@@ -118,8 +118,9 @@ class Parameter:
             # You may need to define a mapping from SI to imperial for your quantities
             # Example: meters -> feet, kilograms -> pounds
             try:
-                target_units = quantity_base.to(
-                    'feet').units if quantity_base.dimensionality == UREG.meter.dimensionality else quantity_base.units
+                target_units = (quantity_base.to('feet').units
+                                if quantity_base.dimensionality == UREG.meter.dimensionality
+                                else quantity_base.units)
             except pint.DimensionalityError:
                 target_units = quantity_base.units  # fallback
         else:
@@ -218,7 +219,8 @@ class Parameter:
 
     def __add__(self, other):
         if isinstance(other, self.__class__):
-            if UREG(self.units).is_compatible_with(UREG(other.units)) or (self.units == other.units == ""):
+            if (UREG(self.units).is_compatible_with(UREG(other.units))
+                    or (self.units == other.units == "")):
                 converted_other_value = other.ito_units(self.units).value
                 sum_value = self.value + converted_other_value
                 return self.__class__(sum_value, f"{self.units}")

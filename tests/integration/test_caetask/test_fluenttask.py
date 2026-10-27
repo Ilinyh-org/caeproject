@@ -1,5 +1,6 @@
 
-"""Integration tests for FluentTask: journal execution, parameters, logs, solving and serialization."""
+"""Integration tests for FluentTask: journal execution, parameters, logs,
+solving and serialization."""
 import glob
 import os
 
@@ -57,7 +58,8 @@ def scm_parm_file(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def scm_use_parm_file(tmp_path_factory):
-    """Write a Fluent journal loading test_parm.scm and writing A1/B1/C1 to a dat file; return its path."""
+    """Write a Fluent journal loading test_parm.scm
+    and writing A1/B1/C1 to a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
     with open(fn, "w", encoding="utf-8") as file:
         file.write("(define out (open-output-file \"text_file_from_fluent.dat\"))\n")

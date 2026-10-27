@@ -1,5 +1,6 @@
 
-"""Unit tests for core.parameter.Parameter: initialization, unit conversion, metadata, serialization, arithmetic and comparisons."""
+"""Unit tests for core.parameter.Parameter: initialization, unit conversion,
+metadata, serialization, arithmetic and comparisons."""
 from pint import UnitRegistry
 import pytest
 
@@ -80,7 +81,8 @@ def test_parameter_get_value_with_conversion(input_value, expected_value, expect
     ((3600, "h^-1"), 'si', 1, "s^-1"),
     ((3600*3600, "m * h^-2"), 'si', 1, "m*s^-2"),
 ])
-def test_parameter_get_value_with_system_conversion(input_value, input_system, expected_value, expected_units):
+def test_parameter_get_value_with_system_conversion(input_value, input_system,
+                                                    expected_value, expected_units):
     """Verify to_units_system converts to the target unit system (SI/imperial)."""
     p = Parameter(value=input_value)
 

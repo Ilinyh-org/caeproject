@@ -24,7 +24,7 @@ class APDLConverter(DataConverter):
 
             if isinstance(value, dict):
                 if is_parameter(value):
-                    lines.append(f"{key}={value["value"]}{f" ![{value["units"]}]" if "units" in value else ""}")
+                    lines.append(f"{key}={value["value"]}{f" ![{value["units"]}]" if "units" in value else ""}")  # pylint: disable=line-too-long
                     continue
 
                 lines.append(f"{prefix}{key}")
