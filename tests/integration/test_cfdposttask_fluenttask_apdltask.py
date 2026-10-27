@@ -1,4 +1,5 @@
-"""Integration tests chaining APDLTask, FluentTask and CFDPostTask solves (requires solver backends)."""
+"""Integration tests chaining APDLTask, FluentTask and CFDPostTask solves
+(requires solver backends)."""
 import os
 from pathlib import Path
 
@@ -63,7 +64,8 @@ def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_
 @pytest.mark.solve
 def test_cfdposttask_not_in_current_directory(tmp_path: Path,
                                               inp_mesh_file, scm_solve_file, cse_cfdpost_file):
-    """Verify chained tasks succeed with results and working directories outside the current directory."""
+    """Verify chained tasks succeed with results and working directories
+    outside the current directory."""
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
     tmpdir2 = tmp_path / "tmpdir2"
@@ -123,7 +125,8 @@ def inp_mesh_file(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def scm_solve_file(tmp_path_factory):
-    """Write a Fluent journal importing the mesh, solving one iteration and writing case/data; return its path."""
+    """Write a Fluent journal importing the mesh, solving one iteration
+    and writing case/data; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
     with open(fn, "w", encoding="utf-8") as file:
         file.write("(ti-menu-load-string \"/file/import/mechanical-apdl/input mesh.cdb\")\n")

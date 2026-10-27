@@ -1,4 +1,5 @@
-"""Unit tests for core.node.Node: attribute/key initialization, value access, auto-creation, serialization and DataFrame export."""
+"""Unit tests for core.node.Node: attribute/key initialization, value access,
+auto-creation, serialization and DataFrame export."""
 import pandas as pd
 import pytest
 

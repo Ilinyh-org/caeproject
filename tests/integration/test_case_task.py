@@ -1,4 +1,5 @@
-"""Integration tests for CAECase task creation, parameter persistence/conversion and config round-trips."""
+"""Integration tests for CAECase task creation, parameter persistence/conversion
+and config round-trips."""
 import json
 import os
 from pathlib import Path
@@ -229,7 +230,8 @@ def text_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve(tmp_path, apdl_file):
-    """Verify case.solve runs the APDL task with saved parameters and produces the computed results file."""
+    """Verify case.solve runs the APDL task with saved parameters
+    and produces the computed results file."""
     expected_file_content = '5\n'
     case = CAECase.create_new(tmp_path)
     case.add_files_to_case(apdl_file)
