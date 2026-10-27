@@ -1,6 +1,7 @@
 """Helper for cross-merging named pandas Series into a DataFrame."""
-import pandas as pd
 import itertools
+
+import pandas as pd
 
 
 def series_merger(*series_list, reset_index=True, sort=False):

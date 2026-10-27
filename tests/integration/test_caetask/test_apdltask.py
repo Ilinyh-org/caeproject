@@ -1,10 +1,11 @@
 """Integration tests for APDLTask: solving, logs, auxiliary files, temporary directories, error handling and serialization."""
 import os
 from pathlib import Path
+from threading import Lock
 
 import pytest
+
 from caetask import APDLTask
-from threading import Lock
 
 lock = Lock()
 

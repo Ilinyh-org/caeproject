@@ -1,12 +1,13 @@
 """Integration tests for CAECase task creation, parameter persistence/conversion and config round-trips."""
-import shutil
-from pathlib import Path
-
-import pytest
-from caecase import CAECase
-from caetask import APDLTask, FluentTask
 import json
 import os
+from pathlib import Path
+import shutil
+
+import pytest
+
+from caecase import CAECase
+from caetask import APDLTask, FluentTask
 
 
 def test_case_check_directory(tmp_path):

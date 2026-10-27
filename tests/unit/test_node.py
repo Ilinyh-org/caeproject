@@ -1,10 +1,10 @@
 """Unit tests for core.node.Node: attribute/key initialization, value access, auto-creation, serialization and DataFrame export."""
 import pandas as pd
+import pytest
 
 # from core import Node, Parameter
 from core.parameter import Parameter
 from core.node import Node
-import pytest
 
 def test_node_initialization_by_attributes():
     """Verify deep attribute assignment auto-creates nested Nodes and stores the value."""
