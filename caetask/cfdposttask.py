@@ -83,10 +83,11 @@ class CFDPostTask(CAETask):
 
         # создание процесса по сконфигурированному application
         with open(self._working_directory / self.log_file_name, 'w', encoding="utf-8") as f:
-            self._process = Popen(' '.join(application),
-                                  shell=True,
-                                  stdout=f,
-                                  cwd=self._working_directory).wait()
+            with Popen(' '.join(application),
+                       shell=True,
+                       stdout=f,
+                       cwd=self._working_directory) as process:
+                self._process = process.wait()
         print(f"закончена обработка результатов {self._input_file.name}")
 
     def to_dict(self):
