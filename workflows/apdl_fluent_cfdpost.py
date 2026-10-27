@@ -1,3 +1,9 @@
+"""Workflow chaining APDL, Fluent, and CFD-Post stages.
+
+Provides :class:`APDLFluentCFDPostWorkflow`, which creates a case per
+parameter row running an APDL meshing step, a Fluent calculation, and
+a CFD-Post post-processing step in sequence.
+"""
 from pathlib import Path
 from collections.abc import Callable, Iterable
 
@@ -11,6 +17,8 @@ from tests.integration.test_caetask.test_cfdposttask import cse_cfdpost_file
 
 
 class APDLFluentCFDPostWorkflow:
+    """Creates three-stage APDL → Fluent → CFD-Post cases from parameter rows."""
+
     def __init__(
         self,
         project: CAEProject,
@@ -28,6 +36,13 @@ class APDLFluentCFDPostWorkflow:
         self.configure_case = configure_case
 
     def create_case(self, row: dict) -> CAECase:
+        """Create a chained three-task case from one parameter row.
+
+        Applies ``configure_case`` to fill the case, adds the APDL,
+        Fluent, and CFD-Post input files, saves parameters in both
+        APDL and JSON formats, creates the three chained tasks, and
+        saves the case config.
+        """
         case = CAECase.create_new(self.project.path)
 
         self.configure_case(case, row)
@@ -90,6 +105,7 @@ class APDLFluentCFDPostWorkflow:
         rows: Iterable[dict],
         max_workers: int = 1,
     ):
+        """Create cases for every row, running at most ``max_workers`` in parallel."""
         return self.project.create_cases(
             rows,
             self.create_case,

@@ -1,4 +1,9 @@
+"""Unit-aware :class:`Parameter` value type.
 
+Provides a dataclass storing a value with optional units and a
+description, backed by pint for unit conversion, comparison, and
+arithmetic operations that respect units.
+"""
 from dataclasses import dataclass, field, fields
 
 import pytest
@@ -11,6 +16,12 @@ UREG = UnitRegistry()
 
 @dataclass
 class Parameter:
+    """Dataclass holding a value with optional units and description.
+
+    Setters silently ignore values of the wrong type; comparisons and
+    arithmetic convert operands to this parameter's units via pint.
+    """
+
     value: object | None = None
     units: str | None = None
     description: str | None = None
@@ -28,6 +39,7 @@ class Parameter:
 
     @property
     def value(self) -> object:
+        """Current value of the parameter."""
         return self._value
 
     @value.setter
@@ -43,6 +55,7 @@ class Parameter:
 
     @property
     def units(self) -> str:
+        """Units of the value as a string (empty string if unset)."""
         return self._units
 
     @units.setter
@@ -53,6 +66,7 @@ class Parameter:
 
     @property
     def description(self) -> str:
+        """Human-readable description (empty string if unset)."""
         return self._description
 
     @description.setter
@@ -62,6 +76,14 @@ class Parameter:
         self._description = description
 
     def to_dict(self):
+        """Return the public fields as a dict.
+
+        Private fields are skipped, and empty-string values (the
+        defaults for ``units`` and ``description``) are omitted.
+
+        Returns:
+            dict: Mapping of field names to their current values.
+        """
         data = {}
         for field in fields(self):
             if field.name.startswith("_"):

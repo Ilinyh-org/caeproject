@@ -1,26 +1,31 @@
+"""Integration tests for CAETask logging, per-class task counters and file loading."""
+from datetime import datetime
+import json
 import os
 from pathlib import Path
+from threading import Lock
 
 import pytest
+
 from caetask import APDLTask, FluentTask, CFDPostTask
 from caetask import CAETask
-from threading import Lock
-import json
-from datetime import datetime
 
 lock = Lock()
 
 
 def setup_method():
+    """No per-test setup required."""
     pass
 
 
 @pytest.fixture(autouse=True)
 def reset_counter():
+    """Reset the CAETask counter before each test."""
     CAETask.reset()
 
 
 def parse_iso8601(ts):
+    """Parse an ISO 8601 timestamp, failing the test on a bad format."""
     try:
         return datetime.fromisoformat(ts)
     except ValueError as e:
@@ -29,16 +34,18 @@ def parse_iso8601(ts):
 
 @pytest.fixture(scope="session")
 def apdl_file(tmp_path_factory):
+    """Write a minimal APDL journal; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
     return fn
 
 
 @pytest.fixture(scope="session")
 def apdl_parameters_file(tmp_path_factory):
+    """Write an APDL parameters file with a=1 and b=-2.4; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.parm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("a=1\n")
         file.write("b=-2.4\n")
     return fn
@@ -47,7 +54,8 @@ def apdl_parameters_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
-def test_apdl_solve_log(tmpdir, apdl_file, capsys):
+def test_apdl_solve_log(tmpdir, apdl_file):
+    """Verify APDLTask.solve writes a JSON log with the expected fields, status and consistent duration."""
     os.chdir(tmpdir)
 
     log_file_name = "test_APDLTask_solve.log"
@@ -77,7 +85,8 @@ def test_apdl_solve_log(tmpdir, apdl_file, capsys):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
-def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file, capsys):
+def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file):
+    """Verify the solve log is written to the configured results_directory."""
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
     tmpdir2 = tmp_path / "tmpdir2"
@@ -111,7 +120,8 @@ def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file, caps
 
 @pytest.mark.positive
 @pytest.mark.counter
-def test_counter_increment(tmpdir, apdl_file, capsys):
+def test_counter_increment(tmpdir):
+    """Verify per-class counters increment independently for APDLTask and FluentTask."""
     os.chdir(tmpdir)
 
     expected_apdl_tasks_count = 2
@@ -132,7 +142,8 @@ def test_counter_increment(tmpdir, apdl_file, capsys):
 
 @pytest.mark.positive
 @pytest.mark.counter
-def test_counter_decrement(tmpdir, apdl_file, capsys):
+def test_counter_decrement(tmpdir):
+    """Verify deleting a task decrements its class counter."""
     os.chdir(tmpdir)
 
     expected_tasks_count_before_del = 3
@@ -151,7 +162,8 @@ def test_counter_decrement(tmpdir, apdl_file, capsys):
 
 @pytest.mark.positive
 @pytest.mark.counter
-def test_counter_reset_certain_classes(tmpdir, apdl_file, capsys):
+def test_counter_reset_certain_classes(tmpdir):
+    """Verify reset() zeroes only the target class counter, leaving others intact."""
     os.chdir(tmpdir)
 
     expected_target_tasks_count_after_reset = 0
@@ -171,8 +183,9 @@ def test_counter_reset_certain_classes(tmpdir, apdl_file, capsys):
 
 @pytest.fixture(scope="session")
 def scm_simple_file(tmp_path_factory):
+    """Write a Fluent journal that just exits; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(ti-menu-load-string \"exit y\")\n")
     return fn
 
@@ -181,6 +194,7 @@ def scm_simple_file(tmp_path_factory):
 @pytest.mark.solve
 @pytest.mark.log
 def test_fluent_solve_log(tmpdir, scm_simple_file):
+    """Verify FluentTask.solve writes a JSON log with the expected fields and duration."""
     tmpdir.chdir()
 
     log_file_name = "test_FluentTask_solve.log"
@@ -216,14 +230,19 @@ def test_fluent_solve_log(tmpdir, scm_simple_file):
                           (RuntimeError, 'error', not None)])
 def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expected_end_time,
                                    monkeypatch, tmpdir, apdl_file):
+    """Verify interrupts during solve log status 'running' (no end time) or 'error' (with end time)."""
     os.chdir(tmpdir)
 
     # Создаём класс для подмены объекта Popen объектом с заменённым методом wait
     class FakePopen:
+        """Stub replacing Popen whose wait() raises the parametrized exception."""
+
         def __init__(self, *a, **kw):
+            """Accept any arguments; no initialization required."""
             pass
 
         def wait(self):  # прервёт выполнение функции solve
+            """Raise the parametrized exception to interrupt solve."""
             raise raising_exception
 
     monkeypatch.setattr("caetask.apdltask.Popen", FakePopen)  # подменяем FakePopen вместо Popen
@@ -263,6 +282,7 @@ def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expec
                           (RuntimeError, 'error', not None)])
 def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exception, expected_status, expected_end_time,
                                    monkeypatch, tmp_path: Path, apdl_file):
+    """Verify interrupt logging also works with results_directory outside the current directory."""
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
     tmpdir2 = tmp_path / "tmpdir2"
@@ -271,10 +291,14 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exceptio
 
     # Создаём класс для подмены объекта Popen объектом с заменённым методом wait
     class FakePopen:
+        """Stub replacing Popen whose wait() raises the parametrized exception."""
+
         def __init__(self, *a, **kw):
+            """Accept any arguments; no initialization required."""
             pass
 
         def wait(self):  # прервёт выполнение функции solve
+            """Raise the parametrized exception to interrupt solve."""
             raise raising_exception
 
     monkeypatch.setattr("caetask.apdltask.Popen", FakePopen)  # подменяем FakePopen вместо Popen
@@ -307,7 +331,8 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exceptio
 
 
 @pytest.mark.positive
-def test_load_inputs_input_file(tmpdir, apdl_file):
+def test_load_inputs_input_file(apdl_file):
+    """Verify load_files reads the input file code into _input_file_code."""
     expected_input_file_code = ["/batch\n"]
 
     task = APDLTask.create_new('test')
@@ -320,7 +345,8 @@ def test_load_inputs_input_file(tmpdir, apdl_file):
 
 
 @pytest.mark.positive
-def test_load_inputs_parameters_file(tmpdir, apdl_parameters_file):
+def test_load_inputs_parameters_file(apdl_parameters_file):
+    """Verify load_files reads the parameters file code into _parameters_file_code."""
     expected_parameters_file_code = ["a=1\n", "b=-2.4\n"]
 
     task = APDLTask.create_new('test')
@@ -333,7 +359,8 @@ def test_load_inputs_parameters_file(tmpdir, apdl_parameters_file):
 
 
 @pytest.mark.negative
-def test_load_inputs_input_file_FileNotFoundError(tmpdir):
+def test_load_inputs_input_file_FileNotFoundError():
+    """Verify load_files raises FileNotFoundError with the full path for a missing input file."""
     expected_error = FileNotFoundError
     expected_error_message = str(Path.cwd() / "test.inp") + " is not found"
 
@@ -347,7 +374,8 @@ def test_load_inputs_input_file_FileNotFoundError(tmpdir):
 
 
 @pytest.mark.negative
-def test_load_inputs_parameters_file_FileNotFoundError(tmpdir):
+def test_load_inputs_parameters_file_FileNotFoundError():
+    """Verify load_files raises FileNotFoundError with the full path for a missing parameters file."""
     expected_error = FileNotFoundError
     expected_error_message = str(Path.cwd() / "test.parm") + " is not found"
 

@@ -1,3 +1,9 @@
+"""Concurrent execution helpers for running a task over data samples.
+
+Provides :func:`run_processes` and :func:`run_threads`, which fan a
+_callable task out over a list of samples with a process or thread
+pool and print progress as tasks complete.
+"""
 import os
 from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
 from threading import Lock
@@ -8,6 +14,11 @@ completed = 0
 
 
 def run_processes(task, data, max_workers=10):
+    """Run ``task`` once per sample in a process pool.
+
+    Each child process handles a single sample (``max_tasks_per_child=1``).
+    Returns the results in completion order.
+    """
     global completed, total_tasks
 
     executor = ProcessPoolExecutor(max_workers=max_workers, max_tasks_per_child=1)
@@ -22,6 +33,10 @@ def run_processes(task, data, max_workers=10):
 
 
 def run_threads(task, data, max_workers=5):
+    """Run ``task`` once per sample in a thread pool.
+
+    Returns the results in completion order.
+    """
     global completed, total_tasks
     executor = ThreadPoolExecutor(max_workers=max_workers)
     results = []
@@ -35,6 +50,7 @@ def run_threads(task, data, max_workers=5):
 
 
 def completed_callback(future):
+    """Progress callback: count a finished task and print the backlog."""
     global completed, total_tasks, lock
     with lock:
         completed += 1

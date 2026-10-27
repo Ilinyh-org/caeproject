@@ -1,3 +1,9 @@
+"""Indented scheme-format data converter.
+
+Provides :class:`SchemeConverter`, which renders a parameter
+dictionary as plain text with nested dictionaries indented by four
+spaces (``key:`` headers, ``key = value`` leaves).
+"""
 from typing import Dict, Any
 
 from .base import DataConverter

@@ -1,3 +1,9 @@
+"""ANSYS Fluent solver task.
+
+Provides :class:`FluentTask`, a :class:`~caetask.caetask.CAETask`
+that runs an ANSYS Fluent journal in a temporary directory and copies
+matched result files and the log back into the results directory.
+"""
 import os
 import shutil
 import fnmatch
@@ -9,6 +15,14 @@ from caetask import CAETask, log_execution_time
 
 
 class FluentTask(CAETask):
+    """Task that runs an ANSYS Fluent calculation.
+
+    The input journal is executed from a temporary directory; after the
+    run, result file names may contain wildcards, which are expanded
+    against the temporary directory before all results and the log are
+    copied into the results directory.
+    """
+
     TYPE = "fluent"
     SERIALIZABLE_FIELDS = (
         "additional_link_files",
@@ -83,7 +97,7 @@ class FluentTask(CAETask):
         self._organize_additional_link_files(tempdir)  #move above
 
         # создание процесса по сконфигурированному application
-        with open(Path(tempdir.name) / self.log_file_name, 'w') as f:
+        with open(Path(tempdir.name) / self.log_file_name, 'w', encoding="utf-8") as f:
             self._process = Popen(' '.join(application),
                                   shell=True,
                                   stdout=f,
@@ -133,6 +147,7 @@ class FluentTask(CAETask):
 
     @property
     def dimension(self):
+        """Solver dimensionality: one of "2d", "3d", "2ddp", "3ddp"."""
         return self._dimension
 
     @dimension.setter
@@ -143,6 +158,7 @@ class FluentTask(CAETask):
 
     @property
     def threads(self):
+        """Number of CPU threads for Fluent (stored as a string)."""
         return self._threads
 
     @threads.setter

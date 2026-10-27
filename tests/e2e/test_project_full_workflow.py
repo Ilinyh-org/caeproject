@@ -1,12 +1,12 @@
 
+import pandas as pd
+import plotly.express as px
 import pytest
+
 from caecase import CAECase
 from caecase.utils import is_case_dir_name
 from caetask import APDLTask, run_threads
 from caeproject import CAEProject
-
-import pandas as pd
-import plotly.express as px
 
 from core.series_merger import series_merger
 from workflows.apdl import APDLWorkflow
@@ -16,7 +16,7 @@ from workflows.apdl_fluent_cfdpost import APDLFluentCFDPostWorkflow
 @pytest.fixture(scope="session")
 def apdl_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "square_compression.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("finish\n")
         file.write("/clear\n")
         file.write("/prep7\n")
@@ -280,7 +280,7 @@ def test_project_apdl_workflow(tmp_path, apdl_file):
 @pytest.fixture(scope="session")
 def inp_mesh_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "poiseuille_flow.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("finish\n")
         file.write("/clear\n")
         file.write("/prep7\n")
@@ -321,7 +321,7 @@ def inp_mesh_file(tmp_path_factory):
 @pytest.fixture(scope="session")
 def scm_solve_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "poiseuille_flow.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(ti-menu-load-string \"/file/import/mechanical-apdl/input mesh.cdb\")\n")
         file.write("(ti-menu-load-string \"/define/models axisymmetric? y\")\n")
         file.write("(ti-menu-load-string \"/define/models/viscous/laminar? y\")\n")
@@ -343,7 +343,7 @@ def scm_solve_file(tmp_path_factory):
 @pytest.fixture(scope="session")
 def cse_cfdpost_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "poiseuille_flow.cse"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("!use lib '.';\n")
         file.write("!use JsonConfig;\n")
         file.write("!my $p = load_params('poiseuille_flow.json');\n")

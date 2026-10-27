@@ -1,9 +1,12 @@
 
-import pytest
-from pathlib import Path
-from caecase import CAECase
-import json
+"""Tests for CAECase delayed (asynchronous) saving."""
 import asyncio
+import json
+from pathlib import Path
+
+import pytest
+
+from caecase import CAECase
 #
 # @pytest.fixture
 # def temp_caecase_obj_path():

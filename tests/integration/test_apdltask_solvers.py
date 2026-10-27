@@ -1,3 +1,4 @@
+"""Integration test for creating and solving several APDLTask instances via run_threads."""
 from pathlib import Path
 
 import pytest
@@ -7,13 +8,14 @@ from caetask import run_threads, APDLTask
 
 
 def create_task(index, tempdir=None):  # задаётся пользователем
+    """Build an APDLTask from a (task_num, num_par) index with its own workdir and parameters file."""
     task_num = index[0]
     num_par = index[1]
 
     workdir = Path.cwd() / f"temp{task_num}" # + task_num
     workdir.mkdir()
 
-    with open(workdir / "test.parm", "w") as file:
+    with open(workdir / "test.parm", "w", encoding="utf-8") as file:
         file.write("num=" + str(num_par))
 
     task = APDLTask.create_new(f'test{num_par}')
@@ -31,6 +33,7 @@ def create_task(index, tempdir=None):  # задаётся пользовател
 
 
 def solve_task(task: APDLTask):
+    """Solve the given APDLTask."""
     task.solve()
 
 
@@ -38,13 +41,14 @@ def solve_task(task: APDLTask):
 @pytest.mark.solve
 @pytest.mark.input_parameters
 def test_apdl_multitask_callback(tmpdir):
+    """Verify threaded tasks each compute num*3 from their parameters file into the expected results file."""
     input_data = (('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5), ('6', 6), ('7', 7))
 
     expected_results = (3, 6, 9, 12, 15, 18, 21)
 
     tmpdir.chdir()
 
-    with open("test.inp", "w") as file:
+    with open("test.inp", "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("parres,change,test,parm\n")
         file.write("*cfopen,task%num%_text_file,dat\n")
@@ -59,7 +63,7 @@ def test_apdl_multitask_callback(tmpdir):
         file_name = f"task{input_sample[0]}_text_file.dat"
         with check:  # позволяет не прерывать общий процесс при провале assert
             # try:
-            with open(file_name, "r") as file:
+            with open(file_name, "r", encoding="utf-8") as file:
                 actual_result = int(file.readline())
                 assert actual_result == expected_result, f"Error in file {file_name}"
             # except FileNotFoundError:

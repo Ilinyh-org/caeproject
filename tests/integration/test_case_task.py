@@ -1,20 +1,24 @@
-import shutil
-from pathlib import Path
-
-import pytest
-from caecase import CAECase
-from caetask import APDLTask, FluentTask
+"""Integration tests for CAECase task creation, parameter persistence/conversion and config round-trips."""
 import json
 import os
+from pathlib import Path
+import shutil
+
+import pytest
+
+from caecase import CAECase
+from caetask import APDLTask, FluentTask
 
 
 def test_case_check_directory(tmp_path):
+    """Verify create_new creates the case directory."""
     case = CAECase.create_new(base_path=tmp_path)
 
     assert case.path.exists()
 
 
 def test_create_case_apdltask(tmp_path):
+    """Verify create_task builds an APDLTask wired to the case and registered in case.tasks."""
     case = CAECase.create_new(tmp_path)
 
     task = case.create_task(APDLTask, "square_compression")
@@ -43,6 +47,7 @@ def test_create_case_apdltask(tmp_path):
 
 
 def test_create_case_with_attributes_apdltask(tmp_path):
+    """Verify create_task forwards keyword attributes to the created APDLTask."""
     case = CAECase.create_new(tmp_path)
 
     task = case.create_task(
@@ -64,6 +69,7 @@ def test_create_case_with_attributes_apdltask(tmp_path):
 
 
 def test_create_case_fluenttask(tmp_path):
+    """Verify create_task wires the task to the case with the assigned files and back-references."""
     case = CAECase.create_new(tmp_path)
 
     task = case.create_task(APDLTask, "pump")
@@ -88,6 +94,7 @@ def test_create_case_fluenttask(tmp_path):
 
 
 def test_create_case_with_attributes_fluenttask(tmp_path):
+    """Verify create_task forwards keyword attributes to the created FluentTask."""
     case = CAECase.create_new(tmp_path)
 
     task = case.create_task(
@@ -109,6 +116,7 @@ def test_create_case_with_attributes_fluenttask(tmp_path):
 
 
 def test_case_parameters(tmp_path):
+    """Verify parameters_save writes grouped parameters with values and units to case_data.json."""
     expected_file_content = {
         'geometry': {
         "H1": {
@@ -127,12 +135,13 @@ def test_case_parameters(tmp_path):
 
     case.parameters_save()
 
-    with open(case.path / "case_data.json", 'r') as f:
+    with open(case.path / "case_data.json", 'r', encoding="utf-8") as f:
         actual_file_content = json.load(f)
     assert actual_file_content == expected_file_content
 
 
 def test_case_parameters_partial_include_option(tmp_path):
+    """Verify parameters_save(include=...) persists only the selected group."""
     expected_file_content = {
         'geometry': {
         "H1": {
@@ -147,12 +156,13 @@ def test_case_parameters_partial_include_option(tmp_path):
 
     case.parameters_save(include=['geometry'])
 
-    with open(case.path / "case_data.json", 'r') as f:
+    with open(case.path / "case_data.json", 'r', encoding="utf-8") as f:
         actual_file_content = json.load(f)
     assert actual_file_content == expected_file_content
 
 
 def test_case_parameters_partial_exclude_option(tmp_path):
+    """Verify parameters_save(exclude=...) skips the selected group."""
     expected_file_content = {
         'geometry': {
         "H1": {
@@ -167,12 +177,13 @@ def test_case_parameters_partial_exclude_option(tmp_path):
 
     case.parameters_save(exclude=['mesh'])
 
-    with open(case.path / "case_data.json", 'r') as f:
+    with open(case.path / "case_data.json", 'r', encoding="utf-8") as f:
         actual_file_content = json.load(f)
     assert actual_file_content == expected_file_content
 
 
 def test_case_parameters_conversion_apdl(tmp_path):
+    """Verify parameters_save with format_type='APDL' converts units to SI in the .parm file."""
     case = CAECase.create_new(tmp_path)
     expected_file_content = '!geometry\nH1=0.05 ![m]\n!mesh\nNES_H1=11\n'
     case.parameters.geometry.H1 = 5
@@ -181,20 +192,22 @@ def test_case_parameters_conversion_apdl(tmp_path):
 
     case.parameters_save(format_type='APDL', new_system="SI")
 
-    with open(case.path / "case_data.parm") as file:
+    with open(case.path / "case_data.parm", encoding="utf-8") as file:
         actual_file_content = file.read()
 
     assert actual_file_content == expected_file_content
 
 
-def test_case_parameters_conversion_apdl_partial(tmp_path):
+def test_case_parameters_conversion_apdl_partial():
+    """Placeholder: partial APDL conversion is not yet covered."""
     pass
 
 
 @pytest.fixture(scope="session")
 def apdl_file(tmp_path_factory):
+    """Write an APDL journal writing A1+B1 into a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("parres,,test,parm\n")
         file.write("*cfopen,text_file_from_ansys,dat\n")
@@ -206,8 +219,9 @@ def apdl_file(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def text_file(tmp_path_factory):
+    """Write a simple text file used as a link file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "text.txt"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("simple text\n")
     return fn
 
@@ -215,6 +229,7 @@ def text_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_apdl_solve(tmp_path, apdl_file):
+    """Verify case.solve runs the APDL task with saved parameters and produces the computed results file."""
     expected_file_content = '5\n'
     case = CAECase.create_new(tmp_path)
     case.add_files_to_case(apdl_file)
@@ -232,15 +247,16 @@ def test_apdl_solve(tmp_path, apdl_file):
 
     case.solve()
 
-    with open(case.path / "text_file_from_ansys.dat", "r") as file:
+    with open(case.path / "text_file_from_ansys.dat", "r", encoding="utf-8") as file:
         actual_file_content = file.read()
     assert actual_file_content == expected_file_content
 
 
 @pytest.fixture(scope="session")
 def apdl_file_empty(tmp_path_factory):
+    """Write a minimal APDL journal; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
     return fn
 
@@ -249,6 +265,7 @@ def apdl_file_empty(tmp_path_factory):
 @pytest.mark.solve
 @pytest.mark.log
 def test_apdl_solve_log_file(tmp_path, apdl_file_empty):
+    """Verify case.solve writes a log file containing the expected APDL banner sections."""
     expected_log_file_name = 'test.log'
     expected_log_text_parts = [
         "Ansys Mechanical",
@@ -269,13 +286,14 @@ def test_apdl_solve_log_file(tmp_path, apdl_file_empty):
     case.solve()
 
     assert Path(case.path / expected_log_file_name).exists()
-    with open(case.path / expected_log_file_name, "r") as file:
+    with open(case.path / expected_log_file_name, "r", encoding="utf-8") as file:
         log_text = file.read()
         for expected_log_text_part in expected_log_text_parts:
             assert expected_log_text_part in log_text
 
 
 def test_case_safe_config_task(tmp_path, apdl_file):
+    """Verify save_config serializes parameters, files and the solved task into the config JSON."""
     expected_config = {
         "parameters": {'A1': {'value': 2}, 'B1': {'value': 3}},
         "files": ["test.inp"],
@@ -316,12 +334,13 @@ def test_case_safe_config_task(tmp_path, apdl_file):
     task.solve()
     case.save_config()
 
-    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
+    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r", encoding="utf-8") as f:
         actual_config = json.load(f)
     assert actual_config == expected_config
 
 
 def test_case_safe_config_task_link_files(tmp_path, apdl_file, text_file):
+    """Verify save_config records additional_link_files on the task."""
     expected_config = {
         "parameters": {'A1': {'value': 2}, 'B1': {'value': 3}},
         "files": ["test.inp", 'text.txt'],
@@ -364,13 +383,14 @@ def test_case_safe_config_task_link_files(tmp_path, apdl_file, text_file):
     # task.solve()
     case.save_config()
 
-    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
+    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r", encoding="utf-8") as f:
         actual_config = json.load(f)
     assert actual_config == expected_config
 
 
 @pytest.fixture(scope="session")
 def config_file(tmp_path_factory):
+    """Write a case config JSON containing one APDL task; return its path."""
     fn = tmp_path_factory.mktemp("data") / "case.json"
     config = {
         "parameters": {'A1': {'value': 2}, 'B1': {'value': 3}},
@@ -399,17 +419,18 @@ def config_file(tmp_path_factory):
         "status": "NEW"
     }
 
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         json.dump(config, file)
     return fn
 
 
 def test_case_task_from_dict(tmp_path, config_file):
+    """Verify CAECase.from_dict restores the task, parameters and files from config data."""
     case_dir = tmp_path / "case_dir"
     case_dir.mkdir()
     os.chdir(case_dir)
 
-    with open(config_file) as file:
+    with open(config_file, encoding="utf-8") as file:
         input_config = json.load(file)
     expected_task_config = input_config['tasks'][0]
     expected_parameters = input_config['parameters']
@@ -426,12 +447,13 @@ def test_case_task_from_dict(tmp_path, config_file):
 
 
 def test_case_task_load_config(tmp_path, config_file):
+    """Verify load_config restores base path, name, task, parameters and files."""
     case_dir = tmp_path / "case_dir"
     case_dir.mkdir()
     os.chdir(case_dir)
     config_file = shutil.copy2(config_file, case_dir)
 
-    with open(config_file) as file:
+    with open(config_file, encoding="utf-8") as file:
         input_config = json.load(file)
     expected_task_config = input_config['tasks'][0]
     expected_parameters = input_config['parameters']

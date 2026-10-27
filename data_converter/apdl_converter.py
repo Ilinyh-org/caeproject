@@ -1,3 +1,9 @@
+"""Ansys APDL parameter file converter.
+
+Provides :class:`APDLConverter`, which renders a parameter dictionary
+as APDL ``key=value`` lines, marking nesting levels with ``!`` prefixes
+and appending ``![units]`` comments for unit-aware parameters.
+"""
 from typing import Dict, Any
 
 from .base import DataConverter, is_parameter

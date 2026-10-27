@@ -1,7 +1,14 @@
-import pytest
-import pandas as pd
-import numpy as np
+"""Tests for the ``core.series_merger.series_merger`` cross-merge utility.
+
+Covers cartesian-product merging of named pandas Series, sorting,
+reset_index behaviour, dtype preservation, edge cases (empty, single,
+NaN, duplicate values) and error handling for unnamed series.
+"""
 import math
+
+import numpy as np
+import pandas as pd
+import pytest
 
 from core.series_merger import series_merger
 

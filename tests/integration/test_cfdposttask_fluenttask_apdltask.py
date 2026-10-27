@@ -1,3 +1,4 @@
+"""Integration tests chaining APDLTask, FluentTask and CFDPostTask solves (requires solver backends)."""
 import os
 from pathlib import Path
 
@@ -8,8 +9,9 @@ from caetask import APDLTask, FluentTask, CFDPostTask
 
 @pytest.fixture(scope="session")
 def cse_cfdpost_file(tmp_path_factory):
+    """Write a CFD-Post session file exporting inlet velocity to CSV; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.cse"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write(">load filename=results.cas.h5, force_reload=true\n")
         file.write("EXPORT:\n")
         file.write("  CSV Type = CSV\n")
@@ -31,6 +33,7 @@ def cse_cfdpost_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_cfdpost_file):
+    """Verify the APDL→Fluent→CFD-Post pipeline exports a CSV with the expected number of lines."""
     tmpdir.chdir()
     expected_result = 6
 
@@ -51,7 +54,7 @@ def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_
     task3.results_files_names = ["export.csv"]
     task3.solve()
 
-    with open("export.csv", "r") as file:
+    with open("export.csv", "r", encoding="utf-8") as file:
         actual_result = len(file.readlines())
     assert actual_result == expected_result
 
@@ -60,6 +63,7 @@ def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_
 @pytest.mark.solve
 def test_cfdposttask_not_in_current_directory(tmp_path: Path,
                                               inp_mesh_file, scm_solve_file, cse_cfdpost_file):
+    """Verify chained tasks succeed with results and working directories outside the current directory."""
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
     tmpdir2 = tmp_path / "tmpdir2"
@@ -88,15 +92,16 @@ def test_cfdposttask_not_in_current_directory(tmp_path: Path,
     task3.results_files_names = ["export.csv"]
     task3.solve()
 
-    with open(tmpdir2 / "export.csv", "r") as file:
+    with open(tmpdir2 / "export.csv", "r", encoding="utf-8") as file:
         actual_result = len(file.readlines())
     assert actual_result == expected_result
 
 
 @pytest.fixture(scope="session")
 def inp_mesh_file(tmp_path_factory):
+    """Write an APDL script meshing a square with inlet/outlet/wall components; return its path."""
     fn = tmp_path_factory.mktemp("data") / "mesh.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/prep7\n")
         file.write("et,1,200,6\n")
         file.write("a1=0.2\n")
@@ -118,8 +123,9 @@ def inp_mesh_file(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def scm_solve_file(tmp_path_factory):
+    """Write a Fluent journal importing the mesh, solving one iteration and writing case/data; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(ti-menu-load-string \"/file/import/mechanical-apdl/input mesh.cdb\")\n")
         file.write("(ti-menu-load-string \"/solve/iterate 1\")\n")
         file.write("(ti-menu-load-string \"/file/write-case results.cas.h5\")\n")

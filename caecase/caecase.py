@@ -1,19 +1,27 @@
-import pandas as pd
-from enum import Enum
-import data_converter
-from caetask import CAETask
-from caetask.default_registry import create_default_task_registry
+"""CAE case container.
 
-from .utils import is_case_dir_name
-from core.node import Node
+Provides :class:`CAECase`, a serializable case directory holding a
+parameter tree, input files, and a list of CAE tasks, plus helpers
+for parsing solver CSV results.
+"""
+from enum import Enum
+import io, re
 from pathlib import Path
-from core.file_manager import create_case_dir, add_files, save
-from core.serialization import Serializable
 from typing import List, Iterable
 
-import io, re
+import pandas as pd
+
+from caetask import CAETask
+from caetask.default_registry import create_default_task_registry
+from core.file_manager import create_case_dir, add_files, save
+from core.node import Node
+from core.serialization import Serializable
+import data_converter
+
+from .utils import is_case_dir_name
 
 def append_df(df_main: pd.DataFrame, df_new: pd.DataFrame):
+    """Append ``df_new`` to ``df_main``, tolerating None/empty frames."""
     if df_new is None or df_new.empty:
         return df_main
     if df_main.empty:
@@ -22,7 +30,14 @@ def append_df(df_main: pd.DataFrame, df_new: pd.DataFrame):
 
 
 def get_csv_results(file: Path | str) -> pd.DataFrame:
-    text = Path(file).read_text()
+    """Parse a solver CSV file into a DataFrame.
+
+    Skips blank lines, ``#`` comments, and ``[section]`` headers. The
+    last text line before the numeric data is used as the column name,
+    or as a real CSV header when it is a comma-separated list of
+    non-numeric tokens. Returns an empty DataFrame if no data remains.
+    """
+    text = Path(file).read_text(encoding="utf-8")
 
     lines = []
     for ln in text.splitlines():
@@ -70,6 +85,8 @@ def _is_num(s: str) -> bool:
 
 
 class CaseStatus(Enum):
+    """Lifecycle states of a case."""
+
     NEW = "NEW"
     RUNNING = "RUNNING"
     DONE = "DONE"
@@ -77,6 +94,15 @@ class CaseStatus(Enum):
 
 
 class CAECase(Serializable):
+    """A single CAE case living in its own directory.
+
+    Aggregates the case parameters (:class:`~core.node.Node`), the
+    input files copied into the directory, and the ordered
+    :class:`~caetask.caetask.CAETask` list. Supports solving its
+    tasks, exporting parameters in different formats, collecting task
+    results, and persisting/restoring its configuration as JSON.
+    """
+
     CONFIG_DEFAULT_NAME = "case_config.json"
 
     def __init__(
@@ -99,6 +125,10 @@ class CAECase(Serializable):
             base_path: Path | str | None = None,
             name: str | None = None,
     ):
+        """Create a new case directory under ``base_path`` and return the case.
+
+        Uses a timestamped directory name unless ``name`` is given.
+        """
         base_path = cls.normalize_path(base_path)
 
         case_path = create_case_dir(base_path, name)
@@ -109,6 +139,11 @@ class CAECase(Serializable):
         )
 
     def add_task(self, task: CAETask):
+        """Attach an existing task to this case.
+
+        Raises:
+            ValueError: if the task already belongs to a case.
+        """
         if task.case is not None:
             raise ValueError(
                 "Task already belongs to a case"
@@ -123,6 +158,11 @@ class CAECase(Serializable):
             name: str,
             **attributes,
     ) -> CAETask:
+        """Create a task of ``task_class`` in this case and configure it.
+
+        Keyword ``attributes`` are set on the task after creation.
+        Returns the new task.
+        """
 
         task = task_class.create_new(name, self.path)
 
@@ -134,11 +174,13 @@ class CAECase(Serializable):
         return task
 
     def remove_task(self, task):
+        """Detach the task from this case."""
         self.tasks.remove(task)
 
         task._case = None
 
     def create_name(self):
+        """Create a fresh timestamped directory under the base path and return its path."""
         return create_case_dir(self.base_path)
 
     def add_files_to_case(self, files):
@@ -148,10 +190,17 @@ class CAECase(Serializable):
         self.files += add_files(files, self.path)
 
     def solve(self):
+        """Run all tasks of this case sequentially."""
         for task in self.tasks:
             task.solve()
 
     def get_results(self):
+        """Collect CSV results of all tasks into one DataFrame.
+
+        Each task's ``*.csv`` result file is parsed and tagged with an
+        ``ID`` column holding the case name. Non-CSV result types are
+        currently skipped. Returns an empty DataFrame if none.
+        """
         df = pd.DataFrame()
         for task in self.tasks:
             for file_name in task.results_files_names:
@@ -259,14 +308,17 @@ class CAECase(Serializable):
 
     @property
     def needs_solving(self) -> bool:
+        """True while the case has not reached DONE status."""
         return self.status != CaseStatus.DONE
 
     @property
     def project(self):
+        """The project this case belongs to, or None if unattached."""
         return self._project
 
     @property
     def files(self) -> List[str]:
+        """Names of the files copied into the case directory."""
         return self._files
 
     @files.setter
@@ -275,6 +327,7 @@ class CAECase(Serializable):
 
     @classmethod
     def is_case_directory(cls, path: Path) -> bool:
+        """True if ``path`` is a directory named like a case and containing a case config."""
         if not path.is_dir():
             return False
 
