@@ -82,7 +82,7 @@ class Serializable:
 
         config_file = directory / self.CONFIG_DEFAULT_NAME
 
-        with open(config_file, "w") as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             json.dump(self.to_dict(), f, indent=2)
 
     @classmethod
@@ -107,7 +107,7 @@ class Serializable:
         if config_path.is_dir():
             config_path /= cls.CONFIG_DEFAULT_NAME
 
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         config_folder_path = config_path.parent

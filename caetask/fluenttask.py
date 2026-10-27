@@ -97,7 +97,7 @@ class FluentTask(CAETask):
         self._organize_additional_link_files(tempdir)  #move above
 
         # создание процесса по сконфигурированному application
-        with open(Path(tempdir.name) / self.log_file_name, 'w') as f:
+        with open(Path(tempdir.name) / self.log_file_name, 'w', encoding="utf-8") as f:
             self._process = Popen(' '.join(application),
                                   shell=True,
                                   stdout=f,

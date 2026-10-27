@@ -65,7 +65,7 @@ def test_case_path(tmp_path):
 def apdl_file(tmp_path_factory):
     """Write an APDL journal writing parameter text into a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("*dim,text,string,32,1\n")
         file.write("text(1)=\'test text from ansys\'\n")
@@ -103,7 +103,7 @@ def test_case_safe_config_files(tmp_path, apdl_file):
 
     case.save_config()
 
-    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
+    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r", encoding="utf-8") as f:
         actual_config = json.load(f)
     assert actual_config == expected_config
 
@@ -128,7 +128,7 @@ def test_case_load_config_files(tmp_path, apdl_file):
     expected_base_path = tmp_path
     case_dir_path = tmp_path / case_name
     case_dir_path.mkdir()
-    with open(case_dir_path / "case_config.json", "w") as f:
+    with open(case_dir_path / "case_config.json", "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
     case = CAECase.load_config(case_dir_path)
@@ -147,7 +147,7 @@ def test_case_safe_config_status(tmp_path):
 
     case.save_config()
 
-    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
+    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r", encoding="utf-8") as f:
         data = json.load(f)
     assert data["status"] == expected_status
 
@@ -166,7 +166,7 @@ def test_case_load_config_status(tmp_path, apdl_file):
     expected_base_path = tmp_path
     case_dir_path = tmp_path / case_name
     case_dir_path.mkdir()
-    with open(case_dir_path / "case_config.json", "w") as f:
+    with open(case_dir_path / "case_config.json", "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
     case = CAECase.load_config(case_dir_path)

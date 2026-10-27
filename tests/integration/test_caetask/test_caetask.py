@@ -35,7 +35,7 @@ def parse_iso8601(ts):
 def apdl_file(tmp_path_factory):
     """Write a minimal APDL journal; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
     return fn
 
@@ -44,7 +44,7 @@ def apdl_file(tmp_path_factory):
 def apdl_parameters_file(tmp_path_factory):
     """Write an APDL parameters file with a=1 and b=-2.4; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.parm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("a=1\n")
         file.write("b=-2.4\n")
     return fn
@@ -184,7 +184,7 @@ def test_counter_reset_certain_classes(tmpdir, apdl_file, capsys):
 def scm_simple_file(tmp_path_factory):
     """Write a Fluent journal that just exits; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(ti-menu-load-string \"exit y\")\n")
     return fn
 

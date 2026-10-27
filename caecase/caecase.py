@@ -36,7 +36,7 @@ def get_csv_results(file: Path | str) -> pd.DataFrame:
     or as a real CSV header when it is a comma-separated list of
     non-numeric tokens. Returns an empty DataFrame if no data remains.
     """
-    text = Path(file).read_text()
+    text = Path(file).read_text(encoding="utf-8")
 
     lines = []
     for ln in text.splitlines():

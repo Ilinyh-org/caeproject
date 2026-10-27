@@ -15,7 +15,7 @@ def create_task(index, tempdir=None):  # задаётся пользовател
     workdir = Path.cwd() / f"temp{task_num}" # + task_num
     workdir.mkdir()
 
-    with open(workdir / "test.parm", "w") as file:
+    with open(workdir / "test.parm", "w", encoding="utf-8") as file:
         file.write("num=" + str(num_par))
 
     task = APDLTask.create_new(f'test{num_par}')
@@ -48,7 +48,7 @@ def test_apdl_multitask_callback(tmpdir):
 
     tmpdir.chdir()
 
-    with open("test.inp", "w") as file:
+    with open("test.inp", "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("parres,change,test,parm\n")
         file.write("*cfopen,task%num%_text_file,dat\n")
@@ -63,7 +63,7 @@ def test_apdl_multitask_callback(tmpdir):
         file_name = f"task{input_sample[0]}_text_file.dat"
         with check:  # позволяет не прерывать общий процесс при провале assert
             # try:
-            with open(file_name, "r") as file:
+            with open(file_name, "r", encoding="utf-8") as file:
                 actual_result = int(file.readline())
                 assert actual_result == expected_result, f"Error in file {file_name}"
             # except FileNotFoundError:

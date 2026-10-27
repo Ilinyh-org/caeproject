@@ -89,7 +89,7 @@ def test_project_save_config(tmp_path):
     config_path = tmp_path / project.CONFIG_DEFAULT_NAME
 
     assert config_path.exists()
-    with open(config_path, "r") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         data = json.load(f)
     assert data["name"] == "test_project"
     assert len(data["cases"]) == len(parameters_set)

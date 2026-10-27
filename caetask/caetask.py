@@ -250,14 +250,14 @@ class CAETask(ABC, Serializable):
             dst_path = Path(dst_path.name)
 
         if self._parameters_file:
-            with open(dst_path / self._parameters_file.name, 'w') as f:
+            with open(dst_path / self._parameters_file.name, 'w', encoding="utf-8") as f:
                 f.writelines(self._parameters_file_code)
         if self._input_file:
-            with open(dst_path / self._input_file.name, 'w') as f:
+            with open(dst_path / self._input_file.name, 'w', encoding="utf-8") as f:
                 f.writelines(self._input_file_code)
         if self._additional_text_files:
             for file in self._additional_text_files:
-                with open(dst_path / file[0], 'w') as f:
+                with open(dst_path / file[0], 'w', encoding="utf-8") as f:
                     f.writelines(file[1])
 
         return dst_path

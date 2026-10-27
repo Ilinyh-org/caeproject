@@ -83,7 +83,7 @@ class CFDPostTask(CAETask):
             application.append(self._results_file_name)
 
         # создание процесса по сконфигурированному application
-        with open(self._working_directory / self.log_file_name, 'w') as f:
+        with open(self._working_directory / self.log_file_name, 'w', encoding="utf-8") as f:
             self._process = Popen(' '.join(application),
                                   shell=True,
                                   stdout=f,
