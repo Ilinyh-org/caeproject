@@ -76,6 +76,10 @@ class FluentTask(CAETask):
 
     @log_execution_time()
     def solve(self, cleanup=True):
+        # Cleanup is conditional: solve(cleanup=False) keeps the run
+        # directory for inspection. A with-block would force cleanup
+        # at scope exit.
+        # pylint: disable=consider-using-with
         tempdir = tempfile.TemporaryDirectory(dir=self._temporary_directory)
 
         self.load_files()
@@ -99,10 +103,11 @@ class FluentTask(CAETask):
 
         # создание процесса по сконфигурированному application
         with open(Path(tempdir.name) / self.log_file_name, 'w', encoding="utf-8") as f:
-            self._process = Popen(' '.join(application),
-                                  shell=True,
-                                  stdout=f,
-                                  cwd=tempdir.name).wait()
+            with Popen(' '.join(application),
+                       shell=True,
+                       stdout=f,
+                       cwd=tempdir.name) as process:
+                self._process = process.wait()
         print("закончен расчёт ансис задачи " +
               self.name +
               " во временной директории " +
