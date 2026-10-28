@@ -201,7 +201,6 @@ def test_case_parameters_conversion_apdl(tmp_path):
 
 def test_case_parameters_conversion_apdl_partial():
     """Placeholder: partial APDL conversion is not yet covered."""
-    pass
 
 
 @pytest.fixture(scope="session")

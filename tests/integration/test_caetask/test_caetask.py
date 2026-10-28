@@ -15,7 +15,6 @@ lock = Lock()
 
 def setup_method():
     """No per-test setup required."""
-    pass
 
 
 @pytest.fixture(autouse=True)

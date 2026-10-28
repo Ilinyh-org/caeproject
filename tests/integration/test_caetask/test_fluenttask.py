@@ -11,7 +11,6 @@ from caetask import FluentTask, APDLTask
 
 def setup_method():
     """No per-test setup required."""
-    pass
 
 
 @pytest.fixture(scope="session")
@@ -348,6 +347,5 @@ def test_task_to_dict_after_solve(tmpdir, scm_simple_file):
 
 def tearDown() -> None:
     """No per-test cleanup required."""
-    pass
 
 

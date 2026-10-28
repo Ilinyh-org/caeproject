@@ -14,12 +14,10 @@ class DataConverter(ABC):
     @abstractmethod
     def convert(self, data: dict[str, Any]) -> str:
         """Convert dictionary data to string representation."""
-        pass
 
     @abstractmethod
     def get_extension(self) -> str:
         """Get file extension for this format."""
-        pass
 
 
 def is_parameter(data: dict):

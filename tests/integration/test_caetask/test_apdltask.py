@@ -13,7 +13,6 @@ lock = Lock()
 
 def setup_method():
     """No per-test setup required."""
-    pass
 
 
 @pytest.fixture(scope="session")
@@ -242,7 +241,6 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file):
                           (10, 31.4)])
 def test_apdl_calc_geom_vol(_input_data, _expected_result):
     """Placeholder: geometry volume calculation is not yet covered."""
-    pass
 
 
 @pytest.mark.positive
