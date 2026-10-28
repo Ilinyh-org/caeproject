@@ -27,7 +27,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies] # Optional
-dev = ["pytest", "pytest_check", "pytest-cov", "pylint", "pylint-report"]
+dev = ["pytest", "pytest_check", "pytest-cov", "pylint", "pylint-pytest", "pylint-report"]
 test = ["pytest", "plotly"]
 
 [project.urls]  # Optional
