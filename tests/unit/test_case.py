@@ -1,6 +1,5 @@
 """Unit tests for CAECase initialization, config persistence and get_csv_results CSV parsing."""
 import json
-import re
 from pathlib import Path
 
 import pytest

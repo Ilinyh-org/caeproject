@@ -1,7 +1,6 @@
 
 """Unit tests for core.parameter.Parameter: initialization, unit conversion,
 metadata, serialization, arithmetic and comparisons."""
-from pint import UnitRegistry
 import pytest
 
 from core.parameter import Parameter

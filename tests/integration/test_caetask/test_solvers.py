@@ -4,8 +4,7 @@ from threading import Lock
 
 import pytest
 
-from caetask import APDLTask
-from caetask import run_processes, run_threads
+from caetask import run_processes
 
 lock = Lock()
 
