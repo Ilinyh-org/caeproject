@@ -27,7 +27,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies] # Optional
-dev = ["pytest", "pytest_check", "pytest-cov", "pylint", "pylint-pytest", "pylint-report"]
+dev = ["pytest", "pytest_check", "pytest-cov", "ruff"]
 test = ["pytest", "plotly"]
 
 [project.urls]  # Optional
@@ -41,12 +41,6 @@ include = ["project", "caecase", "core"]
 
 [tool.setuptools.package-data]
 caeproject = ["data/*.pm"]
-
-[tool.pylint.MASTER]
-load-plugins = "pylint_report"
-
-[tool.pylint.REPORTS]
-output-format = "pylint_report.CustomJsonReporter"
 
 [build-system]
 requires = [
