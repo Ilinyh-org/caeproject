@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from caetask import FluentTask, APDLTask
+from caetask import APDLTask, FluentTask
 
 
 def setup_method():

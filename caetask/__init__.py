@@ -7,12 +7,11 @@ solver-specific tasks :class:`~caetask.apdltask.APDLTask`,
 multiple tasks concurrently.
 """
 
-from .caetask import CAETask, log_execution_time
 from .apdltask import APDLTask
-from .fluenttask import FluentTask
+from .caetask import CAETask, log_execution_time
 from .cfdposttask import CFDPostTask
+from .fluenttask import FluentTask
 from .solvers import run_processes, run_threads
-
 
 __all__ = ['CAETask',
            'log_execution_time',

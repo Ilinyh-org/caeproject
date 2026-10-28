@@ -4,8 +4,8 @@ Defines the :class:`DataConverter` abstract base class every format
 converter implements and the :func:`is_parameter` predicate used to
 recognize unit-aware parameter dictionaries.
 """
-from typing import Any
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class DataConverter(ABC):

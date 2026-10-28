@@ -4,14 +4,14 @@ Provides :class:`APDLFluentCFDPostWorkflow`, which creates a case per
 parameter row running an APDL meshing step, a Fluent calculation, and
 a CFD-Post post-processing step in sequence.
 """
-from pathlib import Path
 from collections.abc import Callable, Iterable
+from pathlib import Path
 
 from caecase import CAECase
 from caeproject import CAEProject
 from caetask.apdltask import APDLTask
-from caetask.fluenttask import FluentTask
 from caetask.cfdposttask import CFDPostTask
+from caetask.fluenttask import FluentTask
 
 
 class APDLFluentCFDPostWorkflow:

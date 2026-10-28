@@ -12,7 +12,6 @@ import pytest
 
 from core.series_merger import series_merger
 
-
 # ============ Fixtures ============
 
 @pytest.fixture

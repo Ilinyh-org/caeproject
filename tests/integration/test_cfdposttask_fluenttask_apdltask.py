@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from caetask import APDLTask, FluentTask, CFDPostTask
+from caetask import APDLTask, CFDPostTask, FluentTask
 
 
 @pytest.fixture(scope="session")

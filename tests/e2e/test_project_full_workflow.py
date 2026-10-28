@@ -4,9 +4,8 @@ import pytest
 
 from caecase import CAECase
 from caecase.utils import is_case_dir_name
-from caetask import APDLTask
 from caeproject import CAEProject
-
+from caetask import APDLTask
 from core.series_merger import series_merger
 from workflows.apdl import APDLWorkflow
 from workflows.apdl_fluent_cfdpost import APDLFluentCFDPostWorkflow

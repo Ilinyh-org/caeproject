@@ -7,6 +7,7 @@ and can list the registered formats.
 
 from . import DataConverter
 
+
 class ConverterRegistry:
     """Registry for managing data converters."""
 

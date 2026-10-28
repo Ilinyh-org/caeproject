@@ -4,22 +4,23 @@ Provides :class:`CAECase`, a serializable case directory holding a
 parameter tree, input files, and a list of CAE tasks, plus helpers
 for parsing solver CSV results.
 """
-from enum import Enum
 import io
 import re
-from pathlib import Path
 from collections.abc import Iterable
+from enum import Enum
+from pathlib import Path
 
 import pandas as pd
 
+import data_converter
 from caetask import CAETask
 from caetask.default_registry import create_default_task_registry
-from core.file_manager import create_case_dir, add_files, save
+from core.file_manager import add_files, create_case_dir, save
 from core.node import Node
 from core.serialization import Serializable
-import data_converter
 
 from .utils import is_case_dir_name
+
 
 def append_df(df_main: pd.DataFrame, df_new: pd.DataFrame):
     """Append ``df_new`` to ``df_main``, tolerating None/empty frames."""

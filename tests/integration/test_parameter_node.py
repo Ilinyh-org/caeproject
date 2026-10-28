@@ -1,8 +1,8 @@
 
 """Integration tests for Parameter creation via Node attributes
 and Node serialization with metadata."""
-from core.parameter import Parameter
 from core.node import Node
+from core.parameter import Parameter
 
 
 def test_parameter_creation_via_structure_attribute():

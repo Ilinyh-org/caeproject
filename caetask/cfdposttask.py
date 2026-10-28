@@ -4,12 +4,13 @@ Provides :class:`CFDPostTask`, a :class:`~caetask.caetask.CAETask`
 that runs ANSYS CFD-Post in batch mode on a results file using a
 CSE session input file.
 """
+import shutil
 from importlib.resources import files
 from pathlib import Path
-import shutil
 from subprocess import Popen
 
-from caetask import CAETask, log_execution_time
+from .caetask import CAETask, log_execution_time
+
 
 class CFDPostTask(CAETask):
     """Task that post-processes solver results with ANSYS CFD-Post.

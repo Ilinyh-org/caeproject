@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 from subprocess import Popen
 
-from caetask import CAETask, log_execution_time
+from .caetask import CAETask, log_execution_time
 
 
 class APDLTask(CAETask):
