@@ -12,8 +12,6 @@ from caeproject import CAEProject
 from caetask.apdltask import APDLTask
 from caetask.fluenttask import FluentTask
 from caetask.cfdposttask import CFDPostTask
-from tests.integration.test_caetask.test_apdltask import apdl_file
-from tests.integration.test_caetask.test_cfdposttask import cse_cfdpost_file
 
 
 class APDLFluentCFDPostWorkflow:
