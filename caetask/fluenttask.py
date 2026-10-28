@@ -76,9 +76,6 @@ class FluentTask(CAETask):
 
     @log_execution_time()
     def solve(self, cleanup=True):
-        # Cleanup is conditional: solve(cleanup=False) keeps the run
-        # directory for inspection. A with-block would force cleanup
-        # at scope exit.
         # pylint: disable=consider-using-with
         tempdir = tempfile.TemporaryDirectory(dir=self._temporary_directory)
 

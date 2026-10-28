@@ -136,9 +136,6 @@ class APDLTask(CAETask):
 
     @log_execution_time()
     def solve(self, cleanup=True, delete=True):
-        # Cleanup is conditional: solve(cleanup=False) keeps the run
-        # directory, and delete=False must be honored at cleanup time.
-        # A with-block would force cleanup at scope exit.
         # pylint: disable=consider-using-with
         tempdir = tempfile.TemporaryDirectory(
             dir=self._temporary_directory,
