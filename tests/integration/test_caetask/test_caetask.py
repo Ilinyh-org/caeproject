@@ -222,32 +222,64 @@ def test_fluent_solve_log(tmpdir, scm_simple_file):
         assert actual_duration == pytest.approx(expected_duration, 1E-3)
 
 
+# Создаём класс для подмены объекта Popen объектом с заменённым методом wait
+class FakePopen:
+    """Stub replacing Popen whose wait() raises the parametrized exception."""
+
+    def __init__(self, raising_exception, *a, **kw):
+        """Accept any arguments; no initialization required."""
+        self._exc = raising_exception
+
+    def wait(self):  # прервёт выполнение функции solve
+        """Raise the parametrized exception to interrupt solve."""
+        raise self._exc
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+@pytest.fixture
+def fake_popen(monkeypatch):
+    """Patch Popen in the module under test; returns a setter for the exception.
+
+    Usage:
+        def test_solve_timeout(fake_popen):
+            fake_popen(TimeoutError("boom"))
+            with pytest.raises(TimeoutError):
+                solve(...)
+    """
+    def _install(exc, target="caetask.apdltask.Popen"):
+        monkeypatch.setattr(
+            target,
+            lambda *a, **kw: FakePopen(exc, *a, **kw),
+        )
+        return exc
+
+    return _install
+
+
 @pytest.mark.negative
 @pytest.mark.solve
 @pytest.mark.input_parameters
 @pytest.mark.log
-@pytest.mark.parametrize("raising_exception, expected_status, expected_end_time",
-                         [(KeyboardInterrupt, 'running', None),
-                          (RuntimeError, 'error', not None)])
-def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expected_end_time,
-                                   monkeypatch, tmpdir, apdl_file):
+@pytest.mark.parametrize(
+    "raising_exception, expected_status, expected_end_time",
+    [
+        (KeyboardInterrupt, 'running', None),
+        (RuntimeError, 'error', not None)
+    ],
+)
+def test_apdl_solve_log_with_interrupt(
+        raising_exception, expected_status, expected_end_time,
+        monkeypatch, tmpdir, apdl_file, fake_popen):
     """Verify interrupts during solve log status 'running' (no end time)
     or 'error' (with end time)."""
     os.chdir(tmpdir)
 
-    # Создаём класс для подмены объекта Popen объектом с заменённым методом wait
-    class FakePopen:
-        """Stub replacing Popen whose wait() raises the parametrized exception."""
-
-        def __init__(self, *a, **kw):
-            """Accept any arguments; no initialization required."""
-            pass
-
-        def wait(self):  # прервёт выполнение функции solve
-            """Raise the parametrized exception to interrupt solve."""
-            raise raising_exception
-
-    monkeypatch.setattr("caetask.apdltask.Popen", FakePopen)  # подменяем FakePopen вместо Popen
+    fake_popen(raising_exception)   # target defaults to caetask.apdltask.Popen
 
     log_file_name = "test_APDLTask_solve.log"
     expected_log_fields = {'function_name', 'start_time', 'end_time', 'duration_seconds', 'status'}
@@ -282,9 +314,10 @@ def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expec
 @pytest.mark.parametrize("raising_exception, expected_status, expected_end_time",
                          [(KeyboardInterrupt, 'running', None),
                           (RuntimeError, 'error', not None)])
-def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exception, expected_status,
-                                                                expected_end_time, monkeypatch,
-                                                                tmp_path: Path, apdl_file):
+def test_apdl_solve_log_with_interrupt_not_in_current_directory(
+        raising_exception, expected_status,
+        expected_end_time, monkeypatch,
+        tmp_path: Path, apdl_file, fake_popen):
     """Verify interrupt logging also works with results_directory outside the current directory."""
     tmpdir1 = tmp_path / "tmpdir1"
     tmpdir1.mkdir()
@@ -292,19 +325,7 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exceptio
     tmpdir2.mkdir()
     os.chdir(tmpdir1)
 
-    # Создаём класс для подмены объекта Popen объектом с заменённым методом wait
-    class FakePopen:
-        """Stub replacing Popen whose wait() raises the parametrized exception."""
-
-        def __init__(self, *a, **kw):
-            """Accept any arguments; no initialization required."""
-            pass
-
-        def wait(self):  # прервёт выполнение функции solve
-            """Raise the parametrized exception to interrupt solve."""
-            raise raising_exception
-
-    monkeypatch.setattr("caetask.apdltask.Popen", FakePopen)  # подменяем FakePopen вместо Popen
+    fake_popen(raising_exception)   # target defaults to caetask.apdltask.Popen
 
     log_file_name = "test_APDLTask_solve.log"
     expected_log_fields = {'function_name', 'start_time', 'end_time', 'duration_seconds', 'status'}
