@@ -419,7 +419,7 @@ class CAETask(ABC, Serializable):
         if self._additional_text_files is None:
             self._additional_text_files = []
 
-        if type(flist) is not list:
+        if not isinstance(flist, list):
             flist = [flist]
         for file in flist:
             try:
@@ -443,7 +443,7 @@ class CAETask(ABC, Serializable):
         if flist is None:
             return
 
-        if type(flist) is not list:
+        if not isinstance(flist, list):
             flist = [flist]
 
         if self._additional_link_files is None:
@@ -490,7 +490,7 @@ class CAETask(ABC, Serializable):
     def results_files_names(self, flist: list[Path] | Path | None):
         if flist is None:
             flist = []
-        if type(flist) is list:
+        if isinstance(flist, list):
             self._results_files_names = flist
         else:
             self._results_files_names = [flist]
