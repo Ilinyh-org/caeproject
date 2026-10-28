@@ -4,7 +4,7 @@ Defines the :class:`DataConverter` abstract base class every format
 converter implements and the :func:`is_parameter` predicate used to
 recognize unit-aware parameter dictionaries.
 """
-from typing import Dict, Any
+from typing import Any
 from abc import ABC, abstractmethod
 
 
@@ -12,7 +12,7 @@ class DataConverter(ABC):
     """Abstract base class for data converters."""
 
     @abstractmethod
-    def convert(self, data: Dict[str, Any]) -> str:
+    def convert(self, data: dict[str, Any]) -> str:
         """Convert dictionary data to string representation."""
         pass
 

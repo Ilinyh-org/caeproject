@@ -4,13 +4,12 @@ Provides :class:`TaskRegistry`, which stores objects under unique keys,
 raises :class:`ValueError` on duplicate registration or unknown lookup,
 and can list the registered keys.
 """
-from typing import Dict
 
 class TaskRegistry[Key, Value]:
     """Registry for managing caetasks."""
 
     def __init__(self):
-        self._tasks: Dict[Key, Value] = {}
+        self._tasks: dict[Key, Value] = {}
 
     def register(self, name: Key, task: Value) -> None:
         """Register a converter by name."""

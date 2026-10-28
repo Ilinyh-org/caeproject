@@ -9,7 +9,8 @@ import json
 import shutil
 import random
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any
+from collections.abc import Iterable
 import time
 
 from caecase.utils import format_case_dir
@@ -71,7 +72,7 @@ def _write_to_disk(data: str,
     print(f"Data saved to {save_path}")
 
 
-def load_from_disk(path: Path) -> Dict[str, Any]:
+def load_from_disk(path: Path) -> dict[str, Any]:
     """Loads data from the default JSON file."""
     save_path = path / "case_data.json"
     if save_path.exists():
@@ -115,13 +116,13 @@ class FileManager:
 
         return dir_path
 
-    def schedule_save(self, data: Dict[str, Any]):
+    def schedule_save(self, data: dict[str, Any]):
         """Schedules a save operation with a delay (debouncing)."""
         if self._save_task:
             self._save_task.cancel()
         self._save_task = asyncio.create_task(self._delayed_save(data))
 
-    async def _delayed_save(self, data: Dict[str, Any]):
+    async def _delayed_save(self, data: dict[str, Any]):
         """Waits for the delay, then writes to disk."""
         try:
             await asyncio.sleep(self.save_delay)
@@ -130,7 +131,7 @@ class FileManager:
             pass  # Save was cancelled by a new update
 
     def save_immediately(self,
-                         data: Dict[str, Any],
+                         data: dict[str, Any],
                          path: Path,
                          format_type: str = 'json',
                          filename: str = None):

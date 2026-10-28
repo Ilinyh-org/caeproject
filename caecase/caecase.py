@@ -8,7 +8,7 @@ from enum import Enum
 import io
 import re
 from pathlib import Path
-from typing import List, Iterable
+from collections.abc import Iterable
 
 import pandas as pd
 
@@ -117,7 +117,7 @@ class CAECase(Serializable):
 
         self._files = []
         self.parameters = Node()
-        self.tasks: List[CAETask] = []
+        self.tasks: list[CAETask] = []
         self.status = CaseStatus.NEW
 
     @classmethod
@@ -318,7 +318,7 @@ class CAECase(Serializable):
         return self._project
 
     @property
-    def files(self) -> List[str]:
+    def files(self) -> list[str]:
         """Names of the files copied into the case directory."""
         return self._files
 
