@@ -96,8 +96,6 @@ class CFDPostTask(CAETask):
         data["type"] = self.TYPE
 
         data.update({
-            "results_files_names": self._results_files_names,
-            "application_version": self._application_version,
             "working_directory": str(self._working_directory),
         })
 

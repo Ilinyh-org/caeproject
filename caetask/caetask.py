@@ -114,6 +114,11 @@ class CAETask(ABC, Serializable):
         """Prepare data for serialization."""
         data = super().to_dict()
 
+        data.update({
+            "results_files_names": self._results_files_names,
+            "application_version": self._application_version,
+        })
+
         # input file
         if self.case:
             data.update({"input_file": str(self.input_file.relative_to(self.case.path))})

@@ -177,11 +177,9 @@ class FluentTask(CAETask):
 
         data.update({
             "results_file_name": self._results_file_name,
-            "results_files_names": self._results_files_names,
             "additional_text_files": self._additional_text_files,
             "additional_text_files_codes": self._additional_text_files_codes,
             "copy_link_files": self._copy_link_files,
-            "application_version": self._application_version,
             "dimension": self._dimension,
             "threads": self._threads,
         })

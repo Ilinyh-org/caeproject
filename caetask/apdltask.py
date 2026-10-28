@@ -80,12 +80,10 @@ class APDLTask(CAETask):
 
         data.update({
             "results_file_name": self._results_file_name,
-            "results_files_names": self._results_files_names,
             "additional_text_files": self._additional_text_files,
             "additional_text_files_codes": self._additional_text_files_codes,
             "copy_link_files": self._copy_link_files,
             "geometry_file": self._geometry_file,
-            "application_version": self._application_version,
             "cores": self._cores,
             "new_parameter_name": self._new_parameter_name,
             "new_parameter_value": self._new_parameter_value,
