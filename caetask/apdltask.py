@@ -169,7 +169,7 @@ class APDLTask(CAETask):
         if self._parameters_file:
             application += ['-parfile', self._parameters_file.name]
         if self._new_parameter_name:  # no new parameters
-            if type(self._new_parameter_name) == list:  # list of  new parameter
+            if isinstance(self._new_parameter_name, list):  # list of  new parameter
                 for a, b in zip(self._new_parameter_name, self._new_parameter_value):
                     application.append('-' + a)
                     application.append(b)
