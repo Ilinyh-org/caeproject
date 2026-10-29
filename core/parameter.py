@@ -82,12 +82,12 @@ class Parameter:
             dict: Mapping of field names to their current values.
         """
         data = {}
-        for field in fields(self):
-            if field.name.startswith("_"):
+        for raw_field in fields(self):
+            if raw_field.name.startswith("_"):
                 continue
-            attribute = getattr(self, field.name)
+            attribute = getattr(self, raw_field.name)
             if attribute != "":  # защита от стандартных пустых значений
-                data[field.name] = attribute
+                data[raw_field.name] = attribute
         return data
 
     def to_units_system(self, new_system):
