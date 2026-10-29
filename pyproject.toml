@@ -7,7 +7,7 @@ description = "A module for running CAE applications from python script"
 
 readme = "README.md"
 
-requires-python = ">=3.11.4"
+requires-python = ">=3.12"
 
 license-files = ["LICEN[CS]E*"]
 
