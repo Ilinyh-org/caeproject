@@ -170,8 +170,8 @@ class CAECase(Serializable):
 
         self.add_task(task)
 
-        for name, value in attributes.items():
-            setattr(task, name, value)
+        for raw_name, value in attributes.items():
+            setattr(task, raw_name, value)
 
         return task
 
