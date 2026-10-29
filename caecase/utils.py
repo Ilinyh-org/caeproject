@@ -5,7 +5,6 @@ Case directories are named by a timestamp in :data:`CASE_DIR_FORMAT`
 """
 from datetime import datetime
 
-
 CASE_DIR_FORMAT = "%Y_%m_%dT%H%M%S_%f"
 
 

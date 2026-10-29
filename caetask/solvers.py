@@ -4,8 +4,7 @@ Provides :func:`run_processes` and :func:`run_threads`, which fan a
 _callable task out over a list of samples with a process or thread
 pool and print progress as tasks complete.
 """
-import os
-from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from threading import Lock
 
 lock = Lock()

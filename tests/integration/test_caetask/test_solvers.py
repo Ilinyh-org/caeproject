@@ -4,8 +4,7 @@ from threading import Lock
 
 import pytest
 
-from caetask import APDLTask
-from caetask import run_processes, run_threads
+from caetask import run_processes
 
 lock = Lock()
 
@@ -14,8 +13,8 @@ def create_task_chdir(_index):  # задаётся пользователем
     """Create a unique timestamped subdirectory, chdir into it
     and return the parent directory name."""
     import datetime
-    import time
     import random
+    import time
 
     res_dir = None
     while True:

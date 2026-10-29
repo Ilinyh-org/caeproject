@@ -6,10 +6,7 @@ arithmetic operations that respect units.
 """
 from dataclasses import dataclass, field, fields
 
-import pytest
 from pint import UnitRegistry
-from pygments.lexer import default
-
 
 UREG = UnitRegistry()
 

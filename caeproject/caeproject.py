@@ -7,7 +7,6 @@ creation and discovery, concurrent solving of pending cases, and
 collection of per-case results into a single DataFrame.
 """
 from pathlib import Path
-from typing import List
 
 import pandas as pd
 

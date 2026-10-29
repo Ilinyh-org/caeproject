@@ -4,14 +4,14 @@ Provides :class:`FluentTask`, a :class:`~caetask.caetask.CAETask`
 that runs an ANSYS Fluent journal in a temporary directory and copies
 matched result files and the log back into the results directory.
 """
+import fnmatch
 import os
 import shutil
-import fnmatch
 import tempfile
 from pathlib import Path
 from subprocess import Popen
 
-from caetask import CAETask, log_execution_time
+from .caetask import CAETask, log_execution_time
 
 
 class FluentTask(CAETask):

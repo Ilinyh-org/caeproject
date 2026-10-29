@@ -4,8 +4,8 @@ Provides :class:`APDLWorkflow`, which turns each parameter row into a
 new :class:`~caecase.caecase.CAECase` containing a single
 :class:`~caetask.apdltask.APDLTask`.
 """
-from pathlib import Path
 from collections.abc import Callable, Iterable
+from pathlib import Path
 
 from caecase import CAECase
 from caeproject import CAEProject

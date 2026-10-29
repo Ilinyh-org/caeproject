@@ -4,7 +4,7 @@ Provides :class:`SchemeConverter`, which renders a parameter
 dictionary as plain text with nested dictionaries indented by four
 spaces (``key:`` headers, ``key = value`` leaves).
 """
-from typing import Dict, Any
+from typing import Any
 
 from .base import DataConverter
 
@@ -12,13 +12,13 @@ from .base import DataConverter
 class SchemeConverter(DataConverter):
     """Converter for mytype format with indented sections."""
 
-    def convert(self, data: Dict[str, Any]) -> str:
+    def convert(self, data: dict[str, Any]) -> str:
         """Convert to mytype format with indentation."""
         lines = []
         self._dict_to_indented(data, lines)
         return "\n".join(lines)
 
-    def _dict_to_indented(self, data: Dict[str, Any], lines: list, indent: int = 0):
+    def _dict_to_indented(self, data: dict[str, Any], lines: list, indent: int = 0):
         """Convert dict to indented format."""
         for key, value in data.items():
             if isinstance(value, dict):

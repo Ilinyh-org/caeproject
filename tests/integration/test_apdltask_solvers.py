@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pytest_check import check
 
-from caetask import run_threads, APDLTask
+from caetask import APDLTask, run_threads
 
 
 def create_task(index, tempdir=None):  # задаётся пользователем

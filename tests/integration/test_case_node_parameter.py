@@ -1,7 +1,6 @@
 """Integration tests for CAECase parameters (set, grouped, item access),
 serialization and config persistence."""
 import json
-import re
 from pathlib import Path
 
 import pytest

@@ -1,9 +1,9 @@
 """Factory for the default CAE task registry."""
 from . import CAETask
-from .registry import TaskRegistry
 from .apdltask import APDLTask
-from .fluenttask import FluentTask
 from .cfdposttask import CFDPostTask
+from .fluenttask import FluentTask
+from .registry import TaskRegistry
 
 
 def create_default_task_registry() -> TaskRegistry:

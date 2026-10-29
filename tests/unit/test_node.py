@@ -3,9 +3,11 @@ auto-creation, serialization and DataFrame export."""
 import pandas as pd
 import pytest
 
+from core.node import Node
+
 # from core import Node, Parameter
 from core.parameter import Parameter
-from core.node import Node
+
 
 def test_node_initialization_by_attributes():
     """Verify deep attribute assignment auto-creates nested Nodes and stores the value."""

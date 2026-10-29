@@ -7,15 +7,15 @@ serializes itself via ``SERIALIZABLE_FIELDS``. Also provides the
 :func:`log_execution_time` decorator used by concrete ``solve``
 implementations.
 """
-import os
-import shutil
-import tempfile
-from abc import ABC, abstractmethod
-import time
 import datetime
 import functools
 import json
+import os
+import shutil
 import sys
+import tempfile
+import time
+from abc import ABC, abstractmethod
 from pathlib import Path
 
 from core.serialization import Serializable

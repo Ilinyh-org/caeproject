@@ -4,15 +4,15 @@ Provides :class:`ConverterRegistry`, which stores converters under
 unique format names, raises :class:`ValueError` for unknown names,
 and can list the registered formats.
 """
-from typing import Dict
 
 from . import DataConverter
+
 
 class ConverterRegistry:
     """Registry for managing data converters."""
 
     def __init__(self):
-        self._converters: Dict[str, DataConverter] = {}
+        self._converters: dict[str, DataConverter] = {}
 
     def register(self, name: str, converter: DataConverter):
         """Register a converter by name."""
