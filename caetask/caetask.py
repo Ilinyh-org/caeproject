@@ -453,9 +453,8 @@ class CAETask(ABC, Serializable):
 
         for file in flist:
             file_path = Path(file)
-            if not file_path.is_absolute():
-                if self.case:
-                    file_path = self.case.path / file_path
+            if not file_path.is_absolute() and self.case:
+                file_path = self.case.path / file_path
             self._additional_link_files.append(file_path)
 
     @property
