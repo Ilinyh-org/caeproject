@@ -120,7 +120,7 @@ class FluentTask(CAETask):
                         if fnmatch.fnmatch(f, file):
                             results_files_names_to_add.append(f)
                     results_files_names_to_remove.append(file)
-                except Exception:
+                except OSError:
                     pass
         self._results_files_names.extend(results_files_names_to_add)
         for file in results_files_names_to_remove:
