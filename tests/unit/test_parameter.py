@@ -488,7 +488,7 @@ def test_parameters_arithmetic_lt_wrong_types(input_value1, input_value2):
     p2 = Parameter(input_value2)
 
     with pytest.raises(TypeError):
-        p1 < p2
+        _ = p1 < p2
 
 
 @pytest.mark.parametrize("input_value1, input_value2, expected_result", [
