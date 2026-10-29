@@ -35,7 +35,7 @@ class Parameter:
     #         self._units = ""
 
     @property
-    def value(self) -> object:
+    def value(self) -> object:  # noqa: F811
         """Current value of the parameter."""
         return self._value
 
@@ -51,7 +51,7 @@ class Parameter:
         self._value = value
 
     @property
-    def units(self) -> str:
+    def units(self) -> str:  # noqa: F811
         """Units of the value as a string (empty string if unset)."""
         return self._units
 
@@ -62,7 +62,7 @@ class Parameter:
         self._units = units
 
     @property
-    def description(self) -> str:
+    def description(self) -> str:  # noqa: F811
         """Human-readable description (empty string if unset)."""
         return self._description
 
