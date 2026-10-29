@@ -18,7 +18,7 @@ def run_processes(task, data, max_workers=10):
     Each child process handles a single sample (``max_tasks_per_child=1``).
     Returns the results in completion order.
     """
-    global completed, total_tasks
+    global total_tasks
 
     executor = ProcessPoolExecutor(max_workers=max_workers, max_tasks_per_child=1)
     results = []
@@ -36,7 +36,7 @@ def run_threads(task, data, max_workers=5):
 
     Returns the results in completion order.
     """
-    global completed, total_tasks
+    global total_tasks
     executor = ThreadPoolExecutor(max_workers=max_workers)
     results = []
     futures = [executor.submit(task, sample) for sample in data]
@@ -50,7 +50,7 @@ def run_threads(task, data, max_workers=5):
 
 def completed_callback(future):
     """Progress callback: count a finished task and print the backlog."""
-    global completed, total_tasks, lock
+    global completed, total_tasks
     with lock:
         completed += 1
         total_tasks -= 1

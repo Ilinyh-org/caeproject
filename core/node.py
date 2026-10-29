@@ -158,9 +158,7 @@ class Node:
             if exclude_set is not None and key in exclude_set:
                 continue
 
-            if isinstance(value, Node):
-                result[key] = value.to_dict()
-            elif isinstance(value, Parameter):
+            if isinstance(value, (Node, Parameter)):
                 result[key] = value.to_dict()
             else:
                 result[key] = value
