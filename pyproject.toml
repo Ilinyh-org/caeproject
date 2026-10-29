@@ -42,6 +42,11 @@ include = ["project", "caecase", "core"]
 [tool.setuptools.package-data]
 caeproject = ["data/*.pm"]
 
+[tool.pytest.ini_options]
+markers = [
+    "external: tests requiring third-party software",
+]
+
 [build-system]
 requires = [
     "setuptools>=80",

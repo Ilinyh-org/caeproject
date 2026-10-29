@@ -32,6 +32,7 @@ def apdl_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_apdl_solve(tmpdir, apdl_file):
     """Verify APDLTask.solve runs the journal and produces the expected text output file."""
     tmpdir.chdir()
@@ -50,6 +51,7 @@ def test_apdl_solve(tmpdir, apdl_file):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file):
     """Verify solve places results in the configured results_directory
     outside the current directory."""
@@ -75,6 +77,7 @@ def test_apdl_solve_not_in_current_directory(tmp_path: Path, apdl_file):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
+@pytest.mark.external
 def test_apdl_log(tmpdir, apdl_file):
     """Verify solve writes a log file containing the expected APDL banner sections."""
     os.chdir(tmpdir)
@@ -126,6 +129,7 @@ def additional_text_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_apdl_solve_additional_text_files(tmpdir, apdl_file_using_additional_file,
                                           additional_text_file):
     """Verify solve reads the additional text file and writes the computed sum."""
@@ -175,6 +179,7 @@ def apdl_file_resuming_database(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database,
                                           apdl_file_resuming_database):
     """Verify a second task can resume the database produced by the first via link files."""
@@ -207,6 +212,7 @@ def test_apdl_solve_additional_link_files(tmpdir, apdl_file_saving_database,
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file):
     """Verify solve(cleanup=False, delete=False) runs in the given temporary
     directory and keeps results there."""
@@ -236,6 +242,7 @@ def test_apdl_solve_manual_temp_dir(tmpdir, apdl_file):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.input_parameters
+@pytest.mark.external
 @pytest.mark.parametrize("_input_data,_expected_result",
                          [(1, 3.14),
                           (10, 31.4)])
@@ -246,6 +253,7 @@ def test_apdl_calc_geom_vol(_input_data, _expected_result):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.input_parameters
+@pytest.mark.external
 def test_apdl_two_tasks_sum(tmpdir):
     """Verify two sequential APDLTask solves each write their computed sum."""
     os.chdir(tmpdir)
@@ -286,6 +294,7 @@ def test_apdl_two_tasks_sum(tmpdir):
 @pytest.mark.solve
 @pytest.mark.error
 @pytest.mark.FileNotFoundError
+@pytest.mark.external
 def test_apdl_FileNotFoundError(tmpdir):
     """Verify solving with a missing input file raises FileNotFoundError
     with the expected message."""
@@ -307,6 +316,7 @@ def test_apdl_FileNotFoundError(tmpdir):
 @pytest.mark.solve
 @pytest.mark.error
 @pytest.mark.FileNotFoundError
+@pytest.mark.external
 def test_apdl_results_file_FileNotFoundError(tmpdir, apdl_file, capsys):
     """Verify a missing results file is reported via the expected message on stdout."""
     os.chdir(tmpdir)
@@ -382,6 +392,7 @@ def test_task_to_dict(tmpdir, apdl_file):
 
 
 @pytest.mark.positive
+@pytest.mark.external
 def test_task_to_dict_after_solve(tmpdir, apdl_file):
     """Verify to_dict output is unchanged by solving the task."""
     os.chdir(tmpdir)
@@ -442,6 +453,7 @@ def apdl_parametrized_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_apdl_parameters_file(tmpdir, apdl_parametrized_file, apdl_parameters_file):
     """Verify solve loads the parameters file and the journal reads the parameter value."""
     os.chdir(tmpdir)

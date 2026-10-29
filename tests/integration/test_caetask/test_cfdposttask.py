@@ -27,6 +27,7 @@ def cse_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_cfdposttask_start(tmpdir, cse_file):
     """Verify CFDPostTask.solve runs the session file and writes the expected text output."""
     os.chdir(tmpdir)

@@ -28,6 +28,7 @@ def scm_simple_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_start(tmpdir, scm_simple_file):
     """Verify FluentTask.solve runs the journal and produces the expected text output file."""
     os.chdir(tmpdir)
@@ -78,6 +79,7 @@ def scm_use_parm_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_parameters_file(tmpdir, scm_use_parm_file, scm_parm_file):
     """Verify the task's parameters file is loaded and its values are readable by the journal."""
     os.chdir(tmpdir)
@@ -97,6 +99,7 @@ def test_fluent_task_parameters_file(tmpdir, scm_use_parm_file, scm_parm_file):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_logs(tmpdir, scm_simple_file):
     """Verify FluentTask writes a log file containing the Fluent welcome banner."""
     os.chdir(tmpdir)
@@ -152,6 +155,7 @@ def scm_solve_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
     """Verify the APDL mesh → Fluent solve chain runs and the log contains iteration output."""
     os.chdir(tmpdir)
@@ -175,6 +179,7 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
 
 @pytest.mark.negative
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_solve_wrong_dimension(tmpdir, inp_mesh_file, scm_solve_file):
     """Verify solving a 2D mesh with dimension set to 3d raises PermissionError."""
     os.chdir(tmpdir)
@@ -215,6 +220,7 @@ def scm_transient_solve_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transient_solve_file):
     """Verify a transient Fluent run auto-saves the expected number of dat/cas/flprj files."""
     os.chdir(tmpdir)
@@ -245,6 +251,7 @@ def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transi
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_return_files_regular_expression(tmpdir, scm_simple_file):
     """Verify wildcard results_files_names picks up the produced output file."""
     os.chdir(tmpdir)
@@ -315,6 +322,7 @@ def test_task_to_dict(tmpdir, scm_simple_file):
 
 
 @pytest.mark.positive
+@pytest.mark.external
 def test_task_to_dict_after_solve(tmpdir, scm_simple_file):
     """Verify to_dict output is unchanged by solving the task."""
     os.chdir(tmpdir)

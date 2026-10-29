@@ -52,6 +52,7 @@ def apdl_parameters_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
+@pytest.mark.external
 def test_apdl_solve_log(tmpdir, apdl_file):
     """Verify APDLTask.solve writes a JSON log with the expected fields,
     status and consistent duration."""
@@ -84,6 +85,7 @@ def test_apdl_solve_log(tmpdir, apdl_file):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
+@pytest.mark.external
 def test_apdl_solve_log_not_in_current_directory(tmp_path: Path, apdl_file):
     """Verify the solve log is written to the configured results_directory."""
     tmpdir1 = tmp_path / "tmpdir1"
@@ -192,6 +194,7 @@ def scm_simple_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
+@pytest.mark.external
 def test_fluent_solve_log(tmpdir, scm_simple_file):
     """Verify FluentTask.solve writes a JSON log with the expected fields and duration."""
     tmpdir.chdir()

@@ -41,6 +41,7 @@ def solve_task(task: APDLTask):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.input_parameters
+@pytest.mark.external
 def test_apdl_multitask_callback(tmpdir):
     """Verify threaded tasks each compute num*3 from their parameters file
     into the expected results file."""

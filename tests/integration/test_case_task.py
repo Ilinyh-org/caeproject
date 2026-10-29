@@ -228,6 +228,7 @@ def text_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_apdl_solve(tmp_path, apdl_file):
     """Verify case.solve runs the APDL task with saved parameters
     and produces the computed results file."""
@@ -265,6 +266,7 @@ def apdl_file_empty(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 @pytest.mark.log
+@pytest.mark.external
 def test_apdl_solve_log_file(tmp_path, apdl_file_empty):
     """Verify case.solve writes a log file containing the expected APDL banner sections."""
     expected_log_file_name = 'test.log'
@@ -293,6 +295,7 @@ def test_apdl_solve_log_file(tmp_path, apdl_file_empty):
             assert expected_log_text_part in log_text
 
 
+@pytest.mark.external
 def test_case_safe_config_task(tmp_path, apdl_file):
     """Verify save_config serializes parameters, files and the solved task into the config JSON."""
     expected_config = {

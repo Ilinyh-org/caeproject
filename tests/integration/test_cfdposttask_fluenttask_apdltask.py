@@ -33,6 +33,7 @@ def cse_cfdpost_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_cfdpost_file):
     """Verify the APDL→Fluent→CFD-Post pipeline exports a CSV with the expected number of lines."""
     tmpdir.chdir()
@@ -62,6 +63,7 @@ def test_cfdposttask_get_csv_results(tmpdir, inp_mesh_file, scm_solve_file, cse_
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_cfdposttask_not_in_current_directory(tmp_path: Path,
                                               inp_mesh_file, scm_solve_file, cse_cfdpost_file):
     """Verify chained tasks succeed with results and working directories
