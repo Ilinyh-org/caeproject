@@ -83,7 +83,7 @@ def test_cross_merge_all_six_series(basic_series):
     # multiplication of series lens
     expected_rows = math.prod([len(basic_series[column]) for column in expected_columns])
 
-    actual_result = series_merger(*list(basic_series[column] for column in expected_columns))
+    actual_result = series_merger(*[basic_series[column] for column in expected_columns])
 
     assert len(actual_result) == expected_rows
     assert len(actual_result.columns) == len(expected_columns)
