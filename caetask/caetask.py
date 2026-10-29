@@ -17,6 +17,7 @@ import tempfile
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import ClassVar
 
 from core.serialization import Serializable
 
@@ -47,7 +48,7 @@ class CAETask(ABC, Serializable):
     :meth:`solve` to launch the actual solver.
     """
 
-    _class_counts = {}  # Словарик для хранения счётчиков по классам
+    _class_counts: ClassVar[dict] = {}  # Словарик для хранения счётчиков по классам
 
     def __init__(
             self,
