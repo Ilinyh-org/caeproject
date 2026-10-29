@@ -126,11 +126,11 @@ def test_counter_increment(tmpdir):
     expected_apdl_tasks_count = 2
     expected_fluent_tasks_count = 3
 
-    task1 = APDLTask.create_new('test1apdl')
-    task2 = APDLTask.create_new('test2apdl')
-    task3 = FluentTask('test1fluent')
-    task4 = FluentTask('test2fluent')
-    task5 = FluentTask('test3fluent')
+    task1 = APDLTask.create_new('test1apdl')  # noqa: F841
+    task2 = APDLTask.create_new('test2apdl')  # noqa: F841
+    task3 = FluentTask('test1fluent')  # noqa: F841
+    task4 = FluentTask('test2fluent')  # noqa: F841
+    task5 = FluentTask('test3fluent')  # noqa: F841
 
     actual_apdl_tasks_count = APDLTask.count()
     actual_fluent_tasks_count = FluentTask.count()
@@ -148,9 +148,9 @@ def test_counter_decrement(tmpdir):
     expected_tasks_count_before_del = 3
     expected_tasks_count_after_del = 2
 
-    task1 = CFDPostTask('test1')
+    task1 = CFDPostTask('test1')  # noqa: F841
     task2 = CFDPostTask('test2')
-    task3 = CFDPostTask('test3')
+    task3 = CFDPostTask('test3')  # noqa: F841
     actual_tasks_count_before_del = CFDPostTask.count()
     del task2
     actual_tasks_count_after_del = CFDPostTask.count()
@@ -169,9 +169,9 @@ def test_counter_reset_certain_classes(tmpdir):
     expected_other_tasks_count_after_reset = 2
 
     task1 = FluentTask('test1')
-    task2 = FluentTask('test2')
+    task2 = FluentTask('test2')  # noqa: F841
     task3 = CFDPostTask('test3')
-    task4 = CFDPostTask('test4')
+    task4 = CFDPostTask('test4')  # noqa: F841
     FluentTask.reset()
     actual_target_tasks_count_after_reset = task1.count()
     actual_other_tasks_count_after_reset = task3.count()

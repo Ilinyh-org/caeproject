@@ -173,7 +173,7 @@ def test_project_create_solve_get_results_short_task(tmp_path, apdl_file):
         case.parameters_save(filename='square_compression.parm',
                              format_type='APDL', new_system="SI")
 
-        task = case.create_task(
+        case.create_task(
             APDLTask,
             "square_compression",
             input_file="square_compression.inp",
