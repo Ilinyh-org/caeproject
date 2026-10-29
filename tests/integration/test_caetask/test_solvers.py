@@ -26,10 +26,8 @@ def create_task_chdir(_index):  # задаётся пользователем
         except FileExistsError:
             time.sleep(random.uniform(0.001, 0.01))
             continue
-    try:
-        os.chdir(".\\" + res_dir)
-    except ValueError:
-        raise
+
+    os.chdir(".\\" + res_dir)
 
     return os.path.basename(os.path.abspath(os.curdir + "/../"))
 
