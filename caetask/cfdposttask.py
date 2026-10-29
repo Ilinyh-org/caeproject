@@ -75,7 +75,7 @@ class CFDPostTask(CAETask):
 
         print(f"запущен расчёт cfdpost задачи {self._input_file.name}")
         # составляем список команд и аттрибутов для запуска
-        application = [f'"{str(Path('%AWP_ROOT' + self._application_version + '%') / 'CFD-Post' / 'bin' / 'cfdpost.exe')}"',  # pylint: disable=line-too-long
+        application = [f'"{Path('%AWP_ROOT' + self._application_version + '%') / 'CFD-Post' / 'bin' / 'cfdpost.exe'}"',
                        '-batch', self._input_file.name]
 
         if self._results_file_name:

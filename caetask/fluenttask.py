@@ -89,9 +89,9 @@ class FluentTask(CAETask):
               " во временной директории " +
               tempdir.name)
 
-        application = [f'"{str(Path('%AWP_ROOT' + self._application_version + '%') / 'fluent' / 'ntbin' / 'win64' / 'fluent.exe')}"',  # pylint: disable=line-too-long
+        application = [f'"{Path('%AWP_ROOT' + self._application_version + '%') / 'fluent' / 'ntbin' / 'win64' / 'fluent.exe'}"',
                        self._dimension,
-                       # '-r', self.__application_version[0:2] + '.' + self.__application_version[2:3] + '.0',  # pylint: disable=line-too-long
+                       # '-r', self.__application_version[0:2] + '.' + self.__application_version[2:3] + '.0',
                        *(['-' + self._graphics_regime]
                          if self._graphics_regime is not None else []),  # run without graphics
                        '-i', self._input_file.name]

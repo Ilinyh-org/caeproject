@@ -151,7 +151,7 @@ class APDLTask(CAETask):
 
         # составляем список команд и аттрибутов для запуска
         # для запуска используется переменная среды типа ansys180_dir
-        application = [f'"{str(Path('%ansys' + self._application_version + '_dir%') / 'bin' / 'winx64' / ('ansys' + self._application_version))}"',  # pylint: disable=line-too-long
+        application = [f'"{Path('%ansys' + self._application_version + '_dir%') / 'bin' / 'winx64' / ('ansys' + self._application_version)}"',
                        '-b',
                        '-m', self._memory_size,
                        '-db', self._database_size,

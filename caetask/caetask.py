@@ -614,7 +614,7 @@ def log_execution_time():
                     "start_time": start_dt.isoformat(),
                     "end_time": end_dt.isoformat(),
                     "duration_seconds": round(time.time() - start_time, 4),
-                    "status": f"error: {str(e)}"
+                    "status": f"error: {e!s}"
                 }
 
                 # Перезаписываем JSON‑файл записью об ошибке
