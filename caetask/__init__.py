@@ -13,10 +13,12 @@ from .cfdposttask import CFDPostTask
 from .fluenttask import FluentTask
 from .solvers import run_processes, run_threads
 
-__all__ = ['CAETask',
-           'log_execution_time',
+__all__ = [
            'APDLTask',
-           'FluentTask',
+           'CAETask',
            'CFDPostTask',
+           'FluentTask',
+           'log_execution_time',
            'run_processes',
-           'run_threads',]
+           'run_threads',
+]
