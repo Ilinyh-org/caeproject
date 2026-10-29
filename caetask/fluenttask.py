@@ -99,12 +99,12 @@ class FluentTask(CAETask):
         self._organize_additional_link_files(tempdir)  #move above
 
         # создание процесса по сконфигурированному application
-        with open(Path(tempdir.name) / self.log_file_name, 'w', encoding="utf-8") as f:
-            with Popen(' '.join(application),
-                       shell=True,
-                       stdout=f,
-                       cwd=tempdir.name) as process:
-                self._process = process.wait()
+        with (open(Path(tempdir.name) / self.log_file_name, 'w', encoding="utf-8") as f,
+              Popen(' '.join(application),
+                    shell=True,
+                    stdout=f,
+                    cwd=tempdir.name) as process):
+            self._process = process.wait()
         print("закончен расчёт ансис задачи " +
               self.name +
               " во временной директории " +

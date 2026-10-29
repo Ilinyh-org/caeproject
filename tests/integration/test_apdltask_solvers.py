@@ -63,10 +63,11 @@ def test_apdl_multitask_callback(tmpdir):
 
     for input_sample, expected_result in zip(input_data, expected_results):
         file_name = f"task{input_sample[0]}_text_file.dat"
-        with check:  # позволяет не прерывать общий процесс при провале assert
+        # позволяет не прерывать общий процесс при провале assert
+        with (check,
+              open(file_name, "r", encoding="utf-8") as file):
             # try:
-            with open(file_name, "r", encoding="utf-8") as file:
-                actual_result = int(file.readline())
-                assert actual_result == expected_result, f"Error in file {file_name}"
+            actual_result = int(file.readline())
+            assert actual_result == expected_result, f"Error in file {file_name}"
             # except FileNotFoundError:
             #     assert False, f"File {file_name} not found"
