@@ -49,7 +49,7 @@ def add_files(
 def save(
     data: str,
     path: Path,
-    filename: str = None,
+    filename: str | None = None,
 ):
     """Write string ``data`` to ``path/filename`` on disk."""
 
@@ -62,7 +62,7 @@ def save(
 
 def _write_to_disk(data: str,
                    path: Path,
-                   filename: str = None):
+                   filename: str | None = None):
     """Internal method to write JSON to disk."""
     save_path = path / f"{filename}"
 
@@ -90,7 +90,7 @@ class FileManager:
     """
 
     def __init__(self,
-                 base_path: Path = None,
+                 base_path: Path | None = None,
                  converter_registry: ConverterRegistry = None):
         self.base_path = base_path or Path.cwd()
         self._files = []
@@ -134,7 +134,7 @@ class FileManager:
                          data: dict[str, Any],
                          path: Path,
                          format_type: str = 'json',
-                         filename: str = None):
+                         filename: str | None = None):
         """Forces an immediate write to disk, cancelling any pending saves."""
         converter = self.converter_registry.get(format_type)
         if self._save_task:
