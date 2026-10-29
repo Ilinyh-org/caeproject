@@ -112,7 +112,7 @@ def test_fluent_task_logs(tmpdir, scm_simple_file):
     task1.solve()
 
     with open("log_test.log", "r", encoding="utf-8") as file:
-        assert any(expected_result in line for line in file.readlines())
+        assert any(expected_result in line for line in file)
 
 
 @pytest.fixture(scope="session")
@@ -170,7 +170,7 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
     task2.solve()
 
     with open("log_fluent.log", "r", encoding="utf-8") as file:
-        assert any(expected_result in line for line in file.readlines())
+        assert any(expected_result in line for line in file)
 
 
 @pytest.mark.negative
