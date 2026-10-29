@@ -8,6 +8,7 @@ import fnmatch
 import os
 import shutil
 import tempfile
+from contextlib import suppress
 from pathlib import Path
 from subprocess import Popen
 
@@ -115,13 +116,13 @@ class FluentTask(CAETask):
         results_files_names_to_remove = []
         for file in self._results_files_names:
             if any(ch in file for ch in ['*', '?', '+']):
-                try:
+                # список файлов результатов читается из временной директории; если она
+                # уже удалена, совпадений нет — это корректная деградация, не ошибка
+                with suppress(OSError):
                     for f in os.listdir(tempdir.name):
                         if fnmatch.fnmatch(f, file):
                             results_files_names_to_add.append(f)
                     results_files_names_to_remove.append(file)
-                except OSError:
-                    pass
         self._results_files_names.extend(results_files_names_to_add)
         for file in results_files_names_to_remove:
             self._results_files_names.remove(file)
