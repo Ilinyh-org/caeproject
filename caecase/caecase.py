@@ -155,7 +155,7 @@ class CAECase(Serializable):
         df = pd.DataFrame()
         for task in self.tasks:
             for file_name in task.results_files_names:
-                # проверка типа файла
+                # check the file type
                 suffix = Path(file_name).suffix
                 if suffix == ".csv":
                     df_file = get_csv_results(self.path / file_name)

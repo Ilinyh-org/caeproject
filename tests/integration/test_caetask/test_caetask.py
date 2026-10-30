@@ -24,7 +24,7 @@ def parse_iso8601(ts):
     try:
         return datetime.fromisoformat(ts)
     except ValueError as e:
-        raise AssertionError(f"Неверный формат ISO 8601: {ts}") from e
+        raise AssertionError(f"Invalid ISO 8601 format: {ts}") from e
 
 
 @pytest.fixture(scope="session")
@@ -218,15 +218,15 @@ def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expec
                                    monkeypatch, tmpdir, apdl_file):
     os.chdir(tmpdir)
 
-    # Создаём класс для подмены объекта Popen объектом с заменённым методом wait
+    # Create a class that replaces the Popen object with one whose wait method is overridden
     class FakePopen:
         def __init__(self, *a, **kw):
             pass
 
-        def wait(self):  # прервёт выполнение функции solve
+        def wait(self):  # will interrupt the solve function
             raise raising_exception
 
-    monkeypatch.setattr("caetask.apdltask.Popen", FakePopen)  # подменяем FakePopen вместо Popen
+    monkeypatch.setattr("caetask.apdltask.Popen", FakePopen)  # patch FakePopen in place of Popen
 
     log_file_name = "test_APDLTask_solve.log"
     expected_log_fields = {'function_name', 'start_time', 'end_time', 'duration_seconds', 'status'}
@@ -245,11 +245,11 @@ def test_apdl_solve_log_with_interrupt(raising_exception, expected_status, expec
         assert data['function_name'] == expected_function_name
         assert data['status'].startswith(expected_status)
 
-        parse_iso8601(data['start_time'])  # для проверки формата
+        parse_iso8601(data['start_time'])  # to check the format
 
-        if expected_end_time:  # случай, когда end_time не записался
-            parse_iso8601(data['end_time'])  # для проверки формата
-        else:  # случай, когда end_time записался
+        if expected_end_time:  # case when end_time was not written
+            parse_iso8601(data['end_time'])  # to check the format
+        else:  # case when end_time was written
             assert data['end_time'] is None
             assert data['duration_seconds'] is None
 
@@ -269,15 +269,15 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exceptio
     tmpdir2.mkdir()
     os.chdir(tmpdir1)
 
-    # Создаём класс для подмены объекта Popen объектом с заменённым методом wait
+    # Create a class that replaces the Popen object with one whose wait method is overridden
     class FakePopen:
         def __init__(self, *a, **kw):
             pass
 
-        def wait(self):  # прервёт выполнение функции solve
+        def wait(self):  # will interrupt the solve function
             raise raising_exception
 
-    monkeypatch.setattr("caetask.apdltask.Popen", FakePopen)  # подменяем FakePopen вместо Popen
+    monkeypatch.setattr("caetask.apdltask.Popen", FakePopen)  # patch FakePopen in place of Popen
 
     log_file_name = "test_APDLTask_solve.log"
     expected_log_fields = {'function_name', 'start_time', 'end_time', 'duration_seconds', 'status'}
@@ -297,11 +297,11 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(raising_exceptio
         assert data['function_name'] == expected_function_name
         assert data['status'].startswith(expected_status)
 
-        parse_iso8601(data['start_time'])  # для проверки формата
+        parse_iso8601(data['start_time'])  # to check the format
 
-        if expected_end_time:  # случай, когда end_time не записался
-            parse_iso8601(data['end_time'])  # для проверки формата
-        else:  # случай, когда end_time записался
+        if expected_end_time:  # case when end_time was not written
+            parse_iso8601(data['end_time'])  # to check the format
+        else:  # case when end_time was written
             assert data['end_time'] is None
             assert data['duration_seconds'] is None
 

@@ -65,11 +65,11 @@ def test_cfdpost_print(tmpdir, cse_cfdpost_file, capsys):
     os.chdir(tmpdir)
 
     expected_result_base = (
-            'имя задачи: test\n' +
-            'исполняемый файл: test.cse\n' +
-            'файл логов: test.log\n' +
-            'версия приложения: 212\n' +
-            'путь рабочей директории: ' + str(tmpdir) + '\n\n')
+            'task name: test\n' +
+            'executable file: test.cse\n' +
+            'log file: test.log\n' +
+            'application version: 212\n' +
+            'working directory path: ' + str(tmpdir) + '\n\n')
 
     task1 = CFDPostTask.create_new('test')
     task1.input_file = cse_cfdpost_file
