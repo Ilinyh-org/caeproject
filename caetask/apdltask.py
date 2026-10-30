@@ -115,17 +115,17 @@ class APDLTask(CAETask):
     def __str__(self):
         output = super().__str__()
         if self._temporary_directory:
-            output += 'путь временной директории: ' + self._temporary_directory + '\n'
+            output += 'temporary directory path: ' + self._temporary_directory + '\n'
         if self._geometry_file:
-            output += 'файл геометрии: ' + self._geometry_file + '\n'
+            output += 'geometry file: ' + self._geometry_file + '\n'
         if self._results_file_name:
-            output += 'файл результатов: ' + self._results_file_name + '\n'
-        output += 'количество потоков в задаче: ' + str(self._cores) + '\n'
+            output += 'results file: ' + self._results_file_name + '\n'
+        output += 'number of threads in the task: ' + str(self._cores) + '\n'
         if self._new_parameter_name is not None:
             if isinstance(self._new_parameter_name, list):
-                output += 'дополнительный параметр: ' + str(self._new_parameter_name) + '\n'
+                output += 'additional parameter: ' + str(self._new_parameter_name) + '\n'
             elif isinstance(self._new_parameter_name, list):
-                output += 'дополнительные параметры: ' + '\n'
+                output += 'additional parameters: ' + '\n'
                 for parameter_name, parameter_value in zip(self._new_parameter_name,
                                                            self._new_parameter_value):
                     output += str(parameter_name) + ' ' + str(parameter_value)
@@ -144,13 +144,13 @@ class APDLTask(CAETask):
 
         self._create_files_in_running_dir(tempdir)
 
-        print("запущен расчёт ансис задачи \"" +
+        print("started ANSYS task \"" +
               os.path.basename(self._input_file) + "\"" +
-              " во временной директории " +
+              " in temporary directory " +
               os.path.basename(tempdir.name))
 
-        # составляем список команд и аттрибутов для запуска
-        # для запуска используется переменная среды типа ansys180_dir
+        # build the list of commands and attributes for the run
+        # the run uses an environment variable like ansys180_dir
         application = [f'"{Path('%ansys' + self._application_version + '_dir%') / 'bin' / 'winx64' / ('ansys' + self._application_version)}"',
                        '-b',
                        '-m', self._memory_size,
@@ -175,36 +175,36 @@ class APDLTask(CAETask):
                 application.append('-' + self._new_parameter_name)
                 application.append(self._new_parameter_value)
 
-        # создание ссылок или копирование дополнительных нетекстовых файлов
+        # create links to or copy additional non-text files
         self._organize_additional_link_files(tempdir)
 
-        # создание процесса по сконфигурированному application
+        # create the process from the configured application
         with Popen(' '.join(application), shell=True) as process:
             self._process = process.wait()
-        print("закончен расчёт ансис задачи " +
+        print("finished ANSYS task " +
               self._name +
-              " во временной директории " +
+              " in temporary directory " +
               Path(tempdir.name).name)
 
-        # переносим результаты в папку результатов
+        # move the results into the results directory
         for file in self._results_files_names:
             try:
                 shutil.copy2(Path(tempdir.name) / file, self._results_directory)
                 print(
-                    f"Файл {file} ансис задачи {self._name} скопирован из "
-                    f"{Path(tempdir.name).name} в {self._results_directory.name}")
+                    f"File {file} of ANSYS task {self._name} copied from "
+                    f"{Path(tempdir.name).name} to {self._results_directory.name}")
             except OSError:
-                print(f"Файл {file} не найден для копирования в {self._results_directory}")
+                print(f"File {file} not found for copying to {self._results_directory}")
 
-        # переносим файл лога в папку результатов
+        # move the log file into the results directory
         try:
             shutil.copy2(Path(tempdir.name) / self._log_file_name, self._results_directory)
             print(
-                f"Файл лога {self._log_file_name} ансис задачи {self._name} скопирован из "
-                f"{Path(tempdir.name).name} в {self._results_directory.name}")
+                f"Log file {self._log_file_name} of ANSYS task {self._name} copied from "
+                f"{Path(tempdir.name).name} to {self._results_directory.name}")
         except OSError:
-            print(f"Файл лога {self._log_file_name} не найден "
-                  f"для копирования в {self._results_directory}")
+            print(f"Log file {self._log_file_name} not found "
+                  f"for copying to {self._results_directory}")
 
         if cleanup:
             tempdir.cleanup()

@@ -78,8 +78,8 @@ class Serializable:
             directory = self.path
 
         if not directory.is_dir():
-            raise NotADirectoryError(f"Ожидалась директория конфигурации, "
-                                     f"но получен файл: {directory}")
+            raise NotADirectoryError(f"Expected a configuration directory, "
+                                     f"but got a file: {directory}")
 
         config_file = directory / self.CONFIG_DEFAULT_NAME
 
