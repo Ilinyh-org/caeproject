@@ -1,11 +1,17 @@
+"""Filesystem helpers for CAE cases and projects.
 
+Provides functions to create case directories and copy or write
+files, plus :class:`FileManager` for project directories with
+converter-based serialization and debounced async saving.
+"""
 import asyncio
 import json
-import shutil
 import random
-from pathlib import Path
-from typing import Any, Dict, Iterable
+import shutil
 import time
+from collections.abc import Iterable
+from pathlib import Path
+from typing import Any
 
 from caecase.utils import format_case_dir
 from caetask.default_registry import create_default_task_registry
@@ -43,8 +49,9 @@ def add_files(
 def save(
     data: str,
     path: Path,
-    filename: str = None,
+    filename: str | None = None,
 ):
+    """Write string ``data`` to ``path/filename`` on disk."""
 
     _write_to_disk(
         data,
@@ -55,7 +62,7 @@ def save(
 
 def _write_to_disk(data: str,
                    path: Path,
-                   filename: str = None):
+                   filename: str | None = None):
     """Internal method to write JSON to disk."""
     save_path = path / f"{filename}"
 
@@ -65,7 +72,7 @@ def _write_to_disk(data: str,
     print(f"Data saved to {save_path}")
 
 
-def load_from_disk(path: Path) -> Dict[str, Any]:
+def load_from_disk(path: Path) -> dict[str, Any]:
     """Loads data from the default JSON file."""
     save_path = path / "case_data.json"
     if save_path.exists():
@@ -75,8 +82,15 @@ def load_from_disk(path: Path) -> Dict[str, Any]:
 
 
 class FileManager:
+    """File manager for a project directory.
+
+    Tracks the files belonging to the project, resolves converters
+    through a :class:`~data_converter.registry.ConverterRegistry`, and
+    supports debounced asynchronous saving of dictionary data.
+    """
+
     def __init__(self,
-                 base_path: Path = None,
+                 base_path: Path | None = None,
                  converter_registry: ConverterRegistry = None):
         self.base_path = base_path or Path.cwd()
         self._files = []
@@ -94,6 +108,7 @@ class FileManager:
             base_path: Path,
             name: str,
     ) -> Path:
+        """Create (if needed) and return the project directory ``base_path/name``."""
 
         dir_name = name
         dir_path = base_path / dir_name
@@ -101,13 +116,13 @@ class FileManager:
 
         return dir_path
 
-    def schedule_save(self, data: Dict[str, Any]):
+    def schedule_save(self, data: dict[str, Any]):
         """Schedules a save operation with a delay (debouncing)."""
         if self._save_task:
             self._save_task.cancel()
         self._save_task = asyncio.create_task(self._delayed_save(data))
 
-    async def _delayed_save(self, data: Dict[str, Any]):
+    async def _delayed_save(self, data: dict[str, Any]):
         """Waits for the delay, then writes to disk."""
         try:
             await asyncio.sleep(self.save_delay)
@@ -116,10 +131,10 @@ class FileManager:
             pass  # Save was cancelled by a new update
 
     def save_immediately(self,
-                         data: Dict[str, Any],
+                         data: dict[str, Any],
                          path: Path,
                          format_type: str = 'json',
-                         filename: str = None):
+                         filename: str | None = None):
         """Forces an immediate write to disk, cancelling any pending saves."""
         converter = self.converter_registry.get(format_type)
         if self._save_task:
@@ -128,6 +143,7 @@ class FileManager:
 
     @property
     def files(self) -> list[str]:
+        """Names of the files currently tracked by the manager."""
         return self._files
 
     @files.setter

@@ -1,20 +1,23 @@
+"""Integration tests for CFDPostTask: execution, string representation and serialization."""
 import os
+from threading import Lock
 
 import pytest
+
 from caetask import CFDPostTask
-from threading import Lock
 
 lock = Lock()
 
 
 def setup_method():
-    pass
+    """No per-test setup required."""
 
 
 @pytest.fixture(scope="session")
 def cse_file(tmp_path_factory):
+    """Write a CFD-Post session file writing text into a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.cse"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("!my $str = <<END;\n!test text from cfdpost\n!END\n")
         file.write("!open(FH, '>', 'text_file_from_cfdpost.dat') or die $!;\n")
         file.write("!print FH $str;\n")
@@ -24,7 +27,9 @@ def cse_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_cfdposttask_start(tmpdir, cse_file, capsys):
+@pytest.mark.external
+def test_cfdposttask_start(tmpdir, cse_file):
+    """Verify CFDPostTask.solve runs the session file and writes the expected text output."""
     os.chdir(tmpdir)
     expected_result = "test text from cfdpost\n"
 
@@ -32,15 +37,16 @@ def test_cfdposttask_start(tmpdir, cse_file, capsys):
     task.input_file = cse_file
     task.solve()
 
-    with open("text_file_from_cfdpost.dat", "r") as file:
+    with open("text_file_from_cfdpost.dat", "r", encoding="utf-8") as file:
         line_from_test_file = file.readline()
     assert line_from_test_file == expected_result
 
 
 @pytest.fixture(scope="session")
 def cse_cfdpost_file(tmp_path_factory):
+    """Write a CFD-Post session file exporting inlet velocity to CSV; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.cse"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write(">load filename=results.cas.h5, force_reload=true\n")
         file.write("EXPORT:\n")
         file.write("  CSV Type = CSV\n")
@@ -62,6 +68,7 @@ def cse_cfdpost_file(tmp_path_factory):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_cfdpost_print(tmpdir, cse_cfdpost_file, capsys):
+    """Verify print(CFDPostTask) outputs the task summary in the expected format."""
     os.chdir(tmpdir)
 
     expected_result_base = (
@@ -85,6 +92,7 @@ def test_cfdpost_print(tmpdir, cse_cfdpost_file, capsys):
 
 @pytest.mark.positive
 def test_task_to_dict(tmpdir, cse_cfdpost_file):
+    """Verify CFDPostTask.to_dict serializes all task fields with their values."""
     os.chdir(tmpdir)
     expected_result = {'additional_link_files': None,
                        'type': 'cfdpost',

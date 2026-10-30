@@ -1,12 +1,25 @@
-from pathlib import Path
+"""CFD-Post post-processing task.
 
-from caetask import CAETask, log_execution_time
-from subprocess import Popen
-
+Provides :class:`CFDPostTask`, a :class:`~caetask.caetask.CAETask`
+that runs ANSYS CFD-Post in batch mode on a results file using a
+CSE session input file.
+"""
 import shutil
 from importlib.resources import files
+from pathlib import Path
+from subprocess import Popen
+
+from .caetask import CAETask, log_execution_time
+
 
 class CFDPostTask(CAETask):
+    """Task that post-processes solver results with ANSYS CFD-Post.
+
+    Copies the batch session file and helper scripts into the run
+    directory, then launches the CFD-Post executable registered for
+    the configured application version in batch mode.
+    """
+
     TYPE = "cfdpost"
     SERIALIZABLE_FIELDS = (
         "additional_link_files",
@@ -41,9 +54,9 @@ class CFDPostTask(CAETask):
 
     def __str__(self):
         output = super().__str__()
-        output += 'working directory path: ' + str(self._working_directory) + '\n'
+        output += 'путь рабочей директории: ' + str(self._working_directory) + '\n'
         if self._results_file_name:
-            output += 'results (input) file: ' + self._results_file_name + '\n'
+            output += 'файл результатов (входных): ' + self._results_file_name + '\n'
         return output
 
     def _create_files_in_running_dir(
@@ -60,22 +73,23 @@ class CFDPostTask(CAETask):
 
         self._create_files_in_running_dir(self._working_directory.absolute())
 
-        print(f"started cfdpost task run {self._input_file.name}")
-        # build the list of commands and attributes for the run
-        application = [f'"{str(Path('%AWP_ROOT' + self._application_version + '%') / 'CFD-Post' / 'bin' / 'cfdpost.exe')}"',
+        print(f"запущен расчёт cfdpost задачи {self._input_file.name}")
+        # составляем список команд и аттрибутов для запуска
+        application = [f'"{Path('%AWP_ROOT' + self._application_version + '%') / 'CFD-Post' / 'bin' / 'cfdpost.exe'}"',
                        '-batch', self._input_file.name]
 
         if self._results_file_name:
             application.append('-results')
             application.append(self._results_file_name)
 
-        # create the process from the configured application
-        with open(self._working_directory / self.log_file_name, 'w') as f:
-            self._process = Popen(' '.join(application),
-                                  shell=True,
-                                  stdout=f,
-                                  cwd=self._working_directory).wait()
-        print(f"finished processing results {self._input_file.name}")
+        # создание процесса по сконфигурированному application
+        with (open(self._working_directory / self.log_file_name, 'w', encoding="utf-8") as f,
+              Popen(' '.join(application),
+                    shell=True,
+                    stdout=f,
+                    cwd=self._working_directory) as process):
+            self._process = process.wait()
+        print(f"закончена обработка результатов {self._input_file.name}")
 
     def to_dict(self):
         data = super().to_dict()
@@ -83,8 +97,6 @@ class CFDPostTask(CAETask):
         data["type"] = self.TYPE
 
         data.update({
-            "results_files_names": self._results_files_names,
-            "application_version": self._application_version,
             "working_directory": str(self._working_directory),
         })
 

@@ -1,16 +1,24 @@
+"""Unit-aware :class:`Parameter` value type.
 
+Provides a dataclass storing a value with optional units and a
+description, backed by pint for unit conversion, comparison, and
+arithmetic operations that respect units.
+"""
 from dataclasses import dataclass, field, fields
 
-import pytest
 from pint import UnitRegistry
-from pygments.lexer import default
-
 
 UREG = UnitRegistry()
 
 
 @dataclass
 class Parameter:
+    """Dataclass holding a value with optional units and description.
+
+    Setters silently ignore values of the wrong type; comparisons and
+    arithmetic convert operands to this parameter's units via pint.
+    """
+
     value: object | None = None
     units: str | None = None
     description: str | None = None
@@ -27,7 +35,8 @@ class Parameter:
     #         self._units = ""
 
     @property
-    def value(self) -> object:
+    def value(self) -> object:  # noqa: F811
+        """Current value of the parameter."""
         return self._value
 
     @value.setter
@@ -42,7 +51,8 @@ class Parameter:
         self._value = value
 
     @property
-    def units(self) -> str:
+    def units(self) -> str:  # noqa: F811
+        """Units of the value as a string (empty string if unset)."""
         return self._units
 
     @units.setter
@@ -52,7 +62,8 @@ class Parameter:
         self._units = units
 
     @property
-    def description(self) -> str:
+    def description(self) -> str:  # noqa: F811
+        """Human-readable description (empty string if unset)."""
         return self._description
 
     @description.setter
@@ -62,13 +73,21 @@ class Parameter:
         self._description = description
 
     def to_dict(self):
+        """Return the public fields as a dict.
+
+        Private fields are skipped, and empty-string values (the
+        defaults for ``units`` and ``description``) are omitted.
+
+        Returns:
+            dict: Mapping of field names to their current values.
+        """
         data = {}
-        for field in fields(self):
-            if field.name.startswith("_"):
+        for raw_field in fields(self):
+            if raw_field.name.startswith("_"):
                 continue
-            attribute = getattr(self, field.name)
-            if attribute != "":  # guard against default empty values
-                data[field.name] = attribute
+            attribute = getattr(self, raw_field.name)
+            if attribute != "":  # защита от стандартных пустых значений
+                data[raw_field.name] = attribute
         return data
 
     def to_units_system(self, new_system):
@@ -96,8 +115,9 @@ class Parameter:
             # You may need to define a mapping from SI to imperial for your quantities
             # Example: meters -> feet, kilograms -> pounds
             try:
-                target_units = quantity_base.to(
-                    'feet').units if quantity_base.dimensionality == UREG.meter.dimensionality else quantity_base.units
+                target_units = (quantity_base.to('feet').units
+                                if quantity_base.dimensionality == UREG.meter.dimensionality
+                                else quantity_base.units)
             except pint.DimensionalityError:
                 target_units = quantity_base.units  # fallback
         else:
@@ -182,7 +202,7 @@ class Parameter:
                 converted_other_value = other.ito_units(self.units).value
                 return self.value < converted_other_value
             else:
-                raise TypeError(f"Units do not match: {self.units}, {other.units}")
+                raise TypeError(f"Единицы измерения не совпадают: {self.units}, {other.units}")
         elif isinstance(other, (int, float)):
             return self.value < other
         else:
@@ -196,12 +216,13 @@ class Parameter:
 
     def __add__(self, other):
         if isinstance(other, self.__class__):
-            if UREG(self.units).is_compatible_with(UREG(other.units)) or (self.units == other.units == ""):
+            if (UREG(self.units).is_compatible_with(UREG(other.units))
+                    or (self.units == other.units == "")):
                 converted_other_value = other.ito_units(self.units).value
                 sum_value = self.value + converted_other_value
                 return self.__class__(sum_value, f"{self.units}")
             else:
-                raise TypeError(f"Units do not match: {self.units}, {other.units}")
+                raise TypeError(f"Единицы измерения не совпадают: {self.units}, {other.units}")
         elif isinstance(other, (int, float)):
             return self.__class__(self.value + other, f"{self.units}")
 

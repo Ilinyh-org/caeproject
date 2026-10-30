@@ -1,18 +1,23 @@
 
-import pytest
-from caetask import FluentTask, APDLTask
-import os
+"""Integration tests for FluentTask: journal execution, parameters, logs,
+solving and serialization."""
 import glob
+import os
+
+import pytest
+
+from caetask import APDLTask, FluentTask
 
 
 def setup_method():
-    pass
+    """No per-test setup required."""
 
 
 @pytest.fixture(scope="session")
 def scm_simple_file(tmp_path_factory):
+    """Write a Fluent journal writing text into a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(define out (open-output-file \"text_file_from_fluent.dat\"))\n")
         file.write("(display \"test text from fluent\" out)\n")
         file.write("(newline out)\n")
@@ -23,7 +28,9 @@ def scm_simple_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_start(tmpdir, scm_simple_file):
+    """Verify FluentTask.solve runs the journal and produces the expected text output file."""
     os.chdir(tmpdir)
 
     expected_result = "test text from fluent\n"
@@ -33,15 +40,16 @@ def test_fluent_task_start(tmpdir, scm_simple_file):
     task1.results_files_names = ["text_file_from_fluent.dat"]
     task1.solve()
 
-    with open("text_file_from_fluent.dat", "r") as file:
+    with open("text_file_from_fluent.dat", "r", encoding="utf-8") as file:
         actual_result = file.readline()
     assert actual_result == expected_result
 
 
 @pytest.fixture(scope="session")
 def scm_parm_file(tmp_path_factory):
+    """Write a Fluent journal defining A1, B1 and C1 parameters; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test_parm.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(define A1 0.01)\n")
         file.write("(define B1 2)\n")
         file.write("(define C1 \"text\")\n")
@@ -50,8 +58,10 @@ def scm_parm_file(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def scm_use_parm_file(tmp_path_factory):
+    """Write a Fluent journal loading test_parm.scm
+    and writing A1/B1/C1 to a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(define out (open-output-file \"text_file_from_fluent.dat\"))\n")
         file.write("(if (file-exists? \"test_parm.scm\")\n")
         file.write("    (load \"test_parm.scm\")\n")
@@ -69,7 +79,9 @@ def scm_use_parm_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_parameters_file(tmpdir, scm_use_parm_file, scm_parm_file):
+    """Verify the task's parameters file is loaded and its values are readable by the journal."""
     os.chdir(tmpdir)
 
     expected_result = ["0.01\n", "2\n", "\"text\"\n"]
@@ -80,14 +92,16 @@ def test_fluent_task_parameters_file(tmpdir, scm_use_parm_file, scm_parm_file):
     task1.results_files_names = ["text_file_from_fluent.dat"]
     task1.solve()
 
-    with open("text_file_from_fluent.dat", "r") as file:
+    with open("text_file_from_fluent.dat", "r", encoding="utf-8") as file:
         actual_result = file.readlines()
     assert actual_result == expected_result
 
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_logs(tmpdir, scm_simple_file):
+    """Verify FluentTask writes a log file containing the Fluent welcome banner."""
     os.chdir(tmpdir)
 
     expected_result = "Welcome to ANSYS Fluent"
@@ -100,14 +114,15 @@ def test_fluent_task_logs(tmpdir, scm_simple_file):
     ]
     task1.solve()
 
-    with open("log_test.log", "r") as file:
-        assert any(expected_result in line for line in file.readlines())
+    with open("log_test.log", "r", encoding="utf-8") as file:
+        assert any(expected_result in line for line in file)
 
 
 @pytest.fixture(scope="session")
 def inp_mesh_file(tmp_path_factory):
+    """Write an APDL script meshing a square with inlet/outlet/wall components; return its path."""
     fn = tmp_path_factory.mktemp("data") / "mesh.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/prep7\n")
         file.write("et,1,200,6\n")
         file.write("a1=0.2\n")
@@ -129,8 +144,9 @@ def inp_mesh_file(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def scm_solve_file(tmp_path_factory):
+    """Write a Fluent journal importing the mesh and running one iteration; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(ti-menu-load-string \"/file/import/mechanical-apdl/input mesh.cdb\")\n")
         file.write("(ti-menu-load-string \"/solve/iterate 1\")\n")
         file.write("(ti-menu-load-string \"exit y\")\n")
@@ -139,7 +155,9 @@ def scm_solve_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
+    """Verify the APDL mesh → Fluent solve chain runs and the log contains iteration output."""
     os.chdir(tmpdir)
 
     expected_result = "iter  continuity  x-velocity  y-velocity"
@@ -155,13 +173,15 @@ def test_fluent_task_solve(tmpdir, inp_mesh_file, scm_solve_file):
     task2.additional_link_files = ['mesh.cdb']
     task2.solve()
 
-    with open("log_fluent.log", "r") as file:
-        assert any(expected_result in line for line in file.readlines())
+    with open("log_fluent.log", "r", encoding="utf-8") as file:
+        assert any(expected_result in line for line in file)
 
 
 @pytest.mark.negative
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_solve_wrong_dimension(tmpdir, inp_mesh_file, scm_solve_file):
+    """Verify solving a 2D mesh with dimension set to 3d raises PermissionError."""
     os.chdir(tmpdir)
 
     expected_error = PermissionError
@@ -183,8 +203,9 @@ def test_fluent_task_solve_wrong_dimension(tmpdir, inp_mesh_file, scm_solve_file
 
 @pytest.fixture(scope="session")
 def scm_transient_solve_file(tmp_path_factory):
+    """Write a Fluent journal running a transient solve with auto-save; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(ti-menu-load-string \"/file/import/mechanical-apdl/input mesh.cdb\")\n")
         file.write("(ti-menu-load-string \"/define/models/unsteady-1st-order? yes\")\n")
         file.write("(ti-menu-load-string \"/file/auto-save/data-frequency 1\")\n")
@@ -199,7 +220,9 @@ def scm_transient_solve_file(tmp_path_factory):
 
 @pytest.mark.positive
 @pytest.mark.solve
-def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transient_solve_file, capsys):
+@pytest.mark.external
+def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transient_solve_file):
+    """Verify a transient Fluent run auto-saves the expected number of dat/cas/flprj files."""
     os.chdir(tmpdir)
     expected_results = {"dat_files_number": 5,
                         "cas_files_number": 5,
@@ -228,7 +251,9 @@ def test_cfdposttask_transient_get_csv_results(tmpdir, inp_mesh_file, scm_transi
 
 @pytest.mark.positive
 @pytest.mark.solve
+@pytest.mark.external
 def test_fluent_task_return_files_regular_expression(tmpdir, scm_simple_file):
+    """Verify wildcard results_files_names picks up the produced output file."""
     os.chdir(tmpdir)
 
     expected_result = "test text from fluent\n"
@@ -238,7 +263,7 @@ def test_fluent_task_return_files_regular_expression(tmpdir, scm_simple_file):
     task1.results_files_names = ["text_file_*.dat"]
     task1.solve()
 
-    with open("text_file_from_fluent.dat", "r") as file:
+    with open("text_file_from_fluent.dat", "r", encoding="utf-8") as file:
         actual_result = file.readline()
     assert actual_result == expected_result
 
@@ -246,6 +271,7 @@ def test_fluent_task_return_files_regular_expression(tmpdir, scm_simple_file):
 @pytest.mark.positive
 @pytest.mark.solve
 def test_fluent__str__(tmpdir, scm_simple_file, capsys):
+    """Verify print(FluentTask) outputs the task summary in the expected format."""
     os.chdir(tmpdir)
 
     expected_result = 'task name: test\n'\
@@ -267,6 +293,7 @@ def test_fluent__str__(tmpdir, scm_simple_file, capsys):
 
 @pytest.mark.positive
 def test_task_to_dict(tmpdir, scm_simple_file):
+    """Verify FluentTask.to_dict serializes all task fields with default values."""
     os.chdir(tmpdir)
     expected_result = {'type': 'fluent',
                        'additional_link_files': None,
@@ -295,7 +322,9 @@ def test_task_to_dict(tmpdir, scm_simple_file):
 
 
 @pytest.mark.positive
+@pytest.mark.external
 def test_task_to_dict_after_solve(tmpdir, scm_simple_file):
+    """Verify to_dict output is unchanged by solving the task."""
     os.chdir(tmpdir)
     expected_result = {'type': 'fluent',
                        'additional_link_files': None,
@@ -325,6 +354,6 @@ def test_task_to_dict_after_solve(tmpdir, scm_simple_file):
 
 
 def tearDown() -> None:
-    pass
+    """No per-test cleanup required."""
 
 

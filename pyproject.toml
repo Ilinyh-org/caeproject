@@ -7,7 +7,7 @@ description = "A module for running CAE applications from python script"
 
 readme = "README.md"
 
-requires-python = ">=3.11.4"
+requires-python = ">=3.12"
 
 license-files = ["LICEN[CS]E*"]
 
@@ -27,7 +27,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies] # Optional
-dev = ["pytest", "pytest_check", "pytest-cov"]
+dev = ["pytest", "pytest_check", "pytest-cov", "ruff"]
 test = ["pytest", "plotly"]
 
 [project.urls]  # Optional
@@ -41,6 +41,11 @@ include = ["project", "caecase", "core"]
 
 [tool.setuptools.package-data]
 caeproject = ["data/*.pm"]
+
+[tool.pytest.ini_options]
+markers = [
+    "external: tests requiring third-party software",
+]
 
 [build-system]
 requires = [

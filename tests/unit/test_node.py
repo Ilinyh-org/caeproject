@@ -1,11 +1,16 @@
+"""Unit tests for core.node.Node: attribute/key initialization, value access,
+auto-creation, serialization and DataFrame export."""
 import pandas as pd
+import pytest
+
+from core.node import Node
 
 # from core import Node, Parameter
 from core.parameter import Parameter
-from core.node import Node
-import pytest
+
 
 def test_node_initialization_by_attributes():
+    """Verify deep attribute assignment auto-creates nested Nodes and stores the value."""
     input_value = 100
     expected_value = input_value
     node = Node()
@@ -17,6 +22,7 @@ def test_node_initialization_by_attributes():
 
 
 def test_node_get_value_by_name():
+    """Verify attribute access returns a Parameter wrapping the assigned value."""
     input_value = 8
     expected_value = input_value
     expected_type = Parameter
@@ -34,6 +40,7 @@ def test_node_get_value_by_name():
     (3.5, float),
 ])
 def test_node_get_value_by_value_attribute(input_value, expected_type):
+    """Verify the value attribute keeps the assigned Python type."""
     expected_value = input_value
     node = Node()
     node.a.b.c = input_value
@@ -46,6 +53,7 @@ def test_node_get_value_by_value_attribute(input_value, expected_type):
 
 
 def test_node_get_value_in_loop_list():
+    """Verify Parameters compare equal to plain values when collected in a list."""
     expected_result = [0, 1, 2]
     nodes = []
     for i in range(3):
@@ -58,6 +66,7 @@ def test_node_get_value_in_loop_list():
 
 
 def test_node_get_value_in_loop_set():
+    """Verify Parameter values dedupe correctly when collected into a set."""
     expected_result = {0, 1, 2}
     nodes = []
     for i in range(3):
@@ -70,6 +79,7 @@ def test_node_get_value_in_loop_set():
 
 
 def test_node_initialization_by_keys():
+    """Verify nested item (key) assignment stores the value."""
     input_value = 42
     expected_value = input_value
     node = Node()
@@ -81,6 +91,7 @@ def test_node_initialization_by_keys():
 
 
 def test_node_initialization_two_branches():
+    """Verify attribute and item access address the same nested branch."""
     input_value_a = 1.5
     input_value_b = "test"
     expected_value_a = input_value_a
@@ -98,6 +109,7 @@ def test_node_initialization_two_branches():
 
 
 def test_node_autocreate_nested():
+    """Verify accessing an unknown attribute auto-creates a nested Node."""
     node = Node()
     KEY = "unknown"
 
@@ -108,6 +120,7 @@ def test_node_autocreate_nested():
 
 
 def test_node_to_dict_simple():
+    """Verify to_dict serializes flat and nested values."""
     node = Node()
     node.x = 10
     node.y.z = "hello"
@@ -122,6 +135,7 @@ def test_node_to_dict_simple():
 
 
 def test_node_from_dict():
+    """Verify from_dict restores values and units into nested Parameters."""
     node = Node()
     input_dict = {"a": {"b": {"value": 5, "units": "kg"}}}
     expected_value = 5
@@ -140,6 +154,7 @@ def test_node_from_dict():
     "dtype",
 ])
 def test_node_no_recursion(input_attr):
+    """Verify attribute lookup raises AttributeError for ndarray-like attrs instead of recursing."""
     node = Node()
 
     node.a = 123
@@ -149,6 +164,7 @@ def test_node_no_recursion(input_attr):
 
 
 def test_node_to_dataframe_simple():
+    """Verify to_dataframe builds one row from flat parameters."""
     node = Node()
     node.x = 1e4
     node.y = 12.5
@@ -160,6 +176,7 @@ def test_node_to_dataframe_simple():
 
 
 def test_node_to_dataframe_nested_node():
+    """Verify to_dataframe flattens nested nodes into columns."""
     node = Node()
     node.a = 10
     node.b.c = "hello"

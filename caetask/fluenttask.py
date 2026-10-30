@@ -1,14 +1,29 @@
+"""ANSYS Fluent solver task.
+
+Provides :class:`FluentTask`, a :class:`~caetask.caetask.CAETask`
+that runs an ANSYS Fluent journal in a temporary directory and copies
+matched result files and the log back into the results directory.
+"""
+import fnmatch
 import os
 import shutil
-import fnmatch
 import tempfile
+from contextlib import suppress
 from pathlib import Path
 from subprocess import Popen
 
-from caetask import CAETask, log_execution_time
+from .caetask import CAETask, log_execution_time
 
 
 class FluentTask(CAETask):
+    """Task that runs an ANSYS Fluent calculation.
+
+    The input journal is executed from a temporary directory; after the
+    run, result file names may contain wildcards, which are expanded
+    against the temporary directory before all results and the log are
+    copied into the results directory.
+    """
+
     TYPE = "fluent"
     SERIALIZABLE_FIELDS = (
         "additional_link_files",
@@ -54,78 +69,82 @@ class FluentTask(CAETask):
     def __str__(self):
         output = super().__str__()
         if self._temporary_directory:
-            output += 'temporary directory path: ' + self._temporary_directory + '\n'
+            output += 'путь временной директории: ' + self._temporary_directory + '\n'
         if self._results_file_name:
-            output += 'results file: ' + self._results_file_name + '\n'
-        output += 'number of threads in the task: ' + str(self._threads) + '\n'
+            output += 'файл результатов: ' + self._results_file_name + '\n'
+        output += 'количество потоков в задаче: ' + str(self._threads) + '\n'
         return output
 
     @log_execution_time()
     def solve(self, cleanup=True):
+        # pylint: disable=consider-using-with
         tempdir = tempfile.TemporaryDirectory(dir=self._temporary_directory)
 
         self.load_files()
 
         self._create_files_in_running_dir(tempdir)
 
-        print("started Fluent task run \"" +
+        print("запущен расчёт Fluent задачи \"" +
               self._input_file.name + "\"" +
-              " in temporary directory " +
+              " во временной директории " +
               tempdir.name)
 
-        application = [f'"{str(Path('%AWP_ROOT' + self._application_version + '%') / 'fluent' / 'ntbin' / 'win64' / 'fluent.exe')}"',
+        application = [f'"{Path('%AWP_ROOT' + self._application_version + '%') / 'fluent' / 'ntbin' / 'win64' / 'fluent.exe'}"',
                        self._dimension,
                        # '-r', self.__application_version[0:2] + '.' + self.__application_version[2:3] + '.0',
-                       *(['-' + self._graphics_regime] if self._graphics_regime is not None else []),  # run without graphics
+                       *(['-' + self._graphics_regime]
+                         if self._graphics_regime is not None else []),  # run without graphics
                        '-i', self._input_file.name]
 
-        # create links to or copy additional non-text files
+        # создание ссылок или копирование дополнительных нетекстовых файлов
         self._organize_additional_link_files(tempdir)  #move above
 
-        # create the process from the configured application
-        with open(Path(tempdir.name) / self.log_file_name, 'w') as f:
-            self._process = Popen(' '.join(application),
-                                  shell=True,
-                                  stdout=f,
-                                  cwd=tempdir.name).wait()
-        print("finished ansys task run " +
+        # создание процесса по сконфигурированному application
+        with (open(Path(tempdir.name) / self.log_file_name, 'w', encoding="utf-8") as f,
+              Popen(' '.join(application),
+                    shell=True,
+                    stdout=f,
+                    cwd=tempdir.name) as process):
+            self._process = process.wait()
+        print("закончен расчёт ансис задачи " +
               self.name +
-              " in temporary directory " +
+              " во временной директории " +
               Path(tempdir.name).name)
 
-        # check regular expressions and extend the file list accordingly
+        # делаем проверку на регулярные выражения и расширяем список файлов с их учётом
         results_files_names_to_add = []
         results_files_names_to_remove = []
         for file in self._results_files_names:
             if any(ch in file for ch in ['*', '?', '+']):
-                try:
+                # список файлов результатов читается из временной директории; если она
+                # уже удалена, совпадений нет — это корректная деградация, не ошибка
+                with suppress(OSError):
                     for f in os.listdir(tempdir.name):
                         if fnmatch.fnmatch(f, file):
                             results_files_names_to_add.append(f)
                     results_files_names_to_remove.append(file)
-                except Exception:
-                    pass
         self._results_files_names.extend(results_files_names_to_add)
         for file in results_files_names_to_remove:
             self._results_files_names.remove(file)
 
-        # move results into the results folder
+        # переносим результаты в папку результатов
         for file in self._results_files_names:
             try:
                 shutil.copy2(Path(tempdir.name) / file, self._results_directory)
-                print(f"File {file} of fluent task {self.name} copied from "
-                      f"{tempdir.name} to {self._results_directory.name}")
+                print(f"Файл {file} fluent задачи {self.name} скопирован из "
+                      f"{tempdir.name} в {self._results_directory.name}")
             except OSError:
-                print(f"File {file} not found for copying to {self._results_directory}")
+                print(f"Файл {file} не найден для копирования в {self._results_directory}")
 
-        # move the log file into the results folder
+        # переносим файл лога в папку результатов
         try:
             shutil.copy2(Path(tempdir.name) / self._log_file_name, self._results_directory)
             print(
-                f"Log file {self._log_file_name} of fluent task {self._name} copied from "
-                f"{tempdir.name} to {self._results_directory.name}")
+                f"Файл лога {self._log_file_name} fluent задачи {self._name} скопирован из "
+                f"{tempdir.name} в {self._results_directory.name}")
         except OSError:
-            print(f"Log file {self._log_file_name} not found for copying to {self._results_directory}")
+            print(f"Файл лога {self._log_file_name} не найден "
+                  f"для копирования в {self._results_directory}")
 
         if cleanup:
             tempdir.cleanup()
@@ -133,16 +152,18 @@ class FluentTask(CAETask):
 
     @property
     def dimension(self):
+        """Solver dimensionality: one of "2d", "3d", "2ddp", "3ddp"."""
         return self._dimension
 
     @dimension.setter
     def dimension(self, dimension):
         if dimension not in ["2d", "3d", "2ddp", "3ddp"]:
-            raise ValueError("Unknown task dimension type: " + dimension)
+            raise ValueError("Неизвестный тип размерности задачи: " + dimension)
         self._dimension = dimension
 
     @property
     def threads(self):
+        """Number of CPU threads for Fluent (stored as a string)."""
         return self._threads
 
     @threads.setter
@@ -157,16 +178,14 @@ class FluentTask(CAETask):
 
         data.update({
             "results_file_name": self._results_file_name,
-            "results_files_names": self._results_files_names,
             "additional_text_files": self._additional_text_files,
             "additional_text_files_codes": self._additional_text_files_codes,
             "copy_link_files": self._copy_link_files,
-            "application_version": self._application_version,
             "dimension": self._dimension,
             "threads": self._threads,
         })
 
-        #data.update({"paths": [self.serialize(p, relative_to=self.base_path) for p in self._additional_text_files]})
+        #data.update({"paths": [self.serialize(p, relative_to=self.base_path) for p in self._additional_text_files]})  # pylint: disable=line-too-long
 
         data["parameters_file"] = self.serialize(
             self._parameters_file,

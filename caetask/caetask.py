@@ -1,18 +1,34 @@
-import os
-import shutil
-import tempfile
-from abc import ABC, abstractmethod
-import time
+"""Abstract base class for CAE solver tasks.
+
+Provides :class:`CAETask`, which wraps a main input file with an
+optional parameters file and additional text/link files, prepares
+them into a run directory, tracks per-class instance counts, and
+serializes itself via ``SERIALIZABLE_FIELDS``. Also provides the
+:func:`log_execution_time` decorator used by concrete ``solve``
+implementations.
+"""
 import datetime
 import functools
 import json
+import os
+import shutil
 import sys
+import tempfile
+import time
+from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import ClassVar
 
 from core.serialization import Serializable
 
 
 def check_attribute(class_object):
+    """Raise AttributeError unless the caller's property is backed by a private attribute.
+
+    Uses the calling function's name (via ``sys._getframe``) and checks
+    that ``class_object`` has the corresponding ``_<name>`` attribute,
+    guarding properties that only concrete subclasses define.
+    """
     attr_name = sys._getframe(1).f_code.co_name
 
     private_name = f'_{attr_name}'
@@ -23,7 +39,16 @@ def check_attribute(class_object):
 
 
 class CAETask(ABC, Serializable):
-    _class_counts = {}  # Dictionary for storing per-class counters
+    """Abstract base class for all CAE solver tasks.
+
+    A task references its main input file, optional parameters file,
+    and additional text/link files; loads and prepares them into the
+    run directory; and exposes configurable properties (name, log
+    file, application version, directories). Subclasses implement
+    :meth:`solve` to launch the actual solver.
+    """
+
+    _class_counts: ClassVar[dict] = {}  # Словарик для хранения счётчиков по классам
 
     def __init__(
             self,
@@ -69,6 +94,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def case(self):
+        """The case this task belongs to, or None if unattached."""
         return self._case
 
     @classmethod
@@ -77,6 +103,7 @@ class CAETask(ABC, Serializable):
             name: str | None = None,
             base_path: Path | None = None,
     ):
+        """Create a task instance with the given name under ``base_path``."""
         base_path = cls.normalize_path(base_path)
 
         return cls(
@@ -87,6 +114,11 @@ class CAETask(ABC, Serializable):
     def to_dict(self):
         """Prepare data for serialization."""
         data = super().to_dict()
+
+        data.update({
+            "results_files_names": self._results_files_names,
+            "application_version": self._application_version,
+        })
 
         # input file
         if self.case:
@@ -99,7 +131,8 @@ class CAETask(ABC, Serializable):
             additional_link_files = []
             for additional_link_file in self.additional_link_files:
                 if self.case:
-                    additional_link_files.append(str(additional_link_file.relative_to(self.case.path)))
+                    additional_link_files.append(
+                        str(additional_link_file.relative_to(self.case.path)))
                 else:
                     additional_link_files.append(str(additional_link_file))
             data.update({"additional_link_files": additional_link_files})
@@ -137,16 +170,16 @@ class CAETask(ABC, Serializable):
         try:
             self._decrement_counter()
         except (AttributeError, KeyError):
-            # Ignore errors if the counter is already removed or the class is not registered
+            # Игнорируем ошибки, если счётчик уже удалён или класс не зарегистрирован
             pass
 
     def __str__(self):
-        output = 'task name: ' + self.name + '\n'
-        output += 'executable file: ' + str(self._input_file.name) + '\n'
+        output = 'имя задачи: ' + self.name + '\n'
+        output += 'исполняемый файл: ' + str(self._input_file.name) + '\n'
         if self._parameters_file:
-            output += 'parameters file: ' + self._parameters_file + '\n'
-        output += 'log file: ' + self.log_file_name + '\n'
-        output += 'application version: ' + self._application_version + '\n'
+            output += 'файл параметров: ' + self._parameters_file + '\n'
+        output += 'файл логов: ' + self.log_file_name + '\n'
+        output += 'версия приложения: ' + self._application_version + '\n'
         return output
 
     def _prepare_file(
@@ -201,6 +234,11 @@ class CAETask(ABC, Serializable):
         return destination, code
 
     def load_files(self):
+        """Resolve and read the input and parameters files.
+
+        External files are copied into the case directory; each file's
+        resolved path and text contents are cached for the run.
+        """
         self._input_file, self._input_file_code = (
             self._prepare_file(self._input_file)
         )
@@ -219,20 +257,20 @@ class CAETask(ABC, Serializable):
             dst_path = Path(dst_path.name)
 
         if self._parameters_file:
-            with open(dst_path / self._parameters_file.name, 'w') as f:
+            with open(dst_path / self._parameters_file.name, 'w', encoding="utf-8") as f:
                 f.writelines(self._parameters_file_code)
         if self._input_file:
-            with open(dst_path / self._input_file.name, 'w') as f:
+            with open(dst_path / self._input_file.name, 'w', encoding="utf-8") as f:
                 f.writelines(self._input_file_code)
         if self._additional_text_files:
             for file in self._additional_text_files:
-                with open(dst_path / file[0], 'w') as f:
+                with open(dst_path / file[0], 'w', encoding="utf-8") as f:
                     f.writelines(file[1])
 
         return dst_path
 
     def _organize_additional_link_files(self, tempdir):
-        # add links to additional files
+        # добавление ссылок на дополнительные файлы
         if self.additional_link_files is None:
             return
 
@@ -242,40 +280,43 @@ class CAETask(ABC, Serializable):
             if self._copy_link_files:
                 shutil.copy2(src, tempdir.name)
                 continue
-            try:  # create a symbolic link
+            try:  # создание символьной ссылки
                 os.symlink(src, dst, target_is_directory=False, dir_fd=None)
             except OSError as e:
                 if e.winerror == 1314:
-                    print("Error 1314: Insufficient privileges to create a symbolic link. \n"
-                          "It is recommended to enable Developer Mode. A hard link will be created instead")
-                    try:  # create a hard link
+                    print("Ошибка 1314: Недостаточно прав для создания символьной ссылки. \n"
+                          "Рекомендуем включить Режим Разработчика. "
+                          "Сейчас будет создана жёсткая ссылка")
+                    try:  # создание жёсткой ссылки
                         os.link(src, dst)
                     except OSError as e:
                         if e.winerror == 17:
                             raise OSError(
-                                "Error 1314: Failed to create a hard link because the file is on a different volume.\n"
-                                "To copy files directly instead of creating links, "
-                                "pass copy_link_files=True to the constructor\n")
+                                "Ошибка 1314: Не удалось создать жёсткую ссылку, "
+                                "т.к. файл на другом разделе.\n"
+                                "Для прямого копирования файлов вместо создания ссылок, "
+                                "укажите параметр copy_link_files=True в конструкторе\n")
                         else:
-                            raise OSError(f"OSError occurred: {e}")
+                            raise OSError(f"Произошла ошибка OSError: {e}")
                 else:
-                    raise OSError(f"OSError occurred: {e}")
+                    raise OSError(f"Произошла ошибка OSError: {e}")
 
     @classmethod
     def _increment_counter(cls):
-        """Increments the counter for a specific class"""
+        """Увеличивает счётчик для конкретного класса"""
         if cls not in CAETask._class_counts:
             CAETask._class_counts[cls] = 0
         CAETask._class_counts[cls] += 1
 
     @classmethod
     def _decrement_counter(cls):
-        """Decrements the counter for a specific class"""
+        """Уменьшает счётчик для конкретного класса"""
         if cls in CAETask._class_counts and CAETask._class_counts[cls] > 0:
             CAETask._class_counts[cls] -= 1
 
     @classmethod
     def reset(cls):
+        """Zero the instance counters: all classes when called on CAETask, else only this class."""
         if cls is CAETask:
             for key in cls._class_counts:
                 cls._class_counts[key] = 0
@@ -284,14 +325,17 @@ class CAETask(ABC, Serializable):
 
     @abstractmethod
     def solve(self):
+        """Run the task; implemented by concrete task subclasses."""
         ...
 
     @classmethod
     def count(cls):
+        """Number of currently living instances of this task class."""
         return CAETask._class_counts.get(cls, 0)
 
     @property
     def name(self):
+        """Task name (the setter coerces the value to ``str``)."""
         return self._name
 
     @name.setter
@@ -300,6 +344,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def input_file(self) -> Path | None:
+        """Path to the task's main input file, or None."""
         return self._input_file
 
     @input_file.setter
@@ -319,10 +364,12 @@ class CAETask(ABC, Serializable):
 
     @property
     def input_file_path(self) -> Path | None:
+        """Resolved path of the prepared input file, set by :meth:`load_files`."""
         return self._input_file_path
 
     @property
     def log_file_name(self) -> str:
+        """Log file name, defaulting to ``<task name>.log``."""
         if self._log_file_name is None:
             self._log_file_name = f"{self.name}.log"
         return self._log_file_name
@@ -333,6 +380,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def parameters_file(self) -> Path | None:
+        """Path to the task's parameters file, or None."""
         return self._parameters_file
 
     @parameters_file.setter
@@ -353,10 +401,12 @@ class CAETask(ABC, Serializable):
 
     @property
     def parameters_file_path(self) -> Path | None:
+        """Resolved path of the prepared parameters file, set by :meth:`load_files`."""
         return self._parameters_file_path
 
     @property
     def additional_text_files(self):
+        """Text files inlined into the run directory as ``(name, lines)`` tuples."""
         check_attribute(self)
         return self._additional_text_files
 
@@ -370,19 +420,20 @@ class CAETask(ABC, Serializable):
         if self._additional_text_files is None:
             self._additional_text_files = []
 
-        if type(flist) is not list:
+        if not isinstance(flist, list):
             flist = [flist]
         for file in flist:
             try:
                 with open(file, encoding="utf-8") as f:
                     self._additional_text_files.append((file.name, f.readlines()))
             except FileNotFoundError:
-                raise FileNotFoundError(file.name + " not found")
+                raise FileNotFoundError(file.name + " не найден")
             except UnicodeDecodeError:
-                raise UnicodeDecodeError(f"File encoding error in {file.absolute()}")
+                raise UnicodeDecodeError(f"Ошибка в кодировке файла {file.absolute()}")
 
     @property
     def additional_link_files(self):
+        """Extra files linked (or copied) into the run directory at solve time."""
         check_attribute(self)
         return self._additional_link_files
 
@@ -393,7 +444,7 @@ class CAETask(ABC, Serializable):
         if flist is None:
             return
 
-        if type(flist) is not list:
+        if not isinstance(flist, list):
             flist = [flist]
 
         if self._additional_link_files is None:
@@ -403,13 +454,13 @@ class CAETask(ABC, Serializable):
 
         for file in flist:
             file_path = Path(file)
-            if not file_path.is_absolute():
-                if self.case:
-                    file_path = self.case.path / file_path
+            if not file_path.is_absolute() and self.case:
+                file_path = self.case.path / file_path
             self._additional_link_files.append(file_path)
 
     @property
     def copy_link_files(self):
+        """If True, copy additional link files instead of symlinking them."""
         check_attribute(self)
         return self._copy_link_files
 
@@ -421,6 +472,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def results_file_name(self):
+        """Optional explicit single result file name."""
         check_attribute(self)
         return self._results_file_name
 
@@ -431,19 +483,21 @@ class CAETask(ABC, Serializable):
 
     @property
     def results_files_names(self):
+        """Names of the result files produced by the task (always a list)."""
         return self._results_files_names
 
     @results_files_names.setter
     def results_files_names(self, flist: list[Path] | Path | None):
         if flist is None:
             flist = []
-        if type(flist) is list:
+        if isinstance(flist, list):
             self._results_files_names = flist
         else:
             self._results_files_names = [flist]
 
     @property
     def application_version(self):
+        """Target application version string (e.g. ``"212"``)."""
         check_attribute(self)
         return self._application_version
 
@@ -454,6 +508,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def working_directory(self) -> Path:
+        """Directory the task runs in, or None if unset."""
         check_attribute(self)
         return self._working_directory
 
@@ -466,6 +521,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def temporary_directory(self):
+        """Parent directory for the task's temporary run directories, or None."""
         check_attribute(self)
         return self._temporary_directory
 
@@ -476,6 +532,7 @@ class CAETask(ABC, Serializable):
 
     @property
     def results_directory(self):
+        """Directory result files are copied into after the run, or None."""
         check_attribute(self)
         return self._results_directory
 
@@ -489,17 +546,18 @@ class CAETask(ABC, Serializable):
 
 def log_execution_time():
     """
-    Decorator: creates a separate JSON log file for each function.
-    - On start, writes an initial record (status=running).
-    - On completion, overwrites the file with the final record (success/error).
-    - The log file is named by the pattern: <task_name>_<function_qualname>.json
+    Декоратор: для каждой функции создаёт отдельный JSON‑лог‑файл.
+    - При старте записывает начальную запись (status=running).
+    - По завершении перезаписывает файл итоговой записью (success/error).
+    - Лог‑файл назван по шаблону: <task_name>_<function_qualname>.json
     """
 
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            # Build the log file name
-            # Assume the first argument (args[0]) is a class instance with a task_name attribute
+            # Формируем имя лог‑файла
+            # Предполагаем, что первый аргумент (args[0]) — это экземпляр класса
+            # с атрибутом task_name
             task_name = args[0].name
             results_directory_path = args[0].results_directory
 
@@ -507,11 +565,11 @@ def log_execution_time():
             log_file = f"{task_name}_{func_qualname}.log"
             log_file_full_path = results_directory_path / log_file
 
-            # Start time
+            # Время начала
             start_time = time.time()
             start_dt = datetime.datetime.now()
 
-            # Initial record (status running)
+            # Начальная запись (статус running)
             initial_log = {
                 "function_name": func.__name__,
                 "start_time": start_dt.isoformat(),
@@ -520,19 +578,19 @@ def log_execution_time():
                 "status": "running"
             }
 
-            # Write the initial record to the JSON file
+            # Записываем стартовую запись в JSON‑файл
             with open(log_file_full_path, "w", encoding="utf-8") as f:
                 json.dump(initial_log, f, indent=4, ensure_ascii=False)
 
             try:
-                # Run the function
+                # Выполняем функцию
                 result = func(*args, **kwargs)
 
-                # End time
+                # Время окончания
                 end_time = time.time()
                 end_dt = datetime.datetime.now()
 
-                # Final record (status success)
+                # Итоговая запись (статус success)
                 final_log = {
                     "function_name": func.__name__,
                     "start_time": start_dt.isoformat(),
@@ -541,30 +599,30 @@ def log_execution_time():
                     "status": "success"
                 }
 
-                # Overwrite the JSON file with the final record
+                # Перезаписываем JSON‑файл итоговой записью
                 with open(log_file_full_path, "w", encoding="utf-8") as f:
                     json.dump(final_log, f, indent=4, ensure_ascii=False)
 
                 return result
 
             except Exception as e:
-                # Time at error
+                # Время при ошибке
                 end_dt = datetime.datetime.now()
 
-                # Final record (status error)
+                # Итоговая запись (статус error)
                 error_log = {
                     "function_name": func.__name__,
                     "start_time": start_dt.isoformat(),
                     "end_time": end_dt.isoformat(),
                     "duration_seconds": round(time.time() - start_time, 4),
-                    "status": f"error: {str(e)}"
+                    "status": f"error: {e!s}"
                 }
 
-                # Overwrite the JSON file with the error record
+                # Перезаписываем JSON‑файл записью об ошибке
                 with open(log_file_full_path, "w", encoding="utf-8") as f:
                     json.dump(error_log, f, indent=4, ensure_ascii=False)
 
-                raise  # Re-raise the exception
+                raise  # Пробрасываем исключение дальше
 
         return wrapper
 

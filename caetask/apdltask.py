@@ -1,13 +1,27 @@
+"""ANSYS Mechanical APDL solver task.
+
+Provides :class:`APDLTask`, a :class:`~caetask.caetask.CAETask` that
+runs an APDL input file in batch mode from a temporary directory and
+copies the results and log back into the results directory.
+"""
 import os
 import shutil
 import tempfile
 from pathlib import Path
 from subprocess import Popen
 
-from caetask import CAETask, log_execution_time
+from .caetask import CAETask, log_execution_time
 
 
 class APDLTask(CAETask):
+    """Task that runs an ANSYS Mechanical APDL calculation.
+
+    Configures solver resources (cores, memory, database size),
+    optional extra command-line parameters, and launches the APDL
+    executable registered for the configured application version in
+    batch mode.
+    """
+
     TYPE = "apdl"
     SERIALIZABLE_FIELDS = (
         "additional_link_files",
@@ -66,12 +80,10 @@ class APDLTask(CAETask):
 
         data.update({
             "results_file_name": self._results_file_name,
-            "results_files_names": self._results_files_names,
             "additional_text_files": self._additional_text_files,
             "additional_text_files_codes": self._additional_text_files_codes,
             "copy_link_files": self._copy_link_files,
             "geometry_file": self._geometry_file,
-            "application_version": self._application_version,
             "cores": self._cores,
             "new_parameter_name": self._new_parameter_name,
             "new_parameter_value": self._new_parameter_value,
@@ -103,24 +115,26 @@ class APDLTask(CAETask):
     def __str__(self):
         output = super().__str__()
         if self._temporary_directory:
-            output += 'temporary directory path: ' + self._temporary_directory + '\n'
+            output += 'путь временной директории: ' + self._temporary_directory + '\n'
         if self._geometry_file:
-            output += 'geometry file: ' + self._geometry_file + '\n'
+            output += 'файл геометрии: ' + self._geometry_file + '\n'
         if self._results_file_name:
-            output += 'results file: ' + self._results_file_name + '\n'
-        output += 'number of threads in the task: ' + str(self._cores) + '\n'
+            output += 'файл результатов: ' + self._results_file_name + '\n'
+        output += 'количество потоков в задаче: ' + str(self._cores) + '\n'
         if self._new_parameter_name is not None:
             if isinstance(self._new_parameter_name, list):
-                output += 'additional parameter: ' + str(self._new_parameter_name) + '\n'
+                output += 'дополнительный параметр: ' + str(self._new_parameter_name) + '\n'
             elif isinstance(self._new_parameter_name, list):
-                output += 'additional parameters: ' + '\n'
-                for parameter_name, parameter_value in zip(self._new_parameter_name, self._new_parameter_value):
+                output += 'дополнительные параметры: ' + '\n'
+                for parameter_name, parameter_value in zip(self._new_parameter_name,
+                                                           self._new_parameter_value):
                     output += str(parameter_name) + ' ' + str(parameter_value)
                 output += '\n'
         return output
 
     @log_execution_time()
     def solve(self, cleanup=True, delete=True):
+        # pylint: disable=consider-using-with
         tempdir = tempfile.TemporaryDirectory(
             dir=self._temporary_directory,
             delete=delete
@@ -130,14 +144,14 @@ class APDLTask(CAETask):
 
         self._create_files_in_running_dir(tempdir)
 
-        print("started ansys task run \"" +
+        print("запущен расчёт ансис задачи \"" +
               os.path.basename(self._input_file) + "\"" +
-              " in temporary directory " +
+              " во временной директории " +
               os.path.basename(tempdir.name))
 
-        # build the list of commands and attributes for the run
-        # the run uses an environment variable like ansys180_dir
-        application = [f'"{str(Path('%ansys' + self._application_version + '_dir%') / 'bin' / 'winx64' / ('ansys' + self._application_version))}"',
+        # составляем список команд и аттрибутов для запуска
+        # для запуска используется переменная среды типа ansys180_dir
+        application = [f'"{Path('%ansys' + self._application_version + '_dir%') / 'bin' / 'winx64' / ('ansys' + self._application_version)}"',
                        '-b',
                        '-m', self._memory_size,
                        '-db', self._database_size,
@@ -153,7 +167,7 @@ class APDLTask(CAETask):
         if self._parameters_file:
             application += ['-parfile', self._parameters_file.name]
         if self._new_parameter_name:  # no new parameters
-            if type(self._new_parameter_name) == list:  # list of  new parameter
+            if isinstance(self._new_parameter_name, list):  # list of  new parameter
                 for a, b in zip(self._new_parameter_name, self._new_parameter_value):
                     application.append('-' + a)
                     application.append(b)
@@ -161,34 +175,36 @@ class APDLTask(CAETask):
                 application.append('-' + self._new_parameter_name)
                 application.append(self._new_parameter_value)
 
-        # create links to or copy additional non-text files
+        # создание ссылок или копирование дополнительных нетекстовых файлов
         self._organize_additional_link_files(tempdir)
 
-        # create the process from the configured application
-        self._process = Popen(' '.join(application), shell=True).wait()
-        print("finished ansys task run " +
+        # создание процесса по сконфигурированному application
+        with Popen(' '.join(application), shell=True) as process:
+            self._process = process.wait()
+        print("закончен расчёт ансис задачи " +
               self._name +
-              " in temporary directory " +
+              " во временной директории " +
               Path(tempdir.name).name)
 
-        # move results into the results folder
+        # переносим результаты в папку результатов
         for file in self._results_files_names:
             try:
                 shutil.copy2(Path(tempdir.name) / file, self._results_directory)
                 print(
-                    f"File {file} of ansys task {self._name} copied from "
-                    f"{Path(tempdir.name).name} to {self._results_directory.name}")
+                    f"Файл {file} ансис задачи {self._name} скопирован из "
+                    f"{Path(tempdir.name).name} в {self._results_directory.name}")
             except OSError:
-                print(f"File {file} not found for copying to {self._results_directory}")
+                print(f"Файл {file} не найден для копирования в {self._results_directory}")
 
-        # move the log file into the results folder
+        # переносим файл лога в папку результатов
         try:
             shutil.copy2(Path(tempdir.name) / self._log_file_name, self._results_directory)
             print(
-                f"Log file {self._log_file_name} of ansys task {self._name} copied from "
-                f"{Path(tempdir.name).name} to {self._results_directory.name}")
+                f"Файл лога {self._log_file_name} ансис задачи {self._name} скопирован из "
+                f"{Path(tempdir.name).name} в {self._results_directory.name}")
         except OSError:
-            print(f"Log file {self._log_file_name} not found for copying to {self._results_directory}")
+            print(f"Файл лога {self._log_file_name} не найден "
+                  f"для копирования в {self._results_directory}")
 
         if cleanup:
             tempdir.cleanup()
@@ -196,6 +212,7 @@ class APDLTask(CAETask):
 
     @property
     def geometry_file(self):
+        """Path to the geometry (.gtm) file passed via ``-gtmfile``."""
         return self._geometry_file
 
     @geometry_file.setter
@@ -204,6 +221,7 @@ class APDLTask(CAETask):
 
     @property
     def cores(self):
+        """Number of CPU cores for the solver (stored as a string)."""
         return self._cores
 
     @cores.setter
@@ -212,6 +230,7 @@ class APDLTask(CAETask):
 
     @property
     def new_parameter_name(self):
+        """Name (or list of names) of extra command-line parameter(s)."""
         return self._new_parameter_name
 
     @new_parameter_name.setter
@@ -220,6 +239,7 @@ class APDLTask(CAETask):
 
     @property
     def new_parameter_value(self):
+        """Value (or list of values) matching ``new_parameter_name``."""
         return self._new_parameter_value
 
     @new_parameter_value.setter
@@ -228,6 +248,7 @@ class APDLTask(CAETask):
 
     @property
     def memory_size(self):
+        """Total solver workspace memory in MB (stored as a string)."""
         return self._memory_size
 
     @memory_size.setter
@@ -236,6 +257,7 @@ class APDLTask(CAETask):
 
     @property
     def database_size(self):
+        """Solver database memory in MB (stored as a string)."""
         return self._database_size
 
     @database_size.setter
@@ -244,4 +266,5 @@ class APDLTask(CAETask):
 
     @property
     def status(self):
+        """Solver process status: ``None`` while running, else the exit code."""
         return self._process.poll()

@@ -1,10 +1,16 @@
-import pytest
-import pandas as pd
-import numpy as np
+"""Tests for the ``core.series_merger.series_merger`` cross-merge utility.
+
+Covers cartesian-product merging of named pandas Series, sorting,
+reset_index behaviour, dtype preservation, edge cases (empty, single,
+NaN, duplicate values) and error handling for unnamed series.
+"""
 import math
 
-from core.series_merger import series_merger
+import numpy as np
+import pandas as pd
+import pytest
 
+from core.series_merger import series_merger
 
 # ============ Fixtures ============
 
@@ -74,9 +80,10 @@ def test_cross_merge_multiple_series(basic_series):
 def test_cross_merge_all_six_series(basic_series):
     """Test cross merge with all six series"""
     expected_columns = ['H1', 'B1', 'L1', 'NES_H1', 'NES_B1', 'NES_L1']
-    expected_rows = math.prod([len(basic_series[column]) for column in expected_columns])  # multiplication of series lens
+    # multiplication of series lens
+    expected_rows = math.prod([len(basic_series[column]) for column in expected_columns])
 
-    actual_result = series_merger(*list(basic_series[column] for column in expected_columns))
+    actual_result = series_merger(*[basic_series[column] for column in expected_columns])
 
     assert len(actual_result) == expected_rows
     assert len(actual_result.columns) == len(expected_columns)
@@ -103,7 +110,8 @@ def test_cross_merge_without_sort():
 
     result_unsorted = series_merger(series1, series2, sort=False)
 
-    # Cartesian product in original order: (3,c), (3,a), (3,b), (1,c), (1,a), (1,b), (2,c), (2,a), (2,b)
+    # Cartesian product in original order: (3,c), (3,a), (3,b),
+    # (1,c), (1,a), (1,b), (2,c), (2,a), (2,b)
     assert result_unsorted.iloc[0]['numbers'] == 3
     assert result_unsorted.iloc[0]['letters'] == 'c'
 

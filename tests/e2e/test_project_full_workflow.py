@@ -1,13 +1,11 @@
 
+import pandas as pd
 import pytest
+
 from caecase import CAECase
 from caecase.utils import is_case_dir_name
-from caetask import APDLTask, run_threads
 from caeproject import CAEProject
-
-import pandas as pd
-import plotly.express as px
-
+from caetask import APDLTask
 from core.series_merger import series_merger
 from workflows.apdl import APDLWorkflow
 from workflows.apdl_fluent_cfdpost import APDLFluentCFDPostWorkflow
@@ -16,7 +14,7 @@ from workflows.apdl_fluent_cfdpost import APDLFluentCFDPostWorkflow
 @pytest.fixture(scope="session")
 def apdl_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "square_compression.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("finish\n")
         file.write("/clear\n")
         file.write("/prep7\n")
@@ -54,6 +52,7 @@ def apdl_file(tmp_path_factory):
     return fn
 
 
+@pytest.mark.external
 def test_project_apdl_create_solve_get_results(tmp_path, apdl_file):
     expected_results_dataframe = pd.DataFrame(
         {
@@ -91,7 +90,8 @@ def test_project_apdl_create_solve_get_results(tmp_path, apdl_file):
 
         case.add_files_to_case([apdl_file])
 
-        case.parameters_save(filename='square_compression.parm' , format_type='APDL', new_system="SI")
+        case.parameters_save(filename='square_compression.parm',
+                             format_type='APDL', new_system="SI")
 
         task = case.create_task(APDLTask, 'square_compression')
         task.input_file = 'square_compression.inp'
@@ -134,6 +134,7 @@ def test_project_apdl_create_solve_get_results(tmp_path, apdl_file):
     )
 
 
+@pytest.mark.external
 def test_project_create_solve_get_results_short_task(tmp_path, apdl_file):
     expected_results_dataframe = pd.DataFrame(
         {
@@ -171,9 +172,10 @@ def test_project_create_solve_get_results_short_task(tmp_path, apdl_file):
 
         case.add_files_to_case([apdl_file])
 
-        case.parameters_save(filename='square_compression.parm', format_type='APDL', new_system="SI")
+        case.parameters_save(filename='square_compression.parm',
+                             format_type='APDL', new_system="SI")
 
-        task = case.create_task(
+        case.create_task(
             APDLTask,
             "square_compression",
             input_file="square_compression.inp",
@@ -215,6 +217,7 @@ def test_project_create_solve_get_results_short_task(tmp_path, apdl_file):
     assert df_res["ID"].is_unique
 
 
+@pytest.mark.external
 def test_project_apdl_workflow(tmp_path, apdl_file):
     expected_results_dataframe = pd.DataFrame(
         {
@@ -280,7 +283,7 @@ def test_project_apdl_workflow(tmp_path, apdl_file):
 @pytest.fixture(scope="session")
 def inp_mesh_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "poiseuille_flow.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("finish\n")
         file.write("/clear\n")
         file.write("/prep7\n")
@@ -321,18 +324,18 @@ def inp_mesh_file(tmp_path_factory):
 @pytest.fixture(scope="session")
 def scm_solve_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "poiseuille_flow.scm"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("(ti-menu-load-string \"/file/import/mechanical-apdl/input mesh.cdb\")\n")
         file.write("(ti-menu-load-string \"/define/models axisymmetric? y\")\n")
         file.write("(ti-menu-load-string \"/define/models/viscous/laminar? y\")\n")
         file.write("(ti-menu-load-string \"/define/materials/copy fluid water-liquid\")\n")
-        file.write("(ti-menu-load-string \"/define/boundary-conditions/fluid fluid y water-liquid n n n n y n\")\n")
+        file.write("(ti-menu-load-string \"/define/boundary-conditions/fluid fluid y water-liquid n n n n y n\")\n")  # pylint: disable=line-too-long
         file.write("(ti-menu-load-string "
                    "\"/define/boundary-conditions/zone-type inlet mass-flow-inlet\")\n")
         file.write("(ti-menu-load-string "
                    "\"/define/boundary-conditions mass-flow-inlet "
                    "inlet y y n 1.0 n 0 y n 1 n\")\n")  # mass flow inlet
-        file.write("(ti-menu-load-string \"/solve/monitors/residual/convergence-criteria 1e-9 1e-9 1e-9\")\n")
+        file.write("(ti-menu-load-string \"/solve/monitors/residual/convergence-criteria 1e-9 1e-9 1e-9\")\n")  # pylint: disable=line-too-long
         file.write("(ti-menu-load-string \"/solve/iterate 500\")\n")
         file.write("(ti-menu-load-string \"/file/write-case results.cas.h5\")\n")
         file.write("(ti-menu-load-string \"/file/write-data results.dat.h5\")\n")
@@ -343,7 +346,7 @@ def scm_solve_file(tmp_path_factory):
 @pytest.fixture(scope="session")
 def cse_cfdpost_file(tmp_path_factory):
     fn = tmp_path_factory.mktemp("data") / "poiseuille_flow.cse"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("!use lib '.';\n")
         file.write("!use JsonConfig;\n")
         file.write("!my $p = load_params('poiseuille_flow.json');\n")
@@ -370,7 +373,7 @@ def cse_cfdpost_file(tmp_path_factory):
         file.write("  CEL:\n")
         file.write("    EXPRESSIONS:\n")
         file.write("      pressure = probe(Pressure)@point1\n")
-        file.write("      Q = pressure * pi * ($r1 [m])^4 / (8 * ($l1 - $point1x) [m] * 0.001003[Pa s])\n")
+        file.write("      Q = pressure * pi * ($r1 [m])^4 / (8 * ($l1 - $point1x) [m] * 0.001003[Pa s])\n")  # pylint: disable=line-too-long
         file.write("    END\n")
         file.write("  END\n")
         file.write("END\n")
@@ -389,16 +392,17 @@ def cse_cfdpost_file(tmp_path_factory):
         file.write("  Table Exists = True\n")
         file.write("  Table Export Separator = Comma\n")
         file.write("  TABLE CELLS:\n")
-        file.write('    A1 = "Q", False, False, False, Left, True, 0, Font Name, 1|1, %10.1e, True, ffffff, 000000, True\n')
-        file.write('    A2 = "=Q", False, False, False, Left, True, 0, Font Name, 1|1, %14.4e, False, ffffff, 000000, True\n')
-        file.write('    B1 = "pressure", False, False, False, Left, True, 0, Font Name, 1|1, %10.1e, True, ffffff, 000000, True\n')
-        file.write('    B2 = "=pressure", False, False, False, Left, True, 0, Font Name, 1|1, %14.4e, False, ffffff, 000000, True\n')
+        file.write('    A1 = "Q", False, False, False, Left, True, 0, Font Name, 1|1, %10.1e, True, ffffff, 000000, True\n')  # pylint: disable=line-too-long
+        file.write('    A2 = "=Q", False, False, False, Left, True, 0, Font Name, 1|1, %14.4e, False, ffffff, 000000, True\n')  # pylint: disable=line-too-long
+        file.write('    B1 = "pressure", False, False, False, Left, True, 0, Font Name, 1|1, %10.1e, True, ffffff, 000000, True\n')  # pylint: disable=line-too-long
+        file.write('    B2 = "=pressure", False, False, False, Left, True, 0, Font Name, 1|1, %14.4e, False, ffffff, 000000, True\n')  # pylint: disable=line-too-long
         file.write("  END\n")
         file.write("END\n")
         file.write(">table save=RESULTS.csv, name=table1\n")
     return fn
 
 
+@pytest.mark.external
 def test_project_apdl_fluent_cfdpost_workflow(
         tmp_path,
         inp_mesh_file,

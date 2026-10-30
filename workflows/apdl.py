@@ -1,5 +1,11 @@
-from pathlib import Path
+"""Workflow for batch APDL simulations.
+
+Provides :class:`APDLWorkflow`, which turns each parameter row into a
+new :class:`~caecase.caecase.CAECase` containing a single
+:class:`~caetask.apdltask.APDLTask`.
+"""
 from collections.abc import Callable, Iterable
+from pathlib import Path
 
 from caecase import CAECase
 from caeproject import CAEProject
@@ -7,6 +13,8 @@ from caetask.apdltask import APDLTask
 
 
 class APDLWorkflow:
+    """Creates APDL-only cases in a project from parameter rows."""
+
     def __init__(
             self,
             project: CAEProject,
@@ -20,6 +28,12 @@ class APDLWorkflow:
         self.configure_case = configure_case
 
     def create_case(self, row: dict) -> CAECase:
+        """Create a case from one parameter row.
+
+        Applies ``configure_case`` to fill the case, adds the APDL
+        input file, saves parameters in APDL format (converted to SI),
+        creates the APDL task, and saves the case config.
+        """
         case = CAECase.create_new(self.project.path)
 
         self.configure_case(case, row)
@@ -52,6 +66,7 @@ class APDLWorkflow:
             rows: Iterable[dict],
             max_workers: int = 1,
     ):
+        """Create cases for every row, running at most ``max_workers`` in parallel."""
         return self.project.create_cases(
             rows,
             self.create_case,

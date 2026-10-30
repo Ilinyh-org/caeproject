@@ -1,14 +1,16 @@
+"""Unit tests for CAECase initialization, config persistence and get_csv_results CSV parsing."""
 import json
-import re
+from pathlib import Path
 
 import pytest
-from pathlib import Path
+
 from caecase import CAECase
 from caecase.caecase import CaseStatus, get_csv_results
 
 
 @pytest.fixture
 def temp_case_obj_path():
+    """Provide and clean up a config file path in the current directory."""
     path = Path("test_caecase_obj.json")
     yield path
     if path.exists():
@@ -17,10 +19,12 @@ def temp_case_obj_path():
 
 @pytest.fixture
 def case_obj(tmp_path):
+    """Create a fresh CAECase in a temporary directory."""
     return CAECase.create_new(base_path=tmp_path)
 
 
 def test_case_initialization(tmp_path):
+    """Verify create_new creates the case directory under the base path."""
     case = CAECase.create_new(base_path=tmp_path)
     expected_case_path = tmp_path / case.name
 
@@ -28,11 +32,13 @@ def test_case_initialization(tmp_path):
 
 
 def test_case_initialization_wrong_path_type(tmpdir):
+    """Verify create_new rejects a non-Path base path with TypeError."""
     with pytest.raises(TypeError):
         CAECase.create_new(base_path=tmpdir)
 
 
 def test_case_initialization_custom_name(tmp_path):
+    """Verify create_new honours a custom case name."""
     input_name = "myname"
     CAECase.create_new(base_path=tmp_path, name=input_name)
     expected_case_path = tmp_path / input_name
@@ -41,12 +47,14 @@ def test_case_initialization_custom_name(tmp_path):
 
 
 def test_case_sections(case_obj):
+    """Verify a new case exposes parameters, tasks and status sections."""
     assert hasattr(case_obj, "parameters")
     assert hasattr(case_obj, "tasks")
     assert hasattr(case_obj, "status")
 
 
 def test_case_path(tmp_path):
+    """Verify the case path points to an existing named directory under the base path."""
     case = CAECase.create_new(base_path=tmp_path)
 
     assert case.path == tmp_path / case.name
@@ -55,8 +63,9 @@ def test_case_path(tmp_path):
 
 @pytest.fixture(scope="session")
 def apdl_file(tmp_path_factory):
+    """Write an APDL journal writing parameter text into a dat file; return its path."""
     fn = tmp_path_factory.mktemp("data") / "test.inp"
-    with open(fn, "w") as file:
+    with open(fn, "w", encoding="utf-8") as file:
         file.write("/batch\n")
         file.write("*dim,text,string,32,1\n")
         file.write("text(1)=\'test text from ansys\'\n")
@@ -68,6 +77,7 @@ def apdl_file(tmp_path_factory):
 
 
 def test_case_add_files_to_case(tmp_path, apdl_file):
+    """Verify add_files_to_case copies the given file into the case directory."""
     case = CAECase.create_new(tmp_path)
 
     case.add_files_to_case([
@@ -79,6 +89,7 @@ def test_case_add_files_to_case(tmp_path, apdl_file):
 
 
 def test_case_safe_config_files(tmp_path, apdl_file):
+    """Verify save_config records added files in the config JSON."""
     expected_config = {
         "parameters": {},
         "files": ["test.inp"],
@@ -92,12 +103,13 @@ def test_case_safe_config_files(tmp_path, apdl_file):
 
     case.save_config()
 
-    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
+    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r", encoding="utf-8") as f:
         actual_config = json.load(f)
     assert actual_config == expected_config
 
 
-def test_case_load_config_files(tmp_path, apdl_file):
+def test_case_load_config_files(tmp_path):
+    """Verify load_config restores the file list, case name and base path."""
     case_name = "case_dir"
     data = {
         "parameters": {},
@@ -116,7 +128,7 @@ def test_case_load_config_files(tmp_path, apdl_file):
     expected_base_path = tmp_path
     case_dir_path = tmp_path / case_name
     case_dir_path.mkdir()
-    with open(case_dir_path / "case_config.json", "w") as f:
+    with open(case_dir_path / "case_config.json", "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
     case = CAECase.load_config(case_dir_path)
@@ -127,6 +139,7 @@ def test_case_load_config_files(tmp_path, apdl_file):
 
 
 def test_case_safe_config_status(tmp_path):
+    """Verify save_config persists the case status."""
     expected_status = 'DONE'
 
     case = CAECase.create_new(tmp_path)
@@ -134,12 +147,13 @@ def test_case_safe_config_status(tmp_path):
 
     case.save_config()
 
-    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r") as f:
+    with open(case.path / CAECase.CONFIG_DEFAULT_NAME, "r", encoding="utf-8") as f:
         data = json.load(f)
     assert data["status"] == expected_status
 
 
-def test_case_load_config_status(tmp_path, apdl_file):
+def test_case_load_config_status(tmp_path):
+    """Verify load_config restores the status, name and base path."""
     case_name = "case_dir"
     data = {
         "parameters": {},
@@ -152,7 +166,7 @@ def test_case_load_config_status(tmp_path, apdl_file):
     expected_base_path = tmp_path
     case_dir_path = tmp_path / case_name
     case_dir_path.mkdir()
-    with open(case_dir_path / "case_config.json", "w") as f:
+    with open(case_dir_path / "case_config.json", "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
     case = CAECase.load_config(case_dir_path)
@@ -163,6 +177,7 @@ def test_case_load_config_status(tmp_path, apdl_file):
 
 
 def test_get_csv_results_plain_numbers_no_header(tmp_path):
+    """Verify parsing a headerless single-column CSV of plain numbers."""
     f = tmp_path / "plain.csv"
     f.write_text(
         "2.22e+01\n"
@@ -182,6 +197,7 @@ def test_get_csv_results_plain_numbers_no_header(tmp_path):
 
 
 def test_get_csv_results_cfx_name_data_block(tmp_path):
+    """Verify parsing a CFX [Name]/[Data] block CSV using the data header as column name."""
     f = tmp_path / "cfx_block.csv"
     f.write_text(
         "\n"
@@ -209,6 +225,7 @@ def test_get_csv_results_cfx_name_data_block(tmp_path):
 
 
 def test_get_csv_results_header_then_values(tmp_path):
+    """Verify parsing a CSV with a header line followed by numeric values."""
     f = tmp_path / "header.csv"
     f.write_text(
         "Velocity u\n"
@@ -231,6 +248,7 @@ def test_get_csv_results_header_then_values(tmp_path):
 
 
 def test_get_csv_results_cfd_post_full_export(tmp_path):
+    """Verify parsing a full CFD-Post export with comment preamble and [Name]/[Data] blocks."""
     f = tmp_path / "cfdpost.csv"
     f.write_text(
         "##\n"
@@ -267,6 +285,7 @@ def test_get_csv_results_cfd_post_full_export(tmp_path):
 
 
 def test_get_csv_results_multi_column_csv(tmp_path):
+    """Verify parsing a multi-column CSV with a header row."""
     f = tmp_path / "multi.csv"
     f.write_text(
         "U,V,W\n"

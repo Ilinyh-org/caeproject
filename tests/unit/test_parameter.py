@@ -1,7 +1,9 @@
 
+"""Unit tests for core.parameter.Parameter: initialization, unit conversion,
+metadata, serialization, arithmetic and comparisons."""
 import pytest
+
 from core.parameter import Parameter
-from pint import UnitRegistry
 
 EPS = 1e-3
 
@@ -11,7 +13,7 @@ EPS = 1e-3
     ((20, "m"), 20),
 ])
 def test_parameter_initialization_value(input_value, expected_value):
-
+    """Verify Parameter accepts scalars and (value, unit) tuples keeping the numeric value."""
     p = Parameter(value=input_value)
 
     actual_value = p.value
@@ -25,7 +27,7 @@ def test_parameter_initialization_value(input_value, expected_value):
     (1500, "s^-1", "s^-1"),
 ])
 def test_parameter_initialization_units(input_value, input_units, expected_units):
-
+    """Verify the units attribute stores the given units string."""
     p = Parameter(value=input_value, units=input_units)
 
     actual_units = p.units
@@ -40,6 +42,7 @@ def test_parameter_initialization_units(input_value, input_units, expected_units
     ((3600*3600, "m * h^-2"), 1, "m*s^-2"),
 ])
 def test_parameter_get_value_with_iconversion(input_value, expected_value, expected_units):
+    """Verify ito_units converts value and units in place."""
     p = Parameter(value=input_value)
 
     p.ito_units(expected_units)
@@ -58,6 +61,7 @@ def test_parameter_get_value_with_iconversion(input_value, expected_value, expec
     ((3600*3600, "m * h^-2"), 1, "m*s^-2"),
 ])
 def test_parameter_get_value_with_conversion(input_value, expected_value, expected_units):
+    """Verify to_units returns a converted Parameter."""
     p = Parameter(value=input_value)
 
     p = p.to_units(expected_units)
@@ -76,8 +80,9 @@ def test_parameter_get_value_with_conversion(input_value, expected_value, expect
     ((3600, "h^-1"), 'si', 1, "s^-1"),
     ((3600*3600, "m * h^-2"), 'si', 1, "m*s^-2"),
 ])
-def test_parameter_get_value_with_system_conversion(input_value, input_system, expected_value, expected_units):
-
+def test_parameter_get_value_with_system_conversion(input_value, input_system,
+                                                    expected_value, expected_units):
+    """Verify to_units_system converts to the target unit system (SI/imperial)."""
     p = Parameter(value=input_value)
 
     p = p.to_units_system(input_system)
@@ -89,6 +94,7 @@ def test_parameter_get_value_with_system_conversion(input_value, input_system, e
 
 
 def test_parameter_initialization_default_units():
+    """Verify units default to an empty string."""
     input_value = 10
     expected_units = ""
 
@@ -104,6 +110,7 @@ def test_parameter_initialization_default_units():
     # (ureg.Quantity(300, "kg"), "Parameter(value=300, units='kg', description='')"),
 ])
 def test_parameter_initialization_repr(input_value, expected_repr):
+    """Verify repr shows value, units and empty description."""
     p = Parameter(value=input_value)
 
     actual_repr = repr(p)
@@ -116,6 +123,7 @@ def test_parameter_initialization_repr(input_value, expected_repr):
     ((20, "m"), "Parameter(value=20, units='m', description='')"),
 ])
 def test_parameter_initialization(input_value, expected_repr):
+    """Verify positional initialization produces the expected repr."""
     p = Parameter(input_value)
 
     actual_repr = repr(p)
@@ -124,6 +132,7 @@ def test_parameter_initialization(input_value, expected_repr):
 
 
 def test_parameter_initialization_empty():
+    """Verify a Parameter without arguments has value None."""
     expected_repr = "Parameter(value=None, units='', description='')"
 
     p = Parameter()
@@ -137,6 +146,7 @@ def test_parameter_initialization_empty():
     ((20, "m"), "Parameter(value=20, units='m', description='')"),
 ])
 def test_parameter_set_value_attribute(input_value, expected_repr):
+    """Verify assigning the value attribute updates the repr."""
     p = Parameter()
 
     p.value = input_value
@@ -146,7 +156,10 @@ def test_parameter_set_value_attribute(input_value, expected_repr):
 
 
 def test_parameter_creation_via_structure():
+    """Verify Parameter can be stored inside a simple structure attribute."""
     class Node:
+        """Minimal holder struct storing a Parameter."""
+
         def __init__(self, value):
             self.parameter = Parameter(value)
     input_value = 10
@@ -159,6 +172,7 @@ def test_parameter_creation_via_structure():
 
 
 def test_parameter_with_metadata():
+    """Verify metadata kwargs (units, description) appear in the repr."""
     input_value = 5.5
     input_metadata = {"units": "mm", "description": "Толщина"}
     expected_repr = "Parameter(value=5.5, units='mm', description='Толщина')"
@@ -175,6 +189,7 @@ def test_parameter_with_metadata():
     (-55.5, str, "-55.5"),
 ])
 def test_parameter_type_conversion(input_value, conversion_function, expected_value):
+    """Verify int/float/str conversions return the underlying value converted."""
     p = Parameter(input_value)
 
     actual_value = conversion_function(p)
@@ -189,6 +204,7 @@ def test_parameter_type_conversion(input_value, conversion_function, expected_va
     ("", {}),
 ])
 def test_parameter_to_dict(input_value, expected_value):
+    """Verify to_dict returns {'value': ...} and {} for an empty value."""
     p = Parameter(input_value)
 
     actual_value = p.to_dict()
@@ -203,6 +219,7 @@ def test_parameter_to_dict(input_value, expected_value):
     ((30, "min"), (2, "h"), Parameter(value=150, units='min', description='')),
 ])
 def test_parameters_arithmetic_sum(input_value1, input_value2, expected_result):
+    """Verify Parameter + Parameter sums values with unit conversion."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 
@@ -216,6 +233,7 @@ def test_parameters_arithmetic_sum(input_value1, input_value2, expected_result):
     ((-1, "kg"), (3, "s")),
 ])
 def test_parameters_arithmetic_sum_wrong_types(input_value1, input_value2):
+    """Verify adding parameters with incompatible units raises TypeError."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 
@@ -224,6 +242,7 @@ def test_parameters_arithmetic_sum_wrong_types(input_value1, input_value2):
 
 
 def test_parameter_arithmetic_unary_minus():
+    """Verify unary minus negates the value keeping units."""
     input_value = (20, "m")
     p = Parameter(input_value)
     expected_result = Parameter(value=-20, units='m', description='')
@@ -238,6 +257,7 @@ def test_parameter_arithmetic_unary_minus():
     ((3, "s"), 3.2, Parameter(value=6.2, units='s', description='')),
 ])
 def test_parameter_number_arithmetic_sum(input_value1, input_value2, expected_result):
+    """Verify Parameter + number adds to the parameter's value."""
     p1 = Parameter(input_value1)
 
     actual_result = p1 + input_value2
@@ -250,6 +270,7 @@ def test_parameter_number_arithmetic_sum(input_value1, input_value2, expected_re
     ((3, "s"), 3.2, Parameter(value=-0.2, units='s', description='')),
 ])
 def test_parameter_number_arithmetic_sub(input_value1, input_value2, expected_result):
+    """Verify Parameter - number subtracts from the parameter's value."""
     p1 = Parameter(input_value1)
 
     actual_result = p1 - input_value2
@@ -262,6 +283,7 @@ def test_parameter_number_arithmetic_sub(input_value1, input_value2, expected_re
     (4.2, (3, "s"), Parameter(value=1.2, units='s', description='')),
 ])
 def test_number_parameter_arithmetic_sub(input_value1, input_value2, expected_result):
+    """Verify number - Parameter subtracts the parameter's value."""
     p2 = Parameter(input_value2)
 
     actual_result = input_value1 - p2
@@ -274,6 +296,7 @@ def test_number_parameter_arithmetic_sub(input_value1, input_value2, expected_re
     (-2.2, (3, "s"), Parameter(value=0.8, units='s', description='')),
 ])
 def test_number_parameter_arithmetic_sum(input_value1, input_value2, expected_result):
+    """Verify number + Parameter adds the parameter's value."""
     p2 = Parameter(input_value2)
 
     actual_result = input_value1 + p2
@@ -286,6 +309,7 @@ def test_number_parameter_arithmetic_sum(input_value1, input_value2, expected_re
     (-2.2, (3, "Pa s"), Parameter(value=-6.6, units='Pa s', description='')),
 ])
 def test_number_parameter_arithmetic_multiplication(input_value1, input_value2, expected_result):
+    """Verify number * Parameter scales the value keeping units."""
     p2 = Parameter(input_value2)
 
     actual_result = input_value1 * p2
@@ -298,6 +322,7 @@ def test_number_parameter_arithmetic_multiplication(input_value1, input_value2, 
     ((3, "N"), 5.1, Parameter(value=15.3, units='N', description='')),
 ])
 def test_parameter_number_arithmetic_multiplication(input_value1, input_value2, expected_result):
+    """Verify Parameter * number scales the value keeping units."""
     p1 = Parameter(input_value1)
 
     actual_result = p1 * input_value2
@@ -313,6 +338,7 @@ def test_parameter_number_arithmetic_multiplication(input_value1, input_value2, 
     ((16, ""), (0.5, ""), Parameter(value=8, units='', description='')),
 ])
 def test_parameters_arithmetic_multiplication(input_value1, input_value2, expected_result):
+    """Verify Parameter * Parameter multiplies values and combines units."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 
@@ -326,6 +352,7 @@ def test_parameters_arithmetic_multiplication(input_value1, input_value2, expect
     ((2, ""), 3, Parameter(value=8, units='', description='')),
 ])
 def test_parameter_number_arithmetic_power(input_value1, input_value2, expected_result):
+    """Verify Parameter ** number raises the value and units to the power."""
     p1 = Parameter(input_value1)
 
     actual_result = p1 ** input_value2
@@ -338,6 +365,7 @@ def test_parameter_number_arithmetic_power(input_value1, input_value2, expected_
     ((2.2, ""), 2, Parameter(value=1.1, units='', description='')),
 ])
 def test_parameter_number_arithmetic_division(input_value1, input_value2, expected_result):
+    """Verify Parameter / number divides the value keeping units."""
     p1 = Parameter(input_value1)
 
     actual_result = p1 / input_value2
@@ -350,6 +378,7 @@ def test_parameter_number_arithmetic_division(input_value1, input_value2, expect
     ((5, "kg"), (-2, ""), Parameter(value=-2.5, units='kg', description='')),
 ])
 def test_parameters_arithmetic_division(input_value1, input_value2, expected_result):
+    """Verify Parameter / Parameter divides values and combines units."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 
@@ -364,6 +393,7 @@ def test_parameters_arithmetic_division(input_value1, input_value2, expected_res
     ((5, "kg"), (5.01, "kg"), False),
 ])
 def test_parameters_comparison_eq(input_value1, input_value2, expected_result):
+    """Verify == compares value and units."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 
@@ -378,6 +408,7 @@ def test_parameters_comparison_eq(input_value1, input_value2, expected_result):
     ((5, "kg"), 5.01, False),
 ])
 def test_parameter_number_comparison_eq(input_value1, input_value2, expected_result):
+    """Verify Parameter == number compares the bare value."""
     p1 = Parameter(input_value1)
 
     actual_result = p1 == input_value2
@@ -391,6 +422,7 @@ def test_parameter_number_comparison_eq(input_value1, input_value2, expected_res
     ((5, "kg"), (5.01, "kg"), True),
 ])
 def test_parameters_comparison_ne(input_value1, input_value2, expected_result):
+    """Verify != negates equality including unit mismatches."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 
@@ -406,6 +438,7 @@ def test_parameters_comparison_ne(input_value1, input_value2, expected_result):
     ((5.02, "kg"), (5.01, "kg"), False),
 ])
 def test_parameters_comparison_le(input_value1, input_value2, expected_result):
+    """Verify <= compares parameters of compatible units."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 
@@ -421,6 +454,7 @@ def test_parameters_comparison_le(input_value1, input_value2, expected_result):
     ((5.02, "kg"), (5.01, "kg"), True),
 ])
 def test_parameters_comparison_ge(input_value1, input_value2, expected_result):
+    """Verify >= compares parameters of compatible units."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 
@@ -435,6 +469,7 @@ def test_parameters_comparison_ge(input_value1, input_value2, expected_result):
     ((5.02, "kg"), (5.01, "kg"), False),
 ])
 def test_parameters_comparison_lt(input_value1, input_value2, expected_result):
+    """Verify < compares parameters of compatible units."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 
@@ -448,11 +483,12 @@ def test_parameters_comparison_lt(input_value1, input_value2, expected_result):
     ((-1, "kg"), (3, "s")),
 ])
 def test_parameters_arithmetic_lt_wrong_types(input_value1, input_value2):
+    """Verify comparing incompatible units with < raises TypeError."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 
     with pytest.raises(TypeError):
-        p1 < p2
+        _ = p1 < p2
 
 
 @pytest.mark.parametrize("input_value1, input_value2, expected_result", [
@@ -462,6 +498,7 @@ def test_parameters_arithmetic_lt_wrong_types(input_value1, input_value2):
     ((5.02, ""), (5.01, ""), True),
 ])
 def test_parameters_comparison_gt(input_value1, input_value2, expected_result):
+    """Verify > compares parameters of compatible units."""
     p1 = Parameter(input_value1)
     p2 = Parameter(input_value2)
 

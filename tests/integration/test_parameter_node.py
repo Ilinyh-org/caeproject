@@ -1,9 +1,12 @@
 
-from core.parameter import Parameter
+"""Integration tests for Parameter creation via Node attributes
+and Node serialization with metadata."""
 from core.node import Node
+from core.parameter import Parameter
 
 
 def test_parameter_creation_via_structure_attribute():
+    """Verify assigning a plain value to a Node attribute produces a Parameter with that value."""
     input_value = 10
     expected_repr = "Parameter(value=10, units='', description='')"
     node = Node()
@@ -15,6 +18,8 @@ def test_parameter_creation_via_structure_attribute():
 
 
 def test_parameter_creation_via_structure_attribute2():
+    """Verify setting value on a Node attribute Parameter
+    keeps the default units/description repr."""
     input_value = 10
     expected_repr = "Parameter(value=10, units='', description='')"
     node = Node()
@@ -26,6 +31,7 @@ def test_parameter_creation_via_structure_attribute2():
 
 
 def test_node_to_dict_with_metadata():
+    """Verify Node.to_dict serializes a Parameter with its value, units and description."""
     input_value = 0.1
     input_metadata = {'description': 'some text', 'units': 'm'}
     expected_dict = {
