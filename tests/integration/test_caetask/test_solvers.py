@@ -1,5 +1,6 @@
 """Integration tests for caetask runners executing user task functions."""
 import os
+from pathlib import Path
 from threading import Lock
 
 import pytest
@@ -16,20 +17,25 @@ def create_task_chdir(_index):  # задаётся пользователем
     import random
     import time
 
-    res_dir = None
     while True:
         try:
-            res_dir = (datetime.datetime.now().isoformat().replace(':', '')
-                       .replace('-', '_').replace('.', '_'))
-            os.mkdir("./" + res_dir)
+            res_dir = (
+                datetime.datetime.now().isoformat()
+                .replace(':', '')
+                .replace('-', '_')
+                .replace('.', '_')
+            )
+
+            res_dir_path = Path.cwd() / res_dir
+            os.mkdir(res_dir_path)
+            os.chdir(res_dir_path)
+
             break
         except FileExistsError:
             time.sleep(random.uniform(0.001, 0.01))
             continue
 
-    os.chdir(".\\" + res_dir)
-
-    return os.path.basename(os.path.abspath(os.curdir + "/../"))
+    return Path.cwd().parent.name
 
 
 @pytest.mark.positive
