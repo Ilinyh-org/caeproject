@@ -174,8 +174,8 @@ def test_parameter_creation_via_structure():
 def test_parameter_with_metadata():
     """Verify metadata kwargs (units, description) appear in the repr."""
     input_value = 5.5
-    input_metadata = {"units": "mm", "description": "Толщина"}
-    expected_repr = "Parameter(value=5.5, units='mm', description='Толщина')"
+    input_metadata = {"units": "mm", "description": "Thickness"}
+    expected_repr = "Parameter(value=5.5, units='mm', description='Thickness')"
 
     p = Parameter(input_value, **input_metadata)
 

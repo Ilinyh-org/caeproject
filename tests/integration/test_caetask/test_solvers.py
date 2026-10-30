@@ -10,7 +10,7 @@ from caetask import run_processes
 lock = Lock()
 
 
-def create_task_chdir(_index):  # задаётся пользователем
+def create_task_chdir(_index):  # set by the user
     """Create a unique timestamped subdirectory, chdir into it
     and return the parent directory name."""
     import datetime
