@@ -23,7 +23,7 @@ def check_attribute(class_object):
 
 
 class CAETask(ABC, Serializable):
-    _class_counts = {}  # Словарик для хранения счётчиков по классам
+    _class_counts = {}  # Dictionary for storing per-class counters
 
     def __init__(
             self,
@@ -137,16 +137,16 @@ class CAETask(ABC, Serializable):
         try:
             self._decrement_counter()
         except (AttributeError, KeyError):
-            # Игнорируем ошибки, если счётчик уже удалён или класс не зарегистрирован
+            # Ignore errors if the counter is already removed or the class is not registered
             pass
 
     def __str__(self):
-        output = 'имя задачи: ' + self.name + '\n'
-        output += 'исполняемый файл: ' + str(self._input_file.name) + '\n'
+        output = 'task name: ' + self.name + '\n'
+        output += 'executable file: ' + str(self._input_file.name) + '\n'
         if self._parameters_file:
-            output += 'файл параметров: ' + self._parameters_file + '\n'
-        output += 'файл логов: ' + self.log_file_name + '\n'
-        output += 'версия приложения: ' + self._application_version + '\n'
+            output += 'parameters file: ' + self._parameters_file + '\n'
+        output += 'log file: ' + self.log_file_name + '\n'
+        output += 'application version: ' + self._application_version + '\n'
         return output
 
     def _prepare_file(
@@ -232,7 +232,7 @@ class CAETask(ABC, Serializable):
         return dst_path
 
     def _organize_additional_link_files(self, tempdir):
-        # добавление ссылок на дополнительные файлы
+        # add links to additional files
         if self.additional_link_files is None:
             return
 
@@ -242,35 +242,35 @@ class CAETask(ABC, Serializable):
             if self._copy_link_files:
                 shutil.copy2(src, tempdir.name)
                 continue
-            try:  # создание символьной ссылки
+            try:  # create a symbolic link
                 os.symlink(src, dst, target_is_directory=False, dir_fd=None)
             except OSError as e:
                 if e.winerror == 1314:
-                    print("Ошибка 1314: Недостаточно прав для создания символьной ссылки. \n"
-                          "Рекомендуем включить Режим Разработчика. Сейчас будет создана жёсткая ссылка")
-                    try:  # создание жёсткой ссылки
+                    print("Error 1314: Insufficient privileges to create a symbolic link. \n"
+                          "It is recommended to enable Developer Mode. A hard link will be created instead")
+                    try:  # create a hard link
                         os.link(src, dst)
                     except OSError as e:
                         if e.winerror == 17:
                             raise OSError(
-                                "Ошибка 1314: Не удалось создать жёсткую ссылку, т.к. файл на другом разделе.\n"
-                                "Для прямого копирования файлов вместо создания ссылок, "
-                                "укажите параметр copy_link_files=True в конструкторе\n")
+                                "Error 1314: Failed to create a hard link because the file is on a different volume.\n"
+                                "To copy files directly instead of creating links, "
+                                "pass copy_link_files=True to the constructor\n")
                         else:
-                            raise OSError(f"Произошла ошибка OSError: {e}")
+                            raise OSError(f"OSError occurred: {e}")
                 else:
-                    raise OSError(f"Произошла ошибка OSError: {e}")
+                    raise OSError(f"OSError occurred: {e}")
 
     @classmethod
     def _increment_counter(cls):
-        """Увеличивает счётчик для конкретного класса"""
+        """Increments the counter for a specific class"""
         if cls not in CAETask._class_counts:
             CAETask._class_counts[cls] = 0
         CAETask._class_counts[cls] += 1
 
     @classmethod
     def _decrement_counter(cls):
-        """Уменьшает счётчик для конкретного класса"""
+        """Decrements the counter for a specific class"""
         if cls in CAETask._class_counts and CAETask._class_counts[cls] > 0:
             CAETask._class_counts[cls] -= 1
 
@@ -377,9 +377,9 @@ class CAETask(ABC, Serializable):
                 with open(file, encoding="utf-8") as f:
                     self._additional_text_files.append((file.name, f.readlines()))
             except FileNotFoundError:
-                raise FileNotFoundError(file.name + " не найден")
+                raise FileNotFoundError(file.name + " not found")
             except UnicodeDecodeError:
-                raise UnicodeDecodeError(f"Ошибка в кодировке файла {file.absolute()}")
+                raise UnicodeDecodeError(f"File encoding error in {file.absolute()}")
 
     @property
     def additional_link_files(self):
@@ -489,17 +489,17 @@ class CAETask(ABC, Serializable):
 
 def log_execution_time():
     """
-    Декоратор: для каждой функции создаёт отдельный JSON‑лог‑файл.
-    - При старте записывает начальную запись (status=running).
-    - По завершении перезаписывает файл итоговой записью (success/error).
-    - Лог‑файл назван по шаблону: <task_name>_<function_qualname>.json
+    Decorator: creates a separate JSON log file for each function.
+    - On start, writes an initial record (status=running).
+    - On completion, overwrites the file with the final record (success/error).
+    - The log file is named by the pattern: <task_name>_<function_qualname>.json
     """
 
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            # Формируем имя лог‑файла
-            # Предполагаем, что первый аргумент (args[0]) — это экземпляр класса с атрибутом task_name
+            # Build the log file name
+            # Assume the first argument (args[0]) is a class instance with a task_name attribute
             task_name = args[0].name
             results_directory_path = args[0].results_directory
 
@@ -507,11 +507,11 @@ def log_execution_time():
             log_file = f"{task_name}_{func_qualname}.log"
             log_file_full_path = results_directory_path / log_file
 
-            # Время начала
+            # Start time
             start_time = time.time()
             start_dt = datetime.datetime.now()
 
-            # Начальная запись (статус running)
+            # Initial record (status running)
             initial_log = {
                 "function_name": func.__name__,
                 "start_time": start_dt.isoformat(),
@@ -520,19 +520,19 @@ def log_execution_time():
                 "status": "running"
             }
 
-            # Записываем стартовую запись в JSON‑файл
+            # Write the initial record to the JSON file
             with open(log_file_full_path, "w", encoding="utf-8") as f:
                 json.dump(initial_log, f, indent=4, ensure_ascii=False)
 
             try:
-                # Выполняем функцию
+                # Run the function
                 result = func(*args, **kwargs)
 
-                # Время окончания
+                # End time
                 end_time = time.time()
                 end_dt = datetime.datetime.now()
 
-                # Итоговая запись (статус success)
+                # Final record (status success)
                 final_log = {
                     "function_name": func.__name__,
                     "start_time": start_dt.isoformat(),
@@ -541,17 +541,17 @@ def log_execution_time():
                     "status": "success"
                 }
 
-                # Перезаписываем JSON‑файл итоговой записью
+                # Overwrite the JSON file with the final record
                 with open(log_file_full_path, "w", encoding="utf-8") as f:
                     json.dump(final_log, f, indent=4, ensure_ascii=False)
 
                 return result
 
             except Exception as e:
-                # Время при ошибке
+                # Time at error
                 end_dt = datetime.datetime.now()
 
-                # Итоговая запись (статус error)
+                # Final record (status error)
                 error_log = {
                     "function_name": func.__name__,
                     "start_time": start_dt.isoformat(),
@@ -560,11 +560,11 @@ def log_execution_time():
                     "status": f"error: {str(e)}"
                 }
 
-                # Перезаписываем JSON‑файл записью об ошибке
+                # Overwrite the JSON file with the error record
                 with open(log_file_full_path, "w", encoding="utf-8") as f:
                     json.dump(error_log, f, indent=4, ensure_ascii=False)
 
-                raise  # Пробрасываем исключение дальше
+                raise  # Re-raise the exception
 
         return wrapper
 

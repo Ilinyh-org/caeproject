@@ -26,16 +26,16 @@ import asyncio
 # # @pytest.mark.asyncio
 # # async def test_caecase_delayed_save(caecase_obj_path):
 # #     cm = CAECase(caecase_obj_path)
-# #     cm._save_delay = 0.1  # Ускоряем тест
+# #     cm._save_delay = 0.1  # Speed up the test
 # #
-# #     # Меняем параметры (должно запустить отложенное сохранение)
+# #     # Change parameters (should trigger the delayed save)
 # #     cm.parameters.test1 = 1
 # #     cm.parameters.test2 = 2
 # #
-# #     # Ждём больше, чем задержка
+# #     # Wait longer than the delay
 # #     await asyncio.sleep(0.2)
 # #
-# #     # Проверяем, что файл создан и содержит данные
+# #     # Check that the file was created and contains data
 # #     assert caecase_obj_path.exists()
 # #     with caecase_obj_path.open("r", encoding="utf-8") as f:
 # #         data = json.load(f)
@@ -50,24 +50,24 @@ import asyncio
 # #     cm._save_delay = 1.0
 # #
 # #     cm.parameters.temp = 100
-# #     # Сразу меняем ещё раз — предыдущая задача должна отмениться
+# #     # Change again immediately — the previous task should be cancelled
 # #     cm.parameters.temp = 200
 # #
-# #     await asyncio.sleep(1.2)  # Ждём завершения последней задачи
+# #     await asyncio.sleep(1.2)  # Wait for the last task to finish
 # #
 # #     with caecase_obj_path.open("r", encoding="utf-8") as f:
 # #         data = json.load(f)
 # #
-# #     assert data["parameters"]["temp"]["value"] == 200  # Сохранилось последнее значение
+# #     assert data["parameters"]["temp"]["value"] == 200  # The last value was saved
 #
 # from time import sleep
 # # @pytest.mark.asyncio
 # def test_caecase_force_save(caecase_obj_path):
 #     caecase = CAECase(caecase_obj_path)
-#     caecase._save_delay = 5.0  # Большая задержка
+#     caecase._save_delay = 5.0  # Large delay
 #
 #     caecase.parameters.urgent = 999
-#     caecase.save()  # Принудительное сохранение
+#     caecase.save()  # Forced save
 #     sleep(4)
 #     assert caecase_obj_path.exists()
 #     with caecase_obj_path.open("r", encoding="utf-8") as f:

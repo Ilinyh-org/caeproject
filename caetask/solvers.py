@@ -39,5 +39,5 @@ def completed_callback(future):
     with lock:
         completed += 1
         total_tasks -= 1
-    print("завершена задача, осталось задач: " +
+    print("task completed, tasks remaining: " +
           str(total_tasks))

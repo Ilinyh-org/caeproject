@@ -67,7 +67,7 @@ class Parameter:
             if field.name.startswith("_"):
                 continue
             attribute = getattr(self, field.name)
-            if attribute != "":  # защита от стандартных пустых значений
+            if attribute != "":  # guard against default empty values
                 data[field.name] = attribute
         return data
 
@@ -182,7 +182,7 @@ class Parameter:
                 converted_other_value = other.ito_units(self.units).value
                 return self.value < converted_other_value
             else:
-                raise TypeError(f"Единицы измерения не совпадают: {self.units}, {other.units}")
+                raise TypeError(f"Units do not match: {self.units}, {other.units}")
         elif isinstance(other, (int, float)):
             return self.value < other
         else:
@@ -201,7 +201,7 @@ class Parameter:
                 sum_value = self.value + converted_other_value
                 return self.__class__(sum_value, f"{self.units}")
             else:
-                raise TypeError(f"Единицы измерения не совпадают: {self.units}, {other.units}")
+                raise TypeError(f"Units do not match: {self.units}, {other.units}")
         elif isinstance(other, (int, float)):
             return self.__class__(self.value + other, f"{self.units}")
 

@@ -7,7 +7,7 @@ from threading import Lock
 lock = Lock()
 
 
-def create_task_chdir(index):  # задаётся пользователем
+def create_task_chdir(index):  # set by the user
     import datetime
     import time
     import random

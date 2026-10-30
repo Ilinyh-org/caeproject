@@ -6,7 +6,7 @@ from pytest_check import check
 from caetask import run_threads, APDLTask
 
 
-def create_task(index, tempdir=None):  # задаётся пользователем
+def create_task(index, tempdir=None):  # set by the user
     task_num = index[0]
     num_par = index[1]
 
@@ -52,12 +52,12 @@ def test_apdl_multitask_callback(tmpdir):
         file.write("%I\n")
         file.write("*cfclos\n")
 
-    tasks = run_threads(create_task, input_data)  # список параллельных решаемых задач
+    tasks = run_threads(create_task, input_data)  # list of parallel solved tasks
     run_threads(solve_task, tasks, max_workers=4)
 
     for input_sample, expected_result in zip(input_data, expected_results):
         file_name = f"task{input_sample[0]}_text_file.dat"
-        with check:  # позволяет не прерывать общий процесс при провале assert
+        with check:  # avoids aborting the whole run when an assert fails
             # try:
             with open(file_name, "r") as file:
                 actual_result = int(file.readline())
