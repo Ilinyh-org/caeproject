@@ -52,6 +52,7 @@ def apdl_file(tmp_path_factory):
     return fn
 
 
+@pytest.mark.solve
 @pytest.mark.external
 def test_project_apdl_create_solve_get_results(tmp_path, apdl_file):
     expected_results_dataframe = pd.DataFrame(
@@ -134,6 +135,7 @@ def test_project_apdl_create_solve_get_results(tmp_path, apdl_file):
     )
 
 
+@pytest.mark.solve
 @pytest.mark.external
 def test_project_create_solve_get_results_short_task(tmp_path, apdl_file):
     expected_results_dataframe = pd.DataFrame(
@@ -217,6 +219,7 @@ def test_project_create_solve_get_results_short_task(tmp_path, apdl_file):
     assert df_res["ID"].is_unique
 
 
+@pytest.mark.solve
 @pytest.mark.external
 def test_project_apdl_workflow(tmp_path, apdl_file):
     expected_results_dataframe = pd.DataFrame(
@@ -402,6 +405,7 @@ def cse_cfdpost_file(tmp_path_factory):
     return fn
 
 
+@pytest.mark.solve
 @pytest.mark.external
 def test_project_apdl_fluent_cfdpost_workflow(
         tmp_path,

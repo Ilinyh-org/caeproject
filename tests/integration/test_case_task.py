@@ -295,6 +295,7 @@ def test_apdl_solve_log_file(tmp_path, apdl_file_empty):
             assert expected_log_text_part in log_text
 
 
+@pytest.mark.solve
 @pytest.mark.external
 def test_case_safe_config_task(tmp_path, apdl_file):
     """Verify save_config serializes parameters, files and the solved task into the config JSON."""
