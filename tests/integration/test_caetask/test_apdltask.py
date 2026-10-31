@@ -321,7 +321,7 @@ def test_apdl_results_file_FileNotFoundError(tmpdir, apdl_file, capsys):
     """Verify a missing results file is reported via the expected message on stdout."""
     os.chdir(tmpdir)
 
-    expected_error_message = "wrong_file_from_ansys.dat не найден для копирования в "
+    expected_error_message = "wrong_file_from_ansys.dat not found for copying to "
 
     task = APDLTask.create_new('test')
     task.input_file = apdl_file
@@ -340,11 +340,11 @@ def test_apdl_print(tmpdir, apdl_file, capsys):
     """Verify print(APDLTask) outputs the task summary in the expected format."""
     os.chdir(tmpdir)
 
-    expected_result = 'имя задачи: test\n'\
-                      'исполняемый файл: test.inp\n'\
-                      'файл логов: test.log\n'\
-                      'версия приложения: 212\n'\
-                      'количество потоков в задаче: 2\n'\
+    expected_result = 'task name: test\n'\
+                      'executable file: test.inp\n'\
+                      'log file: test.log\n'\
+                      'application version: 212\n'\
+                      'number of threads in the task: 2\n'\
                       '\n'
 
     task1 = APDLTask.create_new('test')

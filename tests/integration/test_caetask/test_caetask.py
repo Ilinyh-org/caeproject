@@ -27,7 +27,7 @@ def parse_iso8601(ts):
     try:
         return datetime.fromisoformat(ts)
     except ValueError as e:
-        raise AssertionError(f"Неверный формат ISO 8601: {ts}") from e
+        raise AssertionError(f"Invalid ISO 8601 format: {ts}") from e
 
 
 @pytest.fixture(scope="session")
@@ -223,7 +223,7 @@ def test_fluent_solve_log(tmpdir, scm_simple_file):
         assert actual_duration == pytest.approx(expected_duration, 1E-3)
 
 
-# Создаём класс для подмены объекта Popen объектом с заменённым методом wait
+# Create a class that replaces the Popen object with one whose wait method is overridden
 class FakePopen:
     """Stub replacing Popen whose wait() raises the parametrized exception."""
 
@@ -231,7 +231,7 @@ class FakePopen:
         """Accept any arguments; no initialization required."""
         self._exc = raising_exception
 
-    def wait(self):  # прервёт выполнение функции solve
+    def wait(self):  # will interrupt the solve function
         """Raise the parametrized exception to interrupt solve."""
         raise self._exc
 
@@ -299,11 +299,11 @@ def test_apdl_solve_log_with_interrupt(
         assert data['function_name'] == expected_function_name
         assert data['status'].startswith(expected_status)
 
-        parse_iso8601(data['start_time'])  # для проверки формата
+        parse_iso8601(data['start_time'])  # check the format
 
-        if expected_end_time:  # случай, когда end_time не записался
-            parse_iso8601(data['end_time'])  # для проверки формата
-        else:  # случай, когда end_time записался
+        if expected_end_time:  # case when end_time was not written
+            parse_iso8601(data['end_time'])  # check the format
+        else:  # case when end_time was written
             assert data['end_time'] is None
             assert data['duration_seconds'] is None
 
@@ -346,11 +346,11 @@ def test_apdl_solve_log_with_interrupt_not_in_current_directory(
         assert data['function_name'] == expected_function_name
         assert data['status'].startswith(expected_status)
 
-        parse_iso8601(data['start_time'])  # для проверки формата
+        parse_iso8601(data['start_time'])  # check the format
 
-        if expected_end_time:  # случай, когда end_time не записался
-            parse_iso8601(data['end_time'])  # для проверки формата
-        else:  # случай, когда end_time записался
+        if expected_end_time:  # case when end_time was not written
+            parse_iso8601(data['end_time'])  # check the format
+        else:  # case when end_time was written
             assert data['end_time'] is None
             assert data['duration_seconds'] is None
 

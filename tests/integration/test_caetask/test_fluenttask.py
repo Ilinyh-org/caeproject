@@ -274,11 +274,11 @@ def test_fluent__str__(tmpdir, scm_simple_file, capsys):
     """Verify print(FluentTask) outputs the task summary in the expected format."""
     os.chdir(tmpdir)
 
-    expected_result = 'имя задачи: test\n'\
-                      'исполняемый файл: test.scm\n'\
-                      'файл логов: test.log\n'\
-                      'версия приложения: 212\n'\
-                      'количество потоков в задаче: 4\n'\
+    expected_result = 'task name: test\n'\
+                      'executable file: test.scm\n'\
+                      'log file: test.log\n'\
+                      'application version: 212\n'\
+                      'number of threads in the task: 4\n'\
                       '\n'
 
     task1 = FluentTask.create_new('test')

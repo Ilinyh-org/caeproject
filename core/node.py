@@ -15,11 +15,11 @@ from core.parameter import Parameter
 
 class Node:
     """
-    Узел параметров.
-    Поддерживает:
-    - доступ через точку: node.a.b = 10
-    - доступ через ключ: node["a"]["b"] = 10
-    - автосоздание вложенных узлов
+    Parameter node.
+    Supports:
+    - dot access: node.a.b = 10
+    - key access: node["a"]["b"] = 10
+    - auto-creation of nested nodes
     """
 
     def __init__(self, name='', parent=None):
@@ -65,7 +65,7 @@ class Node:
             self.parent[self._name] = Parameter(value)
             return
 
-        # Если значение не Parameter — оборачиваем
+        # If the value is not a Parameter — wrap it
         if isinstance(value, Parameter):
             self._children[name] = value
         else:
@@ -73,7 +73,7 @@ class Node:
 
     def __getitem__(self, key):
         if key not in self._children:
-            # Автосоздание узла, если ключа нет
+            # Auto-create the node if the key is missing
             self._children[key] = Node()
         return self._packed(self._children[key])
 
@@ -83,26 +83,26 @@ class Node:
         self._children[key] = value
 
     def _packed(self, obj):
-        """Обертывает dict в ConfigNode, остальное оставляет как есть."""
+        """Wraps a dict in a Node, leaves everything else as is."""
         if isinstance(obj, dict):
             return Node().from_dict(obj)
         return obj
 
     def from_dict(self, d):
-        """Заполняет узел из словаря."""
+        """Fills the node from a dictionary."""
         for key, value in d.items():
             if isinstance(value, dict):
                 if "value" in value:
-                    # Это Parameter: есть "value" + возможно метаданные
+                    # This is a Parameter: has "value" + optional metadata
                     params = {k: v for k, v in value.items() if k != "value"}
                     self._children[key] = Parameter(value["value"], **params)
                 else:
-                    # Это вложенный ConfigNode
+                    # This is a nested node
                     if key not in self._children:
                         self._children[key] = Node()
                     self._children[key].from_dict(value)
             else:
-                # Просто значение → оборачиваем в Parameter
+                # Plain value → wrap it in a Parameter
                 self._children[key] = Parameter(value)
         return self
 
@@ -139,7 +139,7 @@ class Node:
         return pd.DataFrame([row])
 
     def to_dict(self, **filters):
-        """Преобразует узел в обычный словарь.
+        """Converts the node into a plain dictionary.
 
         Args:
             **filters: Can include 'include' and/or 'exclude' keys

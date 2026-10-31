@@ -6,12 +6,12 @@ import pandas as pd
 
 def series_merger(*series_list, reset_index=True, sort=False):
     """
-    Выполняет cross merging (декартово произведение) нескольких Series в один DataFrame
+    Performs cross merging (Cartesian product) of several Series into one DataFrame
 
     Parameters:
-    *series_list: переменное количество Series
-    reset_index: сбросить индекс или оставить MultiIndex
-    sort: сортировать результат
+    *series_list: variable number of Series
+    reset_index: reset the index or keep the MultiIndex
+    sort: sort the result
     """
     if not series_list:
         return pd.DataFrame()
@@ -19,11 +19,11 @@ def series_merger(*series_list, reset_index=True, sort=False):
     names = [s.name for s in series_list]
     values = [s.values for s in series_list]
 
-    # Проверяем, что все Series имеют имена
+    # Check that all Series have names
     if any(name is None for name in names):
         raise ValueError("All Series must have names for cross merge")
 
-    # Создаем декартово произведение
+    # Create the Cartesian product
     cartesian_product = list(itertools.product(*values))
 
     if sort:
@@ -31,7 +31,7 @@ def series_merger(*series_list, reset_index=True, sort=False):
 
     df = pd.DataFrame(cartesian_product, columns=names)
 
-    # Приводим типы
+    # Cast types
     for series, col_name in zip(series_list, names):
         df[col_name] = df[col_name].astype(series.dtype)
 

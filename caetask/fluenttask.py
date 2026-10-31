@@ -69,10 +69,10 @@ class FluentTask(CAETask):
     def __str__(self):
         output = super().__str__()
         if self._temporary_directory:
-            output += 'путь временной директории: ' + self._temporary_directory + '\n'
+            output += 'temporary directory path: ' + self._temporary_directory + '\n'
         if self._results_file_name:
-            output += 'файл результатов: ' + self._results_file_name + '\n'
-        output += 'количество потоков в задаче: ' + str(self._threads) + '\n'
+            output += 'results file: ' + self._results_file_name + '\n'
+        output += 'number of threads in the task: ' + str(self._threads) + '\n'
         return output
 
     @log_execution_time()
@@ -84,9 +84,9 @@ class FluentTask(CAETask):
 
         self._create_files_in_running_dir(tempdir)
 
-        print("запущен расчёт Fluent задачи \"" +
+        print("started Fluent task \"" +
               self._input_file.name + "\"" +
-              " во временной директории " +
+              " in temporary directory " +
               tempdir.name)
 
         application = [f'"{Path('%AWP_ROOT' + self._application_version + '%') / 'fluent' / 'ntbin' / 'win64' / 'fluent.exe'}"',
@@ -96,28 +96,28 @@ class FluentTask(CAETask):
                          if self._graphics_regime is not None else []),  # run without graphics
                        '-i', self._input_file.name]
 
-        # создание ссылок или копирование дополнительных нетекстовых файлов
+        # create links to or copy additional non-text files
         self._organize_additional_link_files(tempdir)  #move above
 
-        # создание процесса по сконфигурированному application
+        # create the process from the configured application
         with (open(Path(tempdir.name) / self.log_file_name, 'w', encoding="utf-8") as f,
               Popen(' '.join(application),
                     shell=True,
                     stdout=f,
                     cwd=tempdir.name) as process):
             self._process = process.wait()
-        print("закончен расчёт ансис задачи " +
+        print("finished ANSYS task " +
               self.name +
-              " во временной директории " +
+              " in temporary directory " +
               Path(tempdir.name).name)
 
-        # делаем проверку на регулярные выражения и расширяем список файлов с их учётом
+        # check regular expressions and extend the file list accordingly
         results_files_names_to_add = []
         results_files_names_to_remove = []
         for file in self._results_files_names:
             if any(ch in file for ch in ['*', '?', '+']):
-                # список файлов результатов читается из временной директории; если она
-                # уже удалена, совпадений нет — это корректная деградация, не ошибка
+                # the results file list is read from the temporary directory; if it has
+                # already been removed, there are no matches — correct degradation, not an error
                 with suppress(OSError):
                     for f in os.listdir(tempdir.name):
                         if fnmatch.fnmatch(f, file):
@@ -127,24 +127,24 @@ class FluentTask(CAETask):
         for file in results_files_names_to_remove:
             self._results_files_names.remove(file)
 
-        # переносим результаты в папку результатов
+        # move the results into the results directory
         for file in self._results_files_names:
             try:
                 shutil.copy2(Path(tempdir.name) / file, self._results_directory)
-                print(f"Файл {file} fluent задачи {self.name} скопирован из "
-                      f"{tempdir.name} в {self._results_directory.name}")
+                print(f"File {file} of Fluent task {self.name} copied from "
+                      f"{tempdir.name} to {self._results_directory.name}")
             except OSError:
-                print(f"Файл {file} не найден для копирования в {self._results_directory}")
+                print(f"File {file} not found for copying to {self._results_directory}")
 
-        # переносим файл лога в папку результатов
+        # move the log file into the results directory
         try:
             shutil.copy2(Path(tempdir.name) / self._log_file_name, self._results_directory)
             print(
-                f"Файл лога {self._log_file_name} fluent задачи {self._name} скопирован из "
-                f"{tempdir.name} в {self._results_directory.name}")
+                f"Log file {self._log_file_name} of Fluent task {self._name} copied from "
+                f"{tempdir.name} to {self._results_directory.name}")
         except OSError:
-            print(f"Файл лога {self._log_file_name} не найден "
-                  f"для копирования в {self._results_directory}")
+            print(f"Log file {self._log_file_name} not found "
+                  f"for copying to {self._results_directory}")
 
         if cleanup:
             tempdir.cleanup()
@@ -158,7 +158,7 @@ class FluentTask(CAETask):
     @dimension.setter
     def dimension(self, dimension):
         if dimension not in ["2d", "3d", "2ddp", "3ddp"]:
-            raise ValueError("Неизвестный тип размерности задачи: " + dimension)
+            raise ValueError("Unknown task dimensionality type: " + dimension)
         self._dimension = dimension
 
     @property

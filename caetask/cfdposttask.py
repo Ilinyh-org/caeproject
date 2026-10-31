@@ -54,9 +54,9 @@ class CFDPostTask(CAETask):
 
     def __str__(self):
         output = super().__str__()
-        output += 'путь рабочей директории: ' + str(self._working_directory) + '\n'
+        output += 'working directory path: ' + str(self._working_directory) + '\n'
         if self._results_file_name:
-            output += 'файл результатов (входных): ' + self._results_file_name + '\n'
+            output += 'results file (input): ' + self._results_file_name + '\n'
         return output
 
     def _create_files_in_running_dir(
@@ -73,8 +73,8 @@ class CFDPostTask(CAETask):
 
         self._create_files_in_running_dir(self._working_directory.absolute())
 
-        print(f"запущен расчёт cfdpost задачи {self._input_file.name}")
-        # составляем список команд и аттрибутов для запуска
+        print(f"started cfdpost task {self._input_file.name}")
+        # build the list of commands and attributes for the run
         application = [f'"{Path('%AWP_ROOT' + self._application_version + '%') / 'CFD-Post' / 'bin' / 'cfdpost.exe'}"',
                        '-batch', self._input_file.name]
 
@@ -82,14 +82,14 @@ class CFDPostTask(CAETask):
             application.append('-results')
             application.append(self._results_file_name)
 
-        # создание процесса по сконфигурированному application
+        # create the process from the configured application
         with (open(self._working_directory / self.log_file_name, 'w', encoding="utf-8") as f,
               Popen(' '.join(application),
                     shell=True,
                     stdout=f,
                     cwd=self._working_directory) as process):
             self._process = process.wait()
-        print(f"закончена обработка результатов {self._input_file.name}")
+        print(f"finished processing results {self._input_file.name}")
 
     def to_dict(self):
         data = super().to_dict()
