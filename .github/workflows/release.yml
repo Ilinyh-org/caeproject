@@ -2,61 +2,43 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*"
-    branches:
-      - main
+    branches: [ main ]
+
+permissions:
+  contents: write
 
 jobs:
-  semantic-release:
+  release:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    permissions:
-      contents: write
-
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0 # semantic-release needs full history
+          fetch-depth: 0
           token: ${{ secrets.RELEASE_PAT }}
           persist-credentials: false
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v8
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
-
-  release:
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
-      - name: Install build
-        run: python -m pip install build
-
-      - name: Run tests
+      - name: Install dependencies
         run: |
           python -m pip install -e ".[dev]"
-          python -m pytest -m "not external"
+          python -m pip install build
 
-      - name: Build package
-        run: python -m build
+      - name: Run tests
+        run: python -m pytest -m "not external"
 
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "${{ github.ref_name }}" \
-            --generate-notes \
-            dist/*
+      - name: Python Semantic Release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v10.2.0
+        with:
+          github_token: ${{ secrets.RELEASE_PAT }}
+
+      - name: Publish package to GitHub Release
+        if: steps.release.outputs.released == 'true'
+        uses: python-semantic-release/publish-action@v10.2.0
+        with:
+          github_token: ${{ secrets.RELEASE_PAT }}
+          tag: ${{ steps.release.outputs.tag }}

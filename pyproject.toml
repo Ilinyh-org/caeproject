@@ -1,8 +1,7 @@
 [project]
 
 name = "caeproject"
-dynamic = ["version"]
-
+version = "0.0.0"
 description = "A module for running CAE applications from python script"
 
 readme = "README.md"
@@ -26,15 +25,27 @@ dependencies = [
     "pandas"
 ]
 
-[project.optional-dependencies] # Optional
+[project.optional-dependencies]
 dev = ["pytest", "pytest_check", "pytest-cov", "ruff"]
 test = ["pytest", "plotly"]
 
-[project.urls]  # Optional
+[project.urls]
 "Homepage" = "https://github.com/IlinyhGleb/caeproject"
 "Bug Reports" = "https://github.com/IlinyhGleb/caeproject/issues"
 "Source" = "https://github.com/IlinyhGleb/caeproject"
 
+# ---------- PSR configuration ----------
+[tool.semantic_release]
+branch = "main"
+version_toml = ["pyproject.toml:project.version"]
+commit_parser = "conventional"
+tag_format = "v{version}"
+build_command = "python -m build"  # optional, but useful
+
+[tool.semantic_release.changelog]
+mode = "update"  # prepends new entries, keeps history
+
+# ---------- setuptools ----------
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["project", "caecase", "core"]
@@ -48,7 +59,5 @@ markers = [
 ]
 
 [build-system]
-requires = [
-    "setuptools>=80",
-    "setuptools-scm[simple]>=9.2"]
+requires = ["setuptools>=80"]
 build-backend = "setuptools.build_meta"
